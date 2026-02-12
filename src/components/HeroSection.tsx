@@ -123,7 +123,7 @@ export function HeroSection() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 1.2 + index * 0.1, duration: 0.6 }}
                       onClick={scrollToCollections}
-                      className="w-full py-4 px-6 border border-border hover:border-accent bg-secondary/50 hover:bg-accent/10 transition-all duration-300 group"
+                      className="w-full py-4 px-6 border border-border hover:border-accent bg-secondary/50 hover:bg-accent/10 transition-all duration-300 group rounded-xl"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-lg tracking-[0.2em] font-semibold">

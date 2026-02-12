@@ -87,7 +87,7 @@ export function CollectionsSection() {
                   </p>
                 </div>
 
-                <div className="absolute top-4 left-4 right-4 bottom-4 border border-accent/0 group-hover:border-accent/30 transition-all duration-500 pointer-events-none" />
+                <div className="absolute top-4 left-4 right-4 bottom-4 border border-accent/0 group-hover:border-accent/30 transition-all duration-500 pointer-events-none rounded-lg" />
               </Card>
             </motion.div>
           ))}

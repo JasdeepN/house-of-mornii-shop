@@ -55,6 +55,8 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
           y="2"
           width="calc(100% - 4px)"
           height="calc(100% - 4px)"
+          rx="16"
+          ry="16"
           fill="none"
           stroke="url(#goldMetallic)"
           strokeWidth="2"
@@ -66,6 +68,8 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
           y="6"
           width="calc(100% - 12px)"
           height="calc(100% - 12px)"
+          rx="12"
+          ry="12"
           fill="none"
           stroke="url(#goldMetallic)"
           strokeWidth="1"
@@ -77,6 +81,8 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
           y="10"
           width="calc(100% - 20px)"
           height="calc(100% - 20px)"
+          rx="8"
+          ry="8"
           fill="none"
           stroke="url(#goldHighlight)"
           strokeWidth="0.5"
@@ -84,7 +90,7 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
         />
       </svg>
 
-      <svg className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-32 h-24 pointer-events-none z-20" viewBox="0 0 160 120">
+      <svg className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 w-24 h-20 pointer-events-none z-20" viewBox="0 0 120 80">
         <TopCenterpiece />
       </svg>
 
@@ -115,66 +121,69 @@ function TopCenterpiece() {
   return (
     <g filter="url(#goldBevel)">
       <path
-        d="M 80 15 C 65 10, 50 12, 40 20 C 35 15, 25 12, 20 15 C 15 18, 12 25, 15 35 C 20 50, 35 60, 45 65 L 50 70 L 55 75 L 60 70 L 65 65 C 75 60, 90 50, 95 35 C 98 25, 95 18, 90 15 C 85 12, 75 15, 70 20 C 60 12, 95 10, 80 15 Z"
+        d="M 60 8 Q 55 10 50 8 Q 48 5 50 3 Q 55 0 60 3 Q 62 5 60 8 Z"
         fill="url(#goldRadial)"
         stroke="url(#goldMetallic)"
+        strokeWidth="1.2"
+      />
+      
+      <path
+        d="M 60 8 L 60 25"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      
+      <ellipse 
+        cx="60" 
+        cy="30" 
+        rx="8" 
+        ry="12" 
+        fill="url(#goldRadial)" 
+        stroke="url(#goldMetallic)" 
         strokeWidth="1.5"
       />
       
       <path
-        d="M 80 25 C 70 30, 60 35, 55 42 C 52 38, 48 35, 45 38 C 42 41, 41 47, 44 52 C 48 58, 58 62, 65 65 L 70 68 L 75 65 C 82 62, 92 58, 96 52 C 99 47, 98 41, 95 38 C 92 35, 88 38, 85 42 C 80 35, 70 30, 80 25 Z"
-        fill="none"
-        stroke="#F4E7C3"
-        strokeWidth="0.5"
-        opacity="0.8"
-      />
-      
-      <ellipse cx="80" cy="50" rx="8" ry="12" fill="url(#goldRadial)" stroke="url(#goldMetallic)" strokeWidth="1"/>
-      
-      <path
-        d="M 50 15 C 48 10, 45 8, 42 10 C 39 12, 38 16, 40 20 C 42 24, 46 26, 50 25 Z"
+        d="M 50 30 Q 45 25 42 28 Q 40 32 43 36 Q 48 40 52 38"
         fill="url(#goldRadial)"
         stroke="url(#goldMetallic)"
         strokeWidth="0.8"
+        opacity="0.9"
       />
       <path
-        d="M 110 15 C 112 10, 115 8, 118 10 C 121 12, 122 16, 120 20 C 118 24, 114 26, 110 25 Z"
+        d="M 70 30 Q 75 25 78 28 Q 80 32 77 36 Q 72 40 68 38"
         fill="url(#goldRadial)"
         stroke="url(#goldMetallic)"
         strokeWidth="0.8"
+        opacity="0.9"
       />
       
+      <circle cx="60" cy="30" r="4" fill="#F4E7C3" opacity="0.8"/>
+      <circle cx="60" cy="30" r="2" fill="url(#goldRadial)" opacity="0.9"/>
+      
       <path
-        d="M 30 25 Q 25 30 22 40 Q 20 35 18 30 Q 22 25 30 25 Z"
+        d="M 35 32 Q 30 30 28 33 Q 27 37 30 40 Q 33 42 36 40"
         fill="url(#goldRadial)"
         stroke="url(#goldMetallic)"
         strokeWidth="0.6"
       />
       <path
-        d="M 130 25 Q 135 30 138 40 Q 140 35 142 30 Q 138 25 130 25 Z"
+        d="M 85 32 Q 90 30 92 33 Q 93 37 90 40 Q 87 42 84 40"
         fill="url(#goldRadial)"
         stroke="url(#goldMetallic)"
         strokeWidth="0.6"
       />
       
-      <circle cx="80" cy="35" r="3" fill="#F4E7C3" opacity="0.9"/>
-      <circle cx="70" cy="45" r="2" fill="#F4E7C3" opacity="0.7"/>
-      <circle cx="90" cy="45" r="2" fill="#F4E7C3" opacity="0.7"/>
+      <path
+        d="M 52 45 Q 54 50 56 52 L 60 55 L 64 52 Q 66 50 68 45"
+        fill="none"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1"
+      />
       
-      <path
-        d="M 65 55 Q 70 58 75 55"
-        fill="none"
-        stroke="#F4E7C3"
-        strokeWidth="0.8"
-        opacity="0.8"
-      />
-      <path
-        d="M 85 55 Q 90 58 95 55"
-        fill="none"
-        stroke="#F4E7C3"
-        strokeWidth="0.8"
-        opacity="0.8"
-      />
+      <circle cx="45" cy="35" r="1.5" fill="#F4E7C3" opacity="0.7"/>
+      <circle cx="75" cy="35" r="1.5" fill="#F4E7C3" opacity="0.7"/>
     </g>
   )
 }

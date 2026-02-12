@@ -50,7 +50,7 @@
   --teal-deep: oklch(0.45 0.08 210);
   --slate-dark: oklch(0.20 0.02 210);
   
-  --radius: 0.25rem;
+  --radius: 1rem;
 }
 
 @theme {
