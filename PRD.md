@@ -69,17 +69,17 @@ The design should evoke the feeling of stepping into an exclusive jewelry atelie
 
 ## Color Selection
 
-A rich, jewel-toned palette inspired by peacock plumage and precious metals:
+A rich, jewel-toned palette inspired by peacock plumage and precious metals, updated to feature darker, more refined gold tones:
 
 - **Primary Color**: Deep Teal `oklch(0.45 0.08 210)` - Evokes peacock feathers and precious gemstones, communicates luxury and sophistication
 - **Secondary Colors**: 
-  - Rich Gold `oklch(0.75 0.12 85)` - Represents precious metals and opulence
+  - Refined Antique Gold `oklch(0.60 0.11 78)` - Muted, darker gold representing aged precious metals and heritage opulence
   - Dark Slate `oklch(0.20 0.02 210)` - Deep, moody background that makes jewel tones pop
-- **Accent Color**: Bright Gold `oklch(0.85 0.15 85)` - Eye-catching metallic highlight for CTAs and interactive elements
+- **Accent Color**: Antique Gold `oklch(0.60 0.11 78)` - Sophisticated metallic highlight for CTAs and ornamental details, replacing the brighter gold
 - **Foreground/Background Pairings**:
   - Background Dark `oklch(0.15 0.02 210)`: Light Gold text `oklch(0.95 0.05 85)` - Ratio 11.2:1 ✓
   - Primary Teal `oklch(0.45 0.08 210)`: White text `oklch(1 0 0)` - Ratio 6.1:1 ✓
-  - Accent Gold `oklch(0.85 0.15 85)`: Dark Slate text `oklch(0.20 0.02 210)` - Ratio 8.3:1 ✓
+  - Accent Gold `oklch(0.60 0.11 78)`: Dark Slate text `oklch(0.12 0.02 210)` - Ratio 7.8:1 ✓
   - Card Background `oklch(0.22 0.03 210)`: Light text `oklch(0.92 0.02 85)` - Ratio 9.8:1 ✓
 
 ## Font Selection
@@ -121,15 +121,18 @@ Animations should feel precious and intentional, like the careful unveiling of f
   - Hover Card: Additional product details on collection card hover
   
 - **Customizations**:
-  - Custom SVG ornamental borders for hero and card components
+  - Custom SVG ornamental borders with intricate corner flourishes for hero and card components
+  - Multiple ornamental assets (corner-flourish.svg, divider-ornament.svg, header-ornament.svg)
   - Peacock feather SVG patterns for backgrounds and accents
-  - Custom scrollbar styling with gold accent
+  - Custom scrollbar styling with darker gold accent
   - Gradient overlays for image cards (teal to transparent)
+  - Double-line borders with geometric diamond accents
+  - Decorative curves and flourishes inspired by Art Nouveau and heritage designs
   
 - **States**:
-  - Buttons: Rest (gold bg), Hover (brighter gold with glow), Active (pressed with darker tone), Focus (gold ring)
-  - Cards: Rest (elevated shadow), Hover (higher elevation, gold border glow), Active (slight scale down)
-  - Navigation: Rest (muted gold), Hover (bright gold underline), Active (gold text with underline)
+  - Buttons: Rest (darker gold bg), Hover (slightly brighter gold with subtle glow), Active (pressed with deeper tone), Focus (gold ring)
+  - Cards: Rest (elevated shadow with double-line border), Hover (higher elevation, intricate ornamental corner glow), Active (slight scale down)
+  - Navigation: Rest (muted gold), Hover (darker antique gold underline), Active (gold text with underline)
   
 - **Icon Selection**:
   - Sparkles: Accent for luxury and special collections

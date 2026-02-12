@@ -1,6 +1,8 @@
+import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-secondary/20">
+    <footer className="border-t-2 border-gold/40 bg-secondary/20">
       <div className="container mx-auto px-6 lg:px-20 py-12">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
@@ -9,6 +11,8 @@ export function Footer() {
               <span className="font-script text-2xl ml-2">Mornii</span>
             </div>
           </div>
+
+          <OrnamentalDivider className="my-6" />
 
           <p className="text-sm text-muted-foreground tracking-[0.15em]">
             REGAL · RADIANT · MODERN

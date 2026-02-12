@@ -1,0 +1,89 @@
+<svg width="280" height="50" viewBox="0 0 280 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dividerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color: oklch(0.60 0.11 78); stop-opacity: 0" />
+      <stop offset="50%" style="stop-color: oklch(0.60 0.11 78); stop-opacity: 1" />
+      <stop offset="100%" style="stop-color: oklch(0.60 0.11 78); stop-opacity: 0" />
+    </linearGradient>
+    <style>
+      .divider-gold {
+        fill: none;
+        stroke: oklch(0.60 0.11 78);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .divider-fill {
+        fill: oklch(0.60 0.11 78);
+      }
+    </style>
+  </defs>
+  
+  <!-- Side lines with gradient -->
+  <line x1="0" y1="25" x2="100" y2="25" stroke="url(#dividerGradient)" stroke-width="1" />
+  <line x1="180" y1="25" x2="280" y2="25" stroke="url(#dividerGradient)" stroke-width="1" />
+  
+  <!-- Center ornament -->
+  <g transform="translate(140, 25)">
+    <!-- Top diamond -->
+    <path
+      class="divider-gold"
+      d="M 0 -15 L 3 -12 L 0 -9 L -3 -12 Z"
+      stroke-width="1"
+    />
+    <!-- Bottom diamond -->
+    <path
+      class="divider-gold"
+      d="M 0 15 L 3 12 L 0 9 L -3 12 Z"
+      stroke-width="1"
+    />
+    
+    <!-- Vertical connectors -->
+    <line class="divider-gold" x1="0" y1="-8" x2="0" y2="-2" stroke-width="1" />
+    <line class="divider-gold" x1="0" y1="2" x2="0" y2="8" stroke-width="1" />
+    
+    <!-- Center circle -->
+    <circle class="divider-gold" cx="0" cy="0" r="4" stroke-width="1" />
+    <circle class="divider-fill" cx="0" cy="0" r="2" opacity="0.8" />
+    
+    <!-- Side flourishes -->
+    <path
+      class="divider-gold"
+      d="M -12 -3 L -8 0 L -12 3"
+      stroke-width="0.75"
+      opacity="0.7"
+    />
+    <path
+      class="divider-gold"
+      d="M 12 -3 L 8 0 L 12 3"
+      stroke-width="0.75"
+      opacity="0.7"
+    />
+    
+    <!-- Side dots -->
+    <circle class="divider-fill" cx="-15" cy="0" r="1.5" opacity="0.6" />
+    <circle class="divider-fill" cx="15" cy="0" r="1.5" opacity="0.6" />
+    
+    <!-- Top curves -->
+    <path
+      class="divider-gold"
+      d="M -10 -8 Q -8 -10 -6 -8 M 6 -8 Q 8 -10 10 -8"
+      stroke-width="0.5"
+      opacity="0.6"
+    />
+    <!-- Bottom curves -->
+    <path
+      class="divider-gold"
+      d="M -10 8 Q -8 10 -6 8 M 6 8 Q 8 10 10 8"
+      stroke-width="0.5"
+      opacity="0.6"
+    />
+  </g>
+  
+  <!-- Side diamonds -->
+  <g transform="translate(110, 25)">
+    <path class="divider-gold" d="M 0 -5 L 3 0 L 0 5 L -3 0 Z" stroke-width="0.75" opacity="0.7" />
+  </g>
+  <g transform="translate(170, 25)">
+    <path class="divider-gold" d="M 0 -5 L 3 0 L 0 5 L -3 0 Z" stroke-width="0.75" opacity="0.7" />
+  </g>
+</svg>

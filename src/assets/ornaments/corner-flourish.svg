@@ -1,0 +1,79 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .ornament-gold {
+        fill: none;
+        stroke: oklch(0.60 0.11 78);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .ornament-fill {
+        fill: oklch(0.60 0.11 78);
+      }
+    </style>
+  </defs>
+  
+  <g>
+    <!-- Main corner lines -->
+    <path
+      class="ornament-gold"
+      d="M 5 5 L 25 5 M 5 5 L 5 25"
+      stroke-width="1.5"
+    />
+    
+    <!-- Inner corner lines -->
+    <path
+      class="ornament-gold"
+      d="M 8 8 L 20 8 M 8 8 L 8 20"
+      stroke-width="0.5"
+      opacity="0.6"
+    />
+    
+    <!-- Diagonal accent -->
+    <path
+      class="ornament-gold"
+      d="M 5 15 Q 10 10 15 5"
+      stroke-width="0.5"
+      opacity="0.5"
+    />
+    
+    <!-- Corner dots -->
+    <circle class="ornament-fill" cx="25" cy="5" r="2" opacity="0.8" />
+    <circle class="ornament-fill" cx="5" cy="25" r="2" opacity="0.8" />
+    
+    <!-- Diamond shapes -->
+    <path
+      class="ornament-gold"
+      d="M 15 5 L 18 8 L 15 11 L 12 8 Z"
+      stroke-width="0.5"
+      opacity="0.7"
+    />
+    
+    <path
+      class="ornament-gold"
+      d="M 5 15 L 8 18 L 11 15 L 8 12 Z"
+      stroke-width="0.5"
+      opacity="0.7"
+    />
+    
+    <!-- Decorative curves -->
+    <path
+      class="ornament-gold"
+      d="M 23 7 C 23 7, 25 10, 22 12 M 7 23 C 7 23, 10 25, 12 22"
+      stroke-width="0.5"
+      opacity="0.6"
+    />
+    
+    <!-- Small accent dots -->
+    <circle class="ornament-fill" cx="15" cy="5" r="1" opacity="0.6" />
+    <circle class="ornament-fill" cx="5" cy="15" r="1" opacity="0.6" />
+    
+    <!-- Final flourishes -->
+    <path
+      class="ornament-gold"
+      d="M 20 8 Q 22 10 20 12 M 8 20 Q 10 22 12 20"
+      stroke-width="0.5"
+      opacity="0.5"
+    />
+  </g>
+</svg>
