@@ -34,11 +34,11 @@ This is a content showcase with collection browsing, mood-based shopping navigat
 - **Success criteria**: Categories are distinct and appealing, transitions are smooth, filtering works accurately
 
 ### Collections Showcase
-- **Functionality**: Three primary collections (Everyday, Festive, Bridal) displayed as image cards with ornate frames
-- **Purpose**: Present the breadth of offerings and allow deeper exploration of each collection
+- **Functionality**: Three primary collections (Everyday, Festive, Bridal) displayed as image cards with ornate frames, featuring AI-generated prompts for creating professional jewelry photography
+- **Purpose**: Present the breadth of offerings and allow deeper exploration of each collection, while providing ready-to-use AI image generation prompts
 - **Trigger**: Scroll to collections section
-- **Progression**: Section comes into view → Cards fade in sequentially → Hover reveals additional details → Click navigates to collection detail
-- **Success criteria**: Images load properly, cards have hover states, click interactions work
+- **Progression**: Section comes into view → Cards fade in sequentially → AI generates detailed image prompts using GPT-4 → Prompts are displayed on cards → User can copy prompts for DALL-E/Midjourney → Hover reveals additional details
+- **Success criteria**: AI prompts generate successfully, prompts are detailed and style-appropriate, cards have hover states, text is readable and copyable
 
 ### About Section
 - **Functionality**: Brand story and philosophy presented with elegant typography
