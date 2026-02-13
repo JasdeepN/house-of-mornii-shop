@@ -15,48 +15,47 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
         preserveAspectRatio="none"
       >
         <defs>
-          <linearGradient id="goldMetallic" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
-            <stop offset="15%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
-            <stop offset="30%" style={{ stopColor: '#F4E7C3', stopOpacity: 1 }} />
-            <stop offset="45%" style={{ stopColor: '#C9A961', stopOpacity: 1 }} />
-            <stop offset="60%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
-            <stop offset="75%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
-            <stop offset="90%" style={{ stopColor: '#A38B5F', stopOpacity: 1 }} />
+          <linearGradient id="goldMetallic" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: '#6B5742', stopOpacity: 1 }} />
+            <stop offset="20%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
+            <stop offset="35%" style={{ stopColor: '#C9A961', stopOpacity: 1 }} />
+            <stop offset="50%" style={{ stopColor: '#F4E7C3', stopOpacity: 1 }} />
+            <stop offset="65%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
+            <stop offset="80%" style={{ stopColor: '#A38B5F', stopOpacity: 1 }} />
             <stop offset="100%" style={{ stopColor: '#6B5742', stopOpacity: 1 }} />
           </linearGradient>
           
-          <linearGradient id="goldHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style={{ stopColor: '#6B5742', stopOpacity: 0.8 }} />
-            <stop offset="25%" style={{ stopColor: '#F4E7C3', stopOpacity: 1 }} />
-            <stop offset="50%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
-            <stop offset="75%" style={{ stopColor: '#F4E7C3', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#6B5742', stopOpacity: 0.8 }} />
+          <linearGradient id="goldDark" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
+            <stop offset="50%" style={{ stopColor: '#C9A961', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
           </linearGradient>
           
-          <radialGradient id="goldRadial">
-            <stop offset="0%" style={{ stopColor: '#F4E7C3', stopOpacity: 1 }} />
-            <stop offset="50%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#8B7355', stopOpacity: 1 }} />
-          </radialGradient>
-          
           <filter id="goldBevel">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur"/>
-            <feSpecularLighting in="blur" surfaceScale="3" specularConstant="1" specularExponent="20" lighting-color="#F4E7C3" result="specOut">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="0.8" result="blur"/>
+            <feSpecularLighting in="blur" surfaceScale="4" specularConstant="1.2" specularExponent="25" lighting-color="#F4E7C3" result="specOut">
               <fePointLight x="-5000" y="-10000" z="20000"/>
             </feSpecularLighting>
             <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut"/>
             <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
           </filter>
+          
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
         
         <rect
-          x="2"
-          y="2"
-          width="calc(100% - 4px)"
-          height="calc(100% - 4px)"
-          rx="24"
-          ry="24"
+          x="4"
+          y="4"
+          width="calc(100% - 8px)"
+          height="calc(100% - 8px)"
+          rx="16"
+          ry="16"
           fill="none"
           stroke="url(#goldMetallic)"
           strokeWidth="2"
@@ -64,45 +63,32 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
         />
         
         <rect
-          x="6"
-          y="6"
-          width="calc(100% - 12px)"
-          height="calc(100% - 12px)"
-          rx="20"
-          ry="20"
+          x="8"
+          y="8"
+          width="calc(100% - 16px)"
+          height="calc(100% - 16px)"
+          rx="12"
+          ry="12"
           fill="none"
-          stroke="url(#goldMetallic)"
-          strokeWidth="1"
-          opacity="0.7"
-        />
-        
-        <rect
-          x="10"
-          y="10"
-          width="calc(100% - 20px)"
-          height="calc(100% - 20px)"
-          rx="16"
-          ry="16"
-          fill="none"
-          stroke="url(#goldHighlight)"
-          strokeWidth="0.5"
-          opacity="0.5"
+          stroke="url(#goldDark)"
+          strokeWidth="1.5"
+          opacity="0.8"
         />
       </svg>
 
-      <svg className="absolute top-0 left-0 w-24 h-24 pointer-events-none" viewBox="0 0 80 80">
+      <svg className="absolute top-0 left-0 w-20 h-20 pointer-events-none" viewBox="0 0 100 100">
         <TopCornerOrnament />
       </svg>
       
-      <svg className="absolute top-0 right-0 w-24 h-24 pointer-events-none" viewBox="0 0 80 80" style={{ transform: 'scaleX(-1)' }}>
+      <svg className="absolute top-0 right-0 w-20 h-20 pointer-events-none" viewBox="0 0 100 100" style={{ transform: 'scaleX(-1)' }}>
         <TopCornerOrnament />
       </svg>
       
-      <svg className="absolute bottom-0 left-0 w-36 h-36 pointer-events-none" viewBox="0 0 140 140">
+      <svg className="absolute bottom-0 left-0 w-32 h-32 pointer-events-none" viewBox="0 0 150 150">
         <BottomCornerOrnament />
       </svg>
       
-      <svg className="absolute bottom-0 right-0 w-36 h-36 pointer-events-none" viewBox="0 0 140 140" style={{ transform: 'scaleX(-1)' }}>
+      <svg className="absolute bottom-0 right-0 w-32 h-32 pointer-events-none" viewBox="0 0 150 150" style={{ transform: 'scaleX(-1)' }}>
         <BottomCornerOrnament />
       </svg>
       
@@ -117,94 +103,68 @@ function TopCornerOrnament() {
   return (
     <g filter="url(#goldBevel)">
       <path
-        d="M 2 15 C 2 12, 3 10, 5 8 C 7 6, 10 5, 12 5 C 14 5, 16 6, 18 8 C 20 10, 22 13, 24 16 C 26 19, 28 22, 32 24"
+        d="M 4 20 Q 4 12 8 8 Q 12 4 20 4"
         fill="none"
         stroke="url(#goldMetallic)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      
-      <path
-        d="M 15 2 C 12 2, 10 3, 8 5 C 6 7, 5 10, 5 12 C 5 14, 6 16, 8 18 C 10 20, 13 22, 16 24 C 19 26, 22 28, 24 32"
-        fill="none"
-        stroke="url(#goldMetallic)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      
-      <path
-        d="M 6 12 C 6 10, 7 9, 9 8 C 11 7, 13 7, 15 8 C 17 9, 19 11, 21 13 C 23 15, 25 18, 28 20"
-        fill="none"
-        stroke="url(#goldMetallic)"
-        strokeWidth="1"
-        strokeLinecap="round"
-        opacity="0.6"
-      />
-      
-      <path
-        d="M 12 6 C 10 6, 9 7, 8 9 C 7 11, 7 13, 8 15 C 9 17, 11 19, 13 21 C 15 23, 18 25, 20 28"
-        fill="none"
-        stroke="url(#goldMetallic)"
-        strokeWidth="1"
-        strokeLinecap="round"
-        opacity="0.6"
-      />
-      
-      <path
-        d="M 8 10 C 8 9, 9 8, 10 8 C 11 8, 12 9, 13 10 C 14 11, 15 13, 16 15 C 17 17, 18 19, 20 21"
-        fill="none"
-        stroke="url(#goldHighlight)"
         strokeWidth="2.5"
         strokeLinecap="round"
-        opacity="0.35"
       />
       
       <path
-        d="M 10 8 C 9 8, 8 9, 8 10 C 8 11, 9 12, 10 13 C 11 14, 13 15, 15 16 C 17 17, 19 18, 21 20"
+        d="M 8 24 Q 8 14 14 10 Q 18 8 26 8"
         fill="none"
-        stroke="url(#goldHighlight)"
-        strokeWidth="2.5"
+        stroke="url(#goldDark)"
+        strokeWidth="1.8"
         strokeLinecap="round"
-        opacity="0.35"
+        opacity="0.7"
       />
+      
+      <path
+        d="M 10 18 Q 12 14 16 12 Q 20 10 24 12 Q 28 14 30 18"
+        fill="none"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+      
+      <path
+        d="M 18 10 Q 14 12 12 16 Q 10 20 12 24 Q 14 28 18 30"
+        fill="none"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+      
+      <circle cx="18" cy="18" r="3" fill="url(#goldMetallic)" opacity="0.6" filter="url(#softGlow)" />
+      <circle cx="14" cy="14" r="2" fill="#F4E7C3" opacity="0.8" />
     </g>
   )
 }
 
 function BottomCornerOrnament() {
   return (
-    <g filter="url(#goldBevel)" transform="scale(1, -1) translate(0, -140)">
+    <g filter="url(#goldBevel)" transform="scale(1, -1) translate(0, -150)">
       <path
-        d="M 2 20 C 2 15, 4 12, 7 10 C 10 8, 14 7, 18 8 C 22 9, 26 12, 30 16 C 34 20, 38 26, 42 32 C 46 38, 50 45, 55 52 C 60 59, 66 66, 72 72 C 78 78, 85 83, 92 86"
+        d="M 4 30 Q 4 18 10 12 Q 16 6 30 6"
         fill="none"
         stroke="url(#goldMetallic)"
-        strokeWidth="2.5"
+        strokeWidth="2.8"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
       
       <path
-        d="M 20 2 C 15 2, 12 4, 10 7 C 8 10, 7 14, 8 18 C 9 22, 12 26, 16 30 C 20 34, 26 38, 32 42 C 38 46, 45 50, 52 55 C 59 60, 66 66, 72 72 C 78 78, 83 85, 86 92"
+        d="M 10 35 Q 10 22 18 16 Q 24 12 38 12"
         fill="none"
-        stroke="url(#goldMetallic)"
-        strokeWidth="2.5"
+        stroke="url(#goldDark)"
+        strokeWidth="2"
         strokeLinecap="round"
-        strokeLinejoin="round"
+        opacity="0.75"
       />
       
       <path
-        d="M 8 18 C 8 14, 10 12, 12 10 C 14 8, 18 8, 22 10 C 26 12, 30 16, 34 20 C 38 24, 42 30, 47 36 C 52 42, 58 48, 64 54 C 70 60, 76 66, 82 70"
-        fill="none"
-        stroke="url(#goldMetallic)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.6"
-      />
-      
-      <path
-        d="M 18 8 C 14 8, 12 10, 10 12 C 8 14, 8 18, 10 22 C 12 26, 16 30, 20 34 C 24 38, 30 42, 36 47 C 42 52, 48 58, 54 64 C 60 70, 66 76, 70 82"
+        d="M 14 26 Q 18 20 24 16 Q 30 12 36 14 Q 42 16 48 22 Q 54 28 58 36"
         fill="none"
         stroke="url(#goldMetallic)"
         strokeWidth="1.5"
@@ -213,22 +173,35 @@ function BottomCornerOrnament() {
       />
       
       <path
-        d="M 12 15 C 12 12, 14 11, 16 10 C 18 9, 21 10, 24 12 C 27 14, 30 18, 34 22 C 38 26, 43 31, 48 37 C 53 43, 59 49, 65 55 C 71 61, 77 67, 82 72"
+        d="M 26 14 Q 20 18 16 24 Q 12 30 14 36 Q 16 42 22 48 Q 28 54 36 58"
         fill="none"
-        stroke="url(#goldHighlight)"
-        strokeWidth="3.5"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1.5"
         strokeLinecap="round"
-        opacity="0.3"
+        opacity="0.6"
       />
       
       <path
-        d="M 15 12 C 12 12, 11 14, 10 16 C 9 18, 10 21, 12 24 C 14 27, 18 30, 22 34 C 26 38, 31 43, 37 48 C 43 53, 49 59, 55 65 C 61 71, 67 77, 72 82"
+        d="M 18 22 Q 22 18 28 18 Q 34 18 38 22 Q 42 26 42 32"
         fill="none"
-        stroke="url(#goldHighlight)"
-        strokeWidth="3.5"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1"
         strokeLinecap="round"
-        opacity="0.3"
+        opacity="0.4"
       />
+      
+      <path
+        d="M 22 18 Q 18 22 18 28 Q 18 34 22 38 Q 26 42 32 42"
+        fill="none"
+        stroke="url(#goldMetallic)"
+        strokeWidth="1"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
+      
+      <circle cx="28" cy="28" r="4" fill="url(#goldMetallic)" opacity="0.7" filter="url(#softGlow)" />
+      <circle cx="24" cy="24" r="2.5" fill="#F4E7C3" opacity="0.9" />
+      <circle cx="20" cy="20" r="1.5" fill="#C9A961" opacity="0.6" />
     </g>
   )
 }
