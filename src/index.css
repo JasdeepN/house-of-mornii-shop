@@ -9,6 +9,62 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Cormorant Garamond', serif;
+    position: relative;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+    background-image: 
+      repeating-radial-gradient(
+        circle at 0 0,
+        transparent 0,
+        oklch(0.60 0.11 78 / 0.15) 2px,
+        transparent 4px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        oklch(0.45 0.08 210 / 0.08) 0px,
+        oklch(0.45 0.08 210 / 0.08) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        oklch(0.60 0.11 78 / 0.05) 0px,
+        oklch(0.60 0.11 78 / 0.05) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      radial-gradient(
+        ellipse at 20% 30%,
+        oklch(0.45 0.08 210 / 0.2) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse at 80% 70%,
+        oklch(0.60 0.11 78 / 0.15) 0%,
+        transparent 50%
+      );
+    background-size: 
+      80px 80px,
+      120px 120px,
+      120px 120px,
+      800px 600px,
+      800px 600px;
+  }
+  
+  body > #root {
+    position: relative;
+    z-index: 1;
   }
   
   h1, h2, h3, h4, h5, h6 {

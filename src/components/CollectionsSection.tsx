@@ -1,26 +1,27 @@
 import { motion } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { JewelryImage } from '@/components/JewelryImage'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 
 const collections = [
   {
-    id: 'everyday',
+    id: 'everyday' as const,
     title: 'EVERYDAY',
     subtitle: 'Polished essentials',
     description: 'Refined, versatile pieces that elevate your daily elegance with timeless sophistication.',
     gradient: 'from-teal-deep/60 to-transparent',
   },
   {
-    id: 'festive',
+    id: 'festive' as const,
     title: 'FESTIVE',
     subtitle: 'Celebration shine',
     description: 'Radiant statement pieces designed to captivate and dazzle at every special occasion.',
     gradient: 'from-accent/40 to-transparent',
   },
   {
-    id: 'bridal',
+    id: 'bridal' as const,
     title: 'BRIDAL',
     subtitle: 'Bridal grandeur',
     description: 'Exquisite heirloom-quality jewellery that transforms your most treasured moments into lasting memories.',
@@ -60,17 +61,12 @@ export function CollectionsSection() {
               <Card className="group relative overflow-hidden border-2 border-border hover:border-accent transition-all duration-500 bg-card cursor-pointer h-full">
                 <div className="relative aspect-[3/4] overflow-hidden">
                   <div
-                    className={`absolute inset-0 bg-gradient-to-b ${collection.gradient} opacity-80 group-hover:opacity-60 transition-opacity duration-500`}
+                    className={`absolute inset-0 bg-gradient-to-b ${collection.gradient} opacity-80 group-hover:opacity-60 transition-opacity duration-500 z-10`}
                   />
                   
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700"
-                    style={{
-                      backgroundImage: `radial-gradient(circle at ${index % 2 === 0 ? '30%' : '70%'} 40%, oklch(0.45 0.08 210) 0%, oklch(0.25 0.03 210) 50%, oklch(0.15 0.02 210) 100%)`,
-                    }}
-                  />
+                  <JewelryImage collection={collection.id} className="absolute inset-0" />
 
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
                     <div className="w-48 h-48 rounded-full border-2 border-accent/30 group-hover:border-accent/60 transition-all duration-500 group-hover:scale-110" />
                   </div>
                 </div>
