@@ -58,15 +58,15 @@ Return ONLY the enhanced prompt text, no explanations or additional formatting. 
   }, [collection, generatedPrompt, setGeneratedPrompt])
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative w-full h-full ${className}`}>
       {loading ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-teal-deep/40 to-background gap-4">
+        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-teal-deep/40 to-background gap-4">
           <Sparkle size={48} weight="fill" className="text-accent animate-pulse" />
           <p className="text-sm text-accent tracking-wider">Crafting imagery...</p>
         </div>
       ) : (
         <div 
-          className="absolute inset-0 bg-gradient-to-br from-teal-deep via-slate-dark to-background"
+          className="w-full h-full bg-gradient-to-br from-teal-deep via-slate-dark to-background"
           style={{
             backgroundImage: collection === 'everyday' 
               ? 'radial-gradient(circle at 35% 40%, oklch(0.50 0.09 210) 0%, oklch(0.30 0.04 210) 40%, oklch(0.18 0.02 210) 100%)'

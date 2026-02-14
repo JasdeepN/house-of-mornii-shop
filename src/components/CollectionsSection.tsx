@@ -64,7 +64,7 @@ export function CollectionsSection() {
                     className={`absolute inset-0 bg-gradient-to-b ${collection.gradient} opacity-80 group-hover:opacity-60 transition-opacity duration-500 z-10`}
                   />
                   
-                  <JewelryImage collection={collection.id} className="absolute inset-0" />
+                  <JewelryImage collection={collection.id} className="w-full h-full" />
 
                   <div className="absolute inset-0 flex items-center justify-center z-20">
                     <div className="w-48 h-48 rounded-full border-2 border-accent/30 group-hover:border-accent/60 transition-all duration-500 group-hover:scale-110" />
