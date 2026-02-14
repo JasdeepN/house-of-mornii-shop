@@ -1,217 +1,61 @@
-# 🎨 Baroque Border Integration Guide
+# Baroque Border Assets
 
-## Overview
+## Current Implementation
 
-Your beautiful baroque border image with intricate gold and teal ornamentation is ready to be integrated into the House of Mornii site! This guide walks you through the complete integration process.
+The site currently uses an SVG baroque border (`baroque-border.svg`) for all ornamental frames. This SVG features:
+- Intricate corner flourishes with tangled double-line designs
+- Realistic metallic gold gradients with multiple shading layers
+- Larger bottom corner ornaments and smaller top corner ornaments
+- Curved corner details instead of angular shapes
 
-## 📋 What You Have
+## Using a PNG Border (Optional)
 
-1. ✅ **Generated Border Image** - The ornate baroque/rococo border with:
-   - Realistic metallic gold with depth (darker, refined tones)
-   - Teal accents from peacock theme
-   - Elaborate corner flourishes (larger at bottom, refined at top)
-   - Parallel border lines that elegantly tangle
-   - Transparent PNG center for content
-   - High resolution (2048px+)
+If you have a PNG version of the baroque border that you'd like to use instead:
 
-2. ✅ **Updated Components** - The codebase has been enhanced:
-   - `OrnamentalBorder.tsx` now supports both SVG and image borders
-   - `BaroqueBorderShowcase.tsx` provides visual instructions
-   - `BorderToggle.tsx` allows easy switching between border types
-   - Example files showing exact usage
+### Step 1: Prepare Your PNG
+- Ensure your PNG has a transparent background
+- The border design should be placed around the edges of the image
+- Leave the center area transparent so content can show through
+- Recommended size: At least 1600x1200px for high-quality rendering
 
-## 🚀 Quick Start (3 Steps)
-
-### Step 1: Add Your Image
-
-1. Create the images directory:
-   ```bash
-   mkdir -p /workspaces/spark-template/src/assets/images/
+### Step 2: Replace the File
+1. Save your PNG as `baroque-border.png` in `/src/assets/ornaments/`
+2. Open `/src/components/OrnamentalBorder.tsx`
+3. Change the import from:
+   ```typescript
+   import baroqueBorder from '@/assets/ornaments/baroque-border.svg'
+   ```
+   to:
+   ```typescript
+   import baroqueBorder from '@/assets/ornaments/baroque-border.png'
    ```
 
-2. Save your generated baroque border image as:
-   ```
-   /workspaces/spark-template/src/assets/images/baroque-border.png
-   ```
+That's it! The component will automatically use your PNG border.
 
-### Step 2: Update Components to Use the Border
+## Border Design Guidelines
 
-In any component using `OrnamentalBorder`, add the import and props:
+When creating or replacing the border, follow these design principles:
 
-```tsx
-// Add this import at the top
-import baroqueBorder from '@/assets/images/baroque-border.png'
+### Corner Hierarchy
+- **Top Corners**: Smaller, elegant flourishes (approximately 15-20% of frame height)
+- **Bottom Corners**: Larger, more intricate ornaments (approximately 25-35% of frame height)
 
-// Update the OrnamentalBorder usage
-<OrnamentalBorder 
-  useImageBorder={true} 
-  borderImage={baroqueBorder}
-  className="bg-card/80 backdrop-blur-sm"
->
-  {/* Your content */}
-</OrnamentalBorder>
-```
+### Visual Style
+- **Curves over Angles**: Use flowing, organic curves instead of sharp angular shapes
+- **Tangled Lines**: Double lines that weave and intertwine at corners
+- **Metallic Gold**: Use realistic gold tones with highlights and shadows:
+  - Dark base: `#6B5742`
+  - Mid tones: `#8B7355`, `#A38B5F`, `#C9A961`
+  - Highlights: `#D4AF37`, `#F4E7C3`
 
-### Step 3: Test and Refine
+### Frame Structure
+- 2-3 parallel border lines around the perimeter
+- Lines should "tangle" or weave together at the corners
+- Add decorative elements like small circles, diamonds, or flourishes at intersection points
 
-The border image will frame your content. You may need to adjust padding in specific components:
+## Technical Notes
 
-```tsx
-<OrnamentalBorder 
-  useImageBorder={true} 
-  borderImage={baroqueBorder}
-  className="bg-card/80 backdrop-blur-sm"
->
-  <div className="p-8 md:p-12 lg:p-16">
-    {/* Adjust padding as needed for your border's ornate corners */}
-  </div>
-</OrnamentalBorder>
-```
-
-## 📍 Where to Apply the Border
-
-### Current Usage Locations
-
-The `OrnamentalBorder` component is currently used in:
-
-1. **HeroSection.tsx** (2 instances)
-   - Main brand card with tagline and CTAs
-   - "Shop by Mood" navigation card
-
-2. **AboutSection.tsx** (1 instance)
-   - Brand story content card
-
-### Recommended Updates
-
-#### HeroSection.tsx
-```tsx
-import baroqueBorder from '@/assets/images/baroque-border.png'
-
-// In the hero card:
-<OrnamentalBorder 
-  useImageBorder={true}
-  borderImage={baroqueBorder}
-  className="bg-card/80 backdrop-blur-sm"
->
-  {/* Brand identity content */}
-</OrnamentalBorder>
-
-// In the mood selector card:
-<OrnamentalBorder 
-  useImageBorder={true}
-  borderImage={baroqueBorder}
-  className="bg-card/60 backdrop-blur-sm"
->
-  {/* Shop by mood content */}
-</OrnamentalBorder>
-```
-
-#### AboutSection.tsx
-```tsx
-import baroqueBorder from '@/assets/images/baroque-border.png'
-
-<OrnamentalBorder 
-  useImageBorder={true}
-  borderImage={baroqueBorder}
-  className="bg-card/80 backdrop-blur-sm"
->
-  {/* About content */}
-</OrnamentalBorder>
-```
-
-## 🎛️ Optional: Add Toggle Control
-
-To easily switch between SVG and image borders during development, add the `BorderToggle` component to your App:
-
-```tsx
-import { BorderToggle } from '@/components/BorderToggle'
-
-function App() {
-  return (
-    <>
-      {/* ... other components ... */}
-      <BorderToggle />
-    </>
-  )
-}
-```
-
-This creates a floating toggle in the top-right that persists your preference.
-
-## 🎨 Customization Tips
-
-### Adjusting Background Opacity
-
-The baroque border works best with semi-transparent backgrounds:
-
-```tsx
-className="bg-card/80 backdrop-blur-sm"  // 80% opacity (default)
-className="bg-card/60 backdrop-blur-md"  // 60% opacity (lighter)
-className="bg-card/95 backdrop-blur-lg"  // 95% opacity (darker)
-```
-
-### Fine-Tuning Padding
-
-The ornate corners may need specific padding to prevent content overlap:
-
-```tsx
-<OrnamentalBorder useImageBorder={true} borderImage={baroqueBorder}>
-  <div className="p-12 md:p-16 lg:p-20">
-    {/* More padding for elaborate corner flourishes */}
-  </div>
-</OrnamentalBorder>
-```
-
-### Responsive Considerations
-
-On mobile, you may want to reduce padding:
-
-```tsx
-<div className="p-8 md:p-12 lg:p-16 xl:p-20">
-  {/* Content scales padding with screen size */}
-</div>
-```
-
-## 🔧 Troubleshooting
-
-### Border Not Showing
-- Verify the image path is correct: `/workspaces/spark-template/src/assets/images/baroque-border.png`
-- Check that `useImageBorder={true}` is set
-- Ensure `borderImage` prop is passed with the imported image
-
-### Border Looks Stretched
-- The border should be landscape rectangular to match typical content cards
-- If distorted, ensure the original image has the correct aspect ratio
-
-### Content Overlaps Border
-- Increase padding: `className="p-12 md:p-16 lg:p-20"`
-- The component default is `p-12 md:p-16` which should work for most borders
-
-### Want to Switch Back to SVG
-- Simply remove `useImageBorder` and `borderImage` props
-- Or set `useImageBorder={false}`
-
-## 📚 Reference Files
-
-- **Main Component**: `/workspaces/spark-template/src/components/OrnamentalBorder.tsx`
-- **Instructions**: `/workspaces/spark-template/BAROQUE_BORDER_INSTRUCTIONS.md`
-- **Example Usage**: `/workspaces/spark-template/EXAMPLE_BAROQUE_BORDER_USAGE.tsx`
-- **Showcase Component**: `/workspaces/spark-template/src/components/BaroqueBorderShowcase.tsx`
-- **Toggle Component**: `/workspaces/spark-template/src/components/BorderToggle.tsx`
-
-## 🎯 Next Steps
-
-1. Save your baroque border PNG to the correct location
-2. Update the three component files (HeroSection, AboutSection) with the new props
-3. Refresh your app to see the beautiful ornate borders
-4. Adjust padding and opacity as needed for perfect visual harmony
-5. Consider removing the `BaroqueBorderShowcase` component from App.tsx once integrated
-
-## 💡 Pro Tips
-
-- The baroque border complements the existing gold/teal theme perfectly
-- Use it sparingly on key content sections to maintain impact
-- The SVG borders can remain as a fallback or for less prominent sections
-- Consider using the image border for hero/featured content and SVG borders for secondary content
-
-Enjoy your regally ornate House of Mornii website! 👑✨
+- The component uses `object-fit: fill` to stretch the border to fit any content size
+- Border padding is responsive: `p-12 md:p-16 lg:p-20`
+- The border is positioned absolutely with `z-index: 0` so content appears above it
+- All borders are non-interactive with `pointer-events: none`

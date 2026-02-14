@@ -4,7 +4,6 @@ import { CollectionsSection } from '@/components/CollectionsSection'
 import { AboutSection } from '@/components/AboutSection'
 import { ContactSection } from '@/components/ContactSection'
 import { Footer } from '@/components/Footer'
-import { BaroqueBorderShowcase } from '@/components/BaroqueBorderShowcase'
 import { Toaster } from '@/components/ui/sonner'
 
 function App() {
@@ -18,7 +17,6 @@ function App() {
         <ContactSection />
       </main>
       <Footer />
-      <BaroqueBorderShowcase />
       <Toaster />
     </>
   )
