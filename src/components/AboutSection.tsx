@@ -18,7 +18,7 @@ export function AboutSection() {
           <h2 className="text-4xl lg:text-5xl text-center mb-4 tracking-[0.15em]">About</h2>
           <OrnamentalDivider />
 
-          <OrnamentalBorder className="bg-card/80 backdrop-blur-sm mt-12">
+          <OrnamentalBorder className="mt-12">
             <div className="space-y-6 text-center">
               <motion.p
                 initial={{ opacity: 0 }}

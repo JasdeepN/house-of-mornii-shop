@@ -41,7 +41,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <OrnamentalBorder className="bg-card/80 backdrop-blur-sm">
+            <OrnamentalBorder>
               <div className="text-center space-y-6">
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -108,7 +108,7 @@ export function HeroSection() {
             transition={{ delay: 0.4, duration: 0.8 }}
             className="space-y-6"
           >
-            <OrnamentalBorder className="bg-card/60 backdrop-blur-sm">
+            <OrnamentalBorder>
               <div className="text-center space-y-6">
                 <div className="flex items-center justify-center gap-3 mb-6">
                   <Crown size={28} weight="fill" className="text-accent" />
