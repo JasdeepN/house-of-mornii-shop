@@ -122,7 +122,10 @@ Animations should feel precious and intentional, like the careful unveiling of f
   
 - **Customizations**:
   - Custom SVG ornamental borders with intricate corner flourishes for hero and card components
+  - **NEW**: Support for high-resolution baroque border image with realistic metallic gold and teal accents
+  - OrnamentalBorder component now accepts both SVG and image-based borders via `useImageBorder` prop
   - Multiple ornamental assets (corner-flourish.svg, divider-ornament.svg, header-ornament.svg)
+  - Baroque border PNG asset (baroque-border.png) with intricate rococo styling and peacock motifs
   - Peacock feather SVG patterns for backgrounds and accents
   - Custom scrollbar styling with darker gold accent
   - Gradient overlays for image cards (teal to transparent)

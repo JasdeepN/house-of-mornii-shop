@@ -4,9 +4,28 @@ import { cn } from '@/lib/utils'
 interface OrnamentalBorderProps {
   children: ReactNode
   className?: string
+  useImageBorder?: boolean
+  borderImage?: string
 }
 
-export function OrnamentalBorder({ children, className }: OrnamentalBorderProps) {
+export function OrnamentalBorder({ children, className, useImageBorder = false, borderImage }: OrnamentalBorderProps) {
+  if (useImageBorder && borderImage) {
+    return (
+      <div className={cn('relative', className)}>
+        <div 
+          className="absolute inset-0 pointer-events-none bg-contain bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${borderImage})`,
+            backgroundSize: '100% 100%',
+          }}
+        />
+        <div className="relative z-10 p-12 md:p-16 lg:p-20">
+          {children}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={cn('relative', className)}>
       <svg
