@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import baroqueBorder from '@/assets/ornaments/baroque-border.svg'
+import baroqueBorder from '@/assets/images/Borders.png'
 import dividerOrnament from '@/assets/ornaments/divider-ornament.svg'
 
 interface OrnamentalBorderProps {
