@@ -4,7 +4,6 @@ import { CollectionsSection } from '@/components/CollectionsSection'
 import { AboutSection } from '@/components/AboutSection'
 import { ContactSection } from '@/components/ContactSection'
 import { Footer } from '@/components/Footer'
-import { Toaster } from '@/components/ui/sonner'
 
 function App() {
   return (
@@ -17,7 +16,6 @@ function App() {
         <ContactSection />
       </main>
       <Footer />
-      <Toaster />
     </>
   )
 }

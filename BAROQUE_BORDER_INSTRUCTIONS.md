@@ -8,8 +8,8 @@ You have a beautiful baroque border image that was generated. To integrate it in
 
 1. Save the baroque border PNG image you generated
 2. Name it `baroque-border.png`
-3. Create the directory: `/workspaces/spark-template/src/assets/images/`
-4. Place the image file there: `/workspaces/spark-template/src/assets/images/baroque-border.png`
+3. Create the directory: `src/assets/images/`
+4. Place the image file there: `src/assets/images/baroque-border.png`
 
 ### Step 2: Use the Border in Components
 

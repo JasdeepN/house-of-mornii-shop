@@ -1,103 +1,41 @@
-import { useState, useEffect } from 'react'
-import { Sparkle } from '@phosphor-icons/react'
-import { useKV } from '@github/spark/hooks'
 
 interface JewelryImageProps {
   collection: 'everyday' | 'festive' | 'bridal'
   className?: string
 }
 
-const jewelryPrompts = {
-  everyday: 'Generate a photorealistic image of elegant everyday costume jewelry for House of Mornii. The scene features: A delicate gold-toned layered necklace with subtle pearl accents, arranged artfully on luxurious deep teal velvet fabric. Soft natural lighting creates gentle highlights on the gold. The jewelry has a refined, understated elegance. Product photography style with shallow depth of field. Rich teal and antique gold color palette. Regal yet wearable aesthetic.',
-  festive: 'Generate a photorealistic image of stunning festive costume jewelry for House of Mornii. The scene features: Ornate gold chandelier earrings with emerald green crystals and intricate peacock-inspired filigree motifs, displayed dramatically on rich teal silk fabric. Dramatic lighting with golden highlights creates an opulent glow. The jewelry is celebratory and eye-catching. Luxury product photography with deep shadows and bright highlights. Deep teal, emerald, and antique gold color palette. Regal opulence.',
-  bridal: 'Generate a photorealistic image of exquisite bridal costume jewelry for House of Mornii. The scene features: An elaborate multi-tiered gold necklace with matching ornate earrings, featuring lustrous white pearls and detailed gold filigree work, arranged on deep teal velvet. Soft romantic lighting with a subtle glow. The jewelry evokes heirloom quality and timeless elegance. High-end bridal photography style with ethereal quality. Deep teal, pearl white, and antique gold color palette. Regal bridal grandeur.',
+const jewelryDescriptions = {
+  everyday: 'Stylized illustration of everyday jewelry.',
+  festive: 'Stylized illustration of festive jewelry.',
+  bridal: 'Stylized illustration of bridal jewelry.',
 }
 
 export function JewelryImage({ collection, className = '' }: JewelryImageProps) {
-  const [generatedPrompt, setGeneratedPrompt] = useKV<string>(`jewelry-prompt-${collection}`, '')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    const generatePrompt = async () => {
-      if (generatedPrompt) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const basePrompt = jewelryPrompts[collection]
-        const promptText = `You are an expert at creating detailed image generation prompts for DALL-E or Midjourney. 
-
-Take this jewelry photography description and enhance it into a detailed, vivid image generation prompt that will produce a stunning photorealistic result:
-
-${basePrompt}
-
-Add specific details about:
-- Exact lighting setup (key light, fill light, rim light positions and qualities)
-- Camera settings and lens choice for product photography
-- Specific textures of the materials (velvet nap, metal sheen, pearl luster)
-- Composition and framing
-- Background elements that enhance the regal aesthetic
-- Color grading and mood
-
-Return ONLY the enhanced prompt text, no explanations or additional formatting. The prompt should be 3-4 sentences maximum but packed with visual details.`
-
-        const enhancedPrompt = await window.spark.llm(promptText, 'gpt-4o')
-        setGeneratedPrompt(enhancedPrompt.trim())
-      } catch (error) {
-        console.error('Error generating image prompt:', error)
-        setError(true)
-        setGeneratedPrompt(jewelryPrompts[collection])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    generatePrompt()
-  }, [collection, generatedPrompt, setGeneratedPrompt])
+  const description = jewelryDescriptions[collection]
 
   return (
     <div className={`relative w-full h-full ${className}`}>
-      {loading ? (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-teal-deep/40 to-background gap-4">
-          <Sparkle size={48} weight="fill" className="text-accent animate-pulse" />
-          <p className="text-sm text-accent tracking-wider">Crafting imagery...</p>
-        </div>
-      ) : (
-        <div 
-          className="w-full h-full bg-gradient-to-br from-teal-deep via-slate-dark to-background"
-          style={{
-            backgroundImage: collection === 'everyday' 
+      <div
+        className="w-full h-full bg-gradient-to-br from-teal-deep via-slate-dark to-background"
+        style={{
+          backgroundImage:
+            collection === 'everyday'
               ? 'radial-gradient(circle at 35% 40%, oklch(0.50 0.09 210) 0%, oklch(0.30 0.04 210) 40%, oklch(0.18 0.02 210) 100%)'
               : collection === 'festive'
-              ? 'radial-gradient(circle at 65% 35%, oklch(0.60 0.11 78) 0%, oklch(0.45 0.08 210) 35%, oklch(0.20 0.02 210) 100%)'
-              : 'radial-gradient(circle at 50% 45%, oklch(0.65 0.12 78) 0%, oklch(0.50 0.09 210) 30%, oklch(0.22 0.03 210) 100%)',
-          }}
-          title={generatedPrompt || jewelryPrompts[collection]}
-          aria-label={generatedPrompt || jewelryPrompts[collection]}
-        >
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <div className="relative">
-              {collection === 'everyday' && <EverydayJewelry />}
-              {collection === 'festive' && <FestiveJewelry />}
-              {collection === 'bridal' && <BridalJewelry />}
-            </div>
+                ? 'radial-gradient(circle at 65% 35%, oklch(0.60 0.11 78) 0%, oklch(0.45 0.08 210) 35%, oklch(0.20 0.02 210) 100%)'
+                : 'radial-gradient(circle at 50% 45%, oklch(0.65 0.12 78) 0%, oklch(0.50 0.09 210) 30%, oklch(0.22 0.03 210) 100%)',
+        }}
+        role="img"
+        aria-label={description}
+      >
+        <div className="absolute inset-0 flex items-center justify-center p-8">
+          <div className="relative">
+            {collection === 'everyday' && <EverydayJewelry />}
+            {collection === 'festive' && <FestiveJewelry />}
+            {collection === 'bridal' && <BridalJewelry />}
           </div>
-          
-          {generatedPrompt && !error && (
-            <div className="absolute bottom-4 left-4 right-4 p-4 bg-background/90 backdrop-blur-sm rounded-lg border border-accent/30">
-              <p className="text-xs text-foreground/80 leading-relaxed">
-                <span className="text-accent font-semibold tracking-wide block mb-1">AI Image Prompt Generated:</span>
-                {generatedPrompt}
-              </p>
-              <p className="text-[10px] text-muted-foreground mt-2 italic">
-                Copy this prompt to DALL-E, Midjourney, or your preferred AI image generator
-              </p>
-            </div>
-          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

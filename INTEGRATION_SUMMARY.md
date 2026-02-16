@@ -51,7 +51,7 @@ Your baroque border image has been successfully integrated into the House of Mor
 
 **The site is fully functional with SVG borders.** The baroque border image is ready to be added when you:
 
-1. Save your generated border as: `/workspaces/spark-template/src/assets/images/baroque-border.png`
+1. Save your generated border as: `src/assets/images/baroque-border.png`
 2. Update components to use `useImageBorder={true}` and pass the `borderImage` prop
 3. Optionally adjust padding for optimal display
 
@@ -67,7 +67,7 @@ The baroque border can be added to:
 See **BAROQUE_BORDER_GUIDE.md** for the complete integration walkthrough!
 
 Quick start:
-1. Create `/workspaces/spark-template/src/assets/images/` directory
+1. Create `src/assets/images/` directory
 2. Add your `baroque-border.png` file there
 3. Import and use in components as shown in the guide
 
