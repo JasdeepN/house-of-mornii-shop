@@ -11,7 +11,7 @@ export function AboutSection() {
   const ref = useRef(null)
 
   return (
-    <section id="about" className="py-20 lg:py-32 bg-secondary/30" ref={ref}>
+    <section id="about" className="py-20 lg:py-32" ref={ref}>
       <div className="container mx-auto px-6 lg:px-20">
         <div className="max-w-4xl mx-auto">
           <BaroqueCard animate>

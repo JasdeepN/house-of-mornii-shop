@@ -19,8 +19,8 @@ export function ContactSection() {
     <section id="contact" className="py-20 lg:py-32" ref={ref}>
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          initial={{ y: 30 }}
+          animate={isInView ? { y: 0 } : {}}
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto"
         >
@@ -28,7 +28,7 @@ export function ContactSection() {
           <OrnamentalDivider />
 
           <div className="grid md:grid-cols-2 gap-8 mt-12">
-            <BaroqueCard className="bg-card/80 backdrop-blur-sm" animate>
+            <BaroqueCard animate>
               <BaroqueCardHeader withDivider={false}>
                 <BaroqueCardTitle className="text-2xl text-accent">CONTACT US</BaroqueCardTitle>
               </BaroqueCardHeader>
@@ -72,7 +72,7 @@ export function ContactSection() {
               </BaroqueCardContent>
             </BaroqueCard>
 
-            <BaroqueCard className="bg-card/80 backdrop-blur-sm" animate>
+            <BaroqueCard animate>
               <BaroqueCardHeader withDivider={false}>
                  <BaroqueCardTitle className="text-2xl text-accent">BRONZE FIILG SHOP</BaroqueCardTitle>
               </BaroqueCardHeader>

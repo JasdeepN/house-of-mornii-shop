@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+:root {
+	--background: oklch(0.15 0.02 210);
+	--foreground: oklch(0.95 0.05 85);
+
+	--card: oklch(0.22 0.03 210);
+	--card-foreground: oklch(0.92 0.02 85);
+
+	--popover: oklch(0.22 0.03 210);
+	--popover-foreground: oklch(0.92 0.02 85);
+
+	--primary: oklch(0.45 0.08 210);
+	--primary-foreground: oklch(1 0 0);
+
+	--secondary: oklch(0.30 0.03 210);
+	--secondary-foreground: oklch(0.95 0.05 85);
+
+	--muted: oklch(0.25 0.02 210);
+	--muted-foreground: oklch(0.65 0.03 210);
+
+	--accent: oklch(0.60 0.11 78);
+	--accent-foreground: oklch(0.12 0.02 210);
+
+	--destructive: oklch(0.55 0.20 25);
+	--destructive-foreground: oklch(1 0 0);
+
+	--border: oklch(0.35 0.04 210);
+	--input: oklch(0.35 0.04 210);
+	--ring: oklch(0.60 0.11 78);
+
+	--gold: oklch(0.60 0.11 78);
+	--gold-bright: oklch(0.68 0.13 80);
+	--teal-deep: oklch(0.45 0.08 210);
+	--slate-dark: oklch(0.20 0.02 210);
+
+	--radius: 1rem;
+}
+
+@theme {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+
+	--color-gold: var(--gold);
+	--color-gold-bright: var(--gold-bright);
+	--color-teal-deep: var(--teal-deep);
+	--color-slate-dark: var(--slate-dark);
+
+	--radius-sm: calc(var(--radius) * 0.5);
+	--radius-md: var(--radius);
+	--radius-lg: calc(var(--radius) * 1.5);
+	--radius-xl: calc(var(--radius) * 2);
+	--radius-2xl: calc(var(--radius) * 3);
+	--radius-full: 9999px;
+}

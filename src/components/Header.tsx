@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { List } from '@phosphor-icons/react'
 import { useIsMobile } from '@/hooks/use-mobile'
-import headerOrnament from '@/assets/ornaments/header-ornament.svg'
 
 const navLinks = [
   { label: 'COLLECTIONS', href: '#collections' },
@@ -25,11 +24,17 @@ export function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b-2 border-gold/40">
+    <header
+      className="fixed top-0 left-0 right-0 z-50"
+      style={{
+        background: 'oklch(0.18 0.03 210 / 0.55)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        borderBottom: '1px solid oklch(1 0 0 / 0.10)',
+        boxShadow: 'inset 0 1px 0 oklch(1 0 0 / 0.10), 0 4px 24px oklch(0 0 0 / 0.3)',
+      }}
+    >
       <div className="container mx-auto px-6 lg:px-20 relative">
-        <div className="absolute left-1/2 -translate-x-1/2 -bottom-5 opacity-80 pointer-events-none">
-          <img src={headerOrnament} alt="" className="w-16 h-auto" />
-        </div>
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-3">
             <div className="text-2xl lg:text-3xl">

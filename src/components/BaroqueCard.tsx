@@ -11,11 +11,10 @@ const FADE_IN_VARIANTS = {
 }
 
 const STAGGER_CONTAINER = {
-  hidden: { opacity: 0 },
+  hidden: {},
   visible: {
-    opacity: 1,
     transition: {
-      staggerChildren: 0.2, // Stagger delays for children
+      staggerChildren: 0.2,
       delayChildren: 0.1
     }
   }

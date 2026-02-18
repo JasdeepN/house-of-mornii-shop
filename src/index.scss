@@ -1,0 +1,198 @@
+@mixin ornamental-surface($goldDotOpacity, $tealLineOpacity, $goldLineOpacity, $withAmbient: false) {
+  @if $withAmbient {
+    background-image:
+      repeating-radial-gradient(
+        circle at 0 0,
+        transparent 0,
+        oklch(0.60 0.11 78 / #{$goldDotOpacity}) 2px,
+        transparent 4px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 0px,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 0px,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      radial-gradient(
+        ellipse at 20% 30%,
+        oklch(0.45 0.08 210 / 0.2) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse at 80% 70%,
+        oklch(0.60 0.11 78 / 0.15) 0%,
+        transparent 50%
+      );
+    background-size:
+      80px 80px,
+      120px 120px,
+      120px 120px,
+      800px 600px,
+      800px 600px;
+  } @else {
+    background-image:
+      repeating-radial-gradient(
+        circle at 0 0,
+        transparent 0,
+        oklch(0.60 0.11 78 / #{$goldDotOpacity}) 2px,
+        transparent 4px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 0px,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 0px,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      radial-gradient(
+        ellipse at 30% 40%,
+        oklch(0.25 0.03 210) 0%,
+        oklch(0.18 0.02 210) 100%
+      );
+    background-size:
+      80px 80px,
+      120px 120px,
+      120px 120px,
+      100% 100%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Cormorant Garamond', serif;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+    @include ornamental-surface(0.15, 0.08, 0.05, true);
+  }
+
+  body > #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+:root {
+  --ornamental-frame-pad-top: clamp(2.75rem, 5vw, 5rem);
+  --ornamental-frame-pad-right: clamp(2.5rem, 4.5vw, 4.5rem);
+  --ornamental-frame-pad-bottom: clamp(4.5rem, 8vw, 7rem);
+  --ornamental-frame-pad-left: clamp(2.5rem, 4.5vw, 4.5rem);
+}
+
+.font-script {
+  font-family: 'Great Vibes', cursive;
+}
+
+.ornate-border {
+  position: relative;
+  padding: 2rem;
+}
+
+.ornate-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid;
+  border-image: linear-gradient(
+      135deg,
+      oklch(0.60 0.11 78) 0%,
+      oklch(0.45 0.08 210) 50%,
+      oklch(0.60 0.11 78) 100%
+    )
+    1;
+  pointer-events: none;
+}
+
+.ornamental-surface {
+  @include ornamental-surface(0.08, 0.05, 0.03);
+}
+
+.ornamental-frame-content {
+  padding-top: var(--ornamental-frame-pad-top);
+  padding-right: var(--ornamental-frame-pad-right);
+  padding-bottom: var(--ornamental-frame-pad-bottom);
+  padding-left: var(--ornamental-frame-pad-left);
+}
+
+.ornamental-frame-surface {
+  inset: var(--ornamental-frame-surface-inset);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.60 0.11 78 / 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 3s infinite;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.20 0.02 210);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.60 0.11 78);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.68 0.13 80);
+}

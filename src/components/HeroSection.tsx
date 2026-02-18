@@ -24,27 +24,12 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative min-h-screen pt-20 overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{
-          backgroundImage: `radial-gradient(circle at 70% 50%, oklch(0.25 0.08 210) 0%, oklch(0.15 0.02 210) 50%)`,
-        }}
-      />
-
-      <div
-        className="absolute top-1/4 right-0 w-2/3 h-2/3 opacity-20 bg-cover bg-center pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(ellipse at center, oklch(0.45 0.08 210) 0%, transparent 70%)`,
-          filter: 'blur(80px)',
-        }}
-      />
-
+    <section className="relative min-h-screen pt-20">
       <div className="container mx-auto px-6 lg:px-20 py-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-160px)]">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 30 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <BaroqueCard animate={false}> {/* We manage inner animations manually for stagger effect in this hero block */}
@@ -109,8 +94,8 @@ export function HeroSection() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ x: 30 }}
+            animate={{ x: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
             className="space-y-6"
           >
