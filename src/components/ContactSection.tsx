@@ -1,8 +1,15 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { OrnamentalBorder, OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { EnvelopeSimple, InstagramLogo, MapPin } from '@phosphor-icons/react'
+import { 
+  BaroqueCard, 
+  BaroqueCardHeader, 
+  BaroqueCardTitle, 
+  BaroqueCardContent,
+  BaroqueCardFooter
+} from '@/components/BaroqueCard'
 
 export function ContactSection() {
   const ref = useRef(null)
@@ -21,16 +28,12 @@ export function ContactSection() {
           <OrnamentalDivider />
 
           <div className="grid md:grid-cols-2 gap-8 mt-12">
-            <OrnamentalBorder className="bg-card/80 backdrop-blur-sm">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : {}}
-                transition={{ delay: 0.3, duration: 0.8 }}
-                className="space-y-6 text-center"
-              >
-                <h3 className="text-2xl tracking-[0.15em] text-accent">CONTACT US</h3>
-                
-                <div className="space-y-4">
+            <BaroqueCard className="bg-card/80 backdrop-blur-sm" animate>
+              <BaroqueCardHeader withDivider={false}>
+                <BaroqueCardTitle className="text-2xl text-accent">CONTACT US</BaroqueCardTitle>
+              </BaroqueCardHeader>
+              
+              <BaroqueCardContent className="space-y-4">
                   <div className="flex items-start gap-3 justify-center">
                     <EnvelopeSimple size={24} weight="fill" className="text-accent mt-1" />
                     <div className="text-left">
@@ -66,25 +69,22 @@ export function ContactSection() {
                       <p>By appointment only</p>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            </OrnamentalBorder>
+              </BaroqueCardContent>
+            </BaroqueCard>
 
-            <OrnamentalBorder className="bg-card/80 backdrop-blur-sm">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : {}}
-                transition={{ delay: 0.5, duration: 0.8 }}
-                className="space-y-6 text-center flex flex-col justify-center h-full"
-              >
-                <h3 className="text-2xl tracking-[0.15em] text-accent">BRONZE FIILG SHOP</h3>
-                
+            <BaroqueCard className="bg-card/80 backdrop-blur-sm" animate>
+              <BaroqueCardHeader withDivider={false}>
+                 <BaroqueCardTitle className="text-2xl text-accent">BRONZE FIILG SHOP</BaroqueCardTitle>
+              </BaroqueCardHeader>
+
+              <BaroqueCardContent>
                 <p className="text-base leading-relaxed text-muted-foreground">
                   Visit our exclusive boutique to experience the full collection and receive 
                   personalized styling consultations.
                 </p>
+              </BaroqueCardContent>
 
-                <div className="pt-4">
+              <BaroqueCardFooter centered>
                   <Button
                     size="lg"
                     className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest w-full group"
@@ -93,9 +93,8 @@ export function ContactSection() {
                       BOOK YOUR APPOINTMENT
                     </span>
                   </Button>
-                </div>
-              </motion.div>
-            </OrnamentalBorder>
+              </BaroqueCardFooter>
+            </BaroqueCard>
           </div>
         </motion.div>
       </div>

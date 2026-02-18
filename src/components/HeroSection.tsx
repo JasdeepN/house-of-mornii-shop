@@ -1,7 +1,13 @@
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { OrnamentalBorder, OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { Sparkle, Crown } from '@phosphor-icons/react'
+import { 
+  BaroqueCard, 
+  BaroqueCardContent,
+  BaroqueCardHeader,
+  BaroqueCardTitle
+} from '@/components/BaroqueCard'
 
 const moodCategories = [
   { label: 'EVERYDAY', subtitle: 'POLISHED' },
@@ -41,8 +47,8 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <OrnamentalBorder>
-              <div className="text-center space-y-6">
+            <BaroqueCard animate={false}> {/* We manage inner animations manually for stagger effect in this hero block */}
+              <BaroqueCardContent className="space-y-6">
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -79,7 +85,7 @@ export function HeroSection() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1, duration: 0.8 }}
-                  className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+                  className="flex flex-col md:flex-row md:flex-wrap gap-4 justify-center pt-4"
                 >
                   <Button
                     size="lg"
@@ -98,8 +104,8 @@ export function HeroSection() {
                     VIEW COUTURE LOOK
                   </Button>
                 </motion.div>
-              </div>
-            </OrnamentalBorder>
+              </BaroqueCardContent>
+            </BaroqueCard>
           </motion.div>
 
           <motion.div
@@ -108,14 +114,15 @@ export function HeroSection() {
             transition={{ delay: 0.4, duration: 0.8 }}
             className="space-y-6"
           >
-            <OrnamentalBorder>
-              <div className="text-center space-y-6">
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <Crown size={28} weight="fill" className="text-accent" />
-                  <h2 className="text-2xl lg:text-3xl tracking-[0.2em]">SHOP BY MOOD</h2>
-                </div>
+            <BaroqueCard animate={false}>
+               <BaroqueCardHeader withDivider={true}>
+                 <div className="flex items-center justify-center gap-3">
+                    <Crown size={28} weight="fill" className="text-accent" />
+                    <BaroqueCardTitle>SHOP BY MOOD</BaroqueCardTitle>
+                 </div>
+               </BaroqueCardHeader>
 
-                <div className="space-y-4">
+               <BaroqueCardContent className="space-y-4">
                   {moodCategories.map((category, index) => (
                     <motion.button
                       key={category.label}
@@ -151,9 +158,8 @@ export function HeroSection() {
                       <span className="text-xs text-muted-foreground">SIGNATURE</span>
                     </button>
                   </motion.div>
-                </div>
-              </div>
-            </OrnamentalBorder>
+               </BaroqueCardContent>
+            </BaroqueCard>
           </motion.div>
         </div>
       </div>
