@@ -16,7 +16,7 @@ export function ContactSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section id="contact" className="py-20 lg:py-32" ref={ref}>
+    <section id="contact" className="py-12 lg:py-16 scroll-mt-20" ref={ref}>
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
           initial={{ y: 30 }}

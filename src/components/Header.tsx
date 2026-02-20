@@ -1,12 +1,13 @@
 import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { List } from '@phosphor-icons/react'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { BrandLockup } from '@/components/BrandLockup'
 
 const navLinks = [
   { label: 'COLLECTIONS', href: '#collections' },
-  { label: 'SIGNATURE', href: '#signature' },
   { label: 'ABOUT', href: '#about' },
   { label: 'CONTACT', href: '#contact' },
 ]
@@ -14,12 +15,20 @@ const navLinks = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      setIsOpen(false)
+    setIsOpen(false)
+    if (location.pathname === '/') {
+      // Already on home page — just scroll
+      const element = document.querySelector(href)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    } else {
+      // On another route — navigate home with hash, ScrollToHash handles the rest
+      navigate('/' + href)
     }
   }
 
@@ -27,21 +36,17 @@ export function Header() {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: 'oklch(0.18 0.03 210 / 0.55)',
-        backdropFilter: 'blur(6px)',
-        WebkitBackdropFilter: 'blur(6px)',
-        borderBottom: '1px solid oklch(1 0 0 / 0.10)',
+        background: 'oklch(0.18 0.03 210 / 0.30)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid oklch(1 0 0 / 0.12)',
         boxShadow: 'inset 0 1px 0 oklch(1 0 0 / 0.10), 0 4px 24px oklch(0 0 0 / 0.3)',
       }}
     >
       <div className="container mx-auto px-6 lg:px-20 relative">
         <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-3">
-            <div className="text-2xl lg:text-3xl">
-              <span className="font-bold tracking-wider">HOUSE</span>
-              <br />
-              <span className="font-script text-3xl lg:text-4xl -mt-2 block">Mornii</span>
-            </div>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <BrandLockup size="sm" />
           </div>
 
           {isMobile ? (

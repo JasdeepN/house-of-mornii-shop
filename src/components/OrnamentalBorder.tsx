@@ -5,14 +5,10 @@ import baroqueBorder from '@/assets/images/Borders-tight.png'
 interface OrnamentalBorderProps {
   children: ReactNode
   className?: string
-  /**
-   * Additional Tailwind classes for the background layer.
-   */
   backgroundClassName?: string
-  /**
-   * Inline styles for the background layer. Defaults to the glassy card style.
-   */
   backgroundStyle?: CSSProperties
+  /** Override the inner content wrapper padding. Defaults to 'p-6 md:p-8 lg:p-10' */
+  contentClassName?: string
 }
 
 const defaultBackgroundStyle: CSSProperties = {
@@ -27,13 +23,14 @@ export function OrnamentalBorder({
   className, 
   backgroundClassName,
   backgroundStyle = defaultBackgroundStyle,
+  contentClassName = 'p-6 md:p-8 lg:p-10',
 }: OrnamentalBorderProps) {
   return (
     <div
       className={cn('relative', backgroundClassName, className)}
       style={backgroundStyle}
     >
-      <div className="relative z-10 p-8 md:p-12 lg:p-16">
+      <div className={cn('relative z-10', contentClassName)}>
         {children}
       </div>
 

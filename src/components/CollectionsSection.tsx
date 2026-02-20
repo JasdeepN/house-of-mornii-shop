@@ -40,13 +40,13 @@ export function CollectionsSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section id="collections" className="py-20 lg:py-32" ref={ref}>
+    <section id="collections" className="py-12 lg:py-16 scroll-mt-20" ref={ref}>
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-8"
         >
           <h2 className="text-4xl lg:text-5xl mb-4 tracking-[0.15em]">Collections</h2>
           <OrnamentalDivider />
@@ -56,7 +56,7 @@ export function CollectionsSection() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {collections.map((collection, index) => (
             <div key={collection.id} className="h-full">
                <BaroqueCard 
@@ -70,7 +70,7 @@ export function CollectionsSection() {
                   </BaroqueCardHeader>
 
                   <BaroqueCardContent className="flex flex-col gap-4">
-                    <div className="relative aspect-square w-full overflow-hidden rounded-sm mx-auto">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm mx-auto">
                         <JewelryImage collection={collection.id} className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" />
                     </div>
                     <p className="text-sm leading-relaxed text-muted-foreground">

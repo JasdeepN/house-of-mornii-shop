@@ -1,153 +1,130 @@
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { OrnamentalDivider } from '@/components/OrnamentalBorder'
-import { Sparkle, Crown } from '@phosphor-icons/react'
-import { 
-  BaroqueCard, 
-  BaroqueCardContent,
-  BaroqueCardHeader,
-  BaroqueCardTitle
-} from '@/components/BaroqueCard'
+import { CaretDown, Sparkle } from '@phosphor-icons/react'
+import { OrnamentalBorder } from '@/components/OrnamentalBorder'
+import { BrandLockup } from '@/components/BrandLockup'
 
-const moodCategories = [
-  { label: 'EVERYDAY', subtitle: 'POLISHED' },
-  { label: 'FESTIVE', subtitle: 'GLOW' },
-  { label: 'BRIDAL', subtitle: 'HEIRLOOM' },
-]
+const wordVariants = {
+  hidden: { opacity: 0, y: 40, filter: 'blur(8px)' },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { delay: 0.2 + i * 0.18, duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+  }),
+}
 
 export function HeroSection() {
   const scrollToCollections = () => {
-    const element = document.querySelector('#collections')
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-    }
+    document.querySelector('#collections')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
-    <section className="relative min-h-screen pt-20">
-      <div className="container mx-auto px-6 lg:px-20 py-20 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-160px)]">
-          <motion.div
-            initial={{ y: 30 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <BaroqueCard animate={false}> {/* We manage inner animations manually for stagger effect in this hero block */}
-              <BaroqueCardContent className="space-y-6">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                  className="text-sm tracking-[0.3em] text-muted-foreground"
-                >
-                  REGAL · RADIANT · MODERN
-                </motion.div>
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
 
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                >
-                  <h1 className="text-4xl lg:text-5xl font-bold tracking-wider mb-2">
-                    HOUSE <span className="text-accent">OF</span>
-                  </h1>
-                  <div className="font-script text-6xl lg:text-7xl text-accent">Mornii</div>
-                </motion.div>
+      {/* Content card — same glass style as all other cards */}
+      <div className="relative z-10 w-full max-w-2xl px-6">
+        <OrnamentalBorder contentClassName="p-8 md:p-12 lg:p-14">
+          <div className="flex flex-col items-center text-center gap-8">
 
-                <OrnamentalDivider />
+            {/* Brand lockup */}
+            <motion.div
+              custom={0}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <BrandLockup size="xl" />
+            </motion.div>
 
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8, duration: 0.8 }}
-                  className="text-base lg:text-lg leading-relaxed max-w-md mx-auto"
-                >
-                  Statement costume jewellery inspired by heritage opulence—crafted to elevate
-                  everyday moments, festive evenings, and bridal grandeur.
-                </motion.p>
+            {/* Tagline with flanking lines */}
+            <motion.div
+              custom={1}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex items-center gap-4 w-full max-w-sm"
+            >
+              <div className="flex-1 h-px" style={{ background: 'oklch(0.60 0.08 78 / 0.40)' }} />
+              <p
+                className="text-[10px] tracking-[0.4em] uppercase whitespace-nowrap font-medium"
+                style={{ color: 'oklch(0.80 0.07 78)' }}
+              >
+                Regal · Radiant · Modern
+              </p>
+              <div className="flex-1 h-px" style={{ background: 'oklch(0.60 0.08 78 / 0.40)' }} />
+            </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1, duration: 0.8 }}
-                  className="flex flex-col md:flex-row md:flex-wrap gap-4 justify-center pt-4"
-                >
-                  <Button
-                    size="lg"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest group"
-                    onClick={scrollToCollections}
-                  >
-                    <Sparkle size={20} weight="fill" className="mr-2 group-hover:animate-pulse" />
-                    EXPLORE COLLECTIONS
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
-                    onClick={scrollToCollections}
-                  >
-                    VIEW COUTURE LOOK
-                  </Button>
-                </motion.div>
-              </BaroqueCardContent>
-            </BaroqueCard>
-          </motion.div>
+            {/* Description */}
+            <motion.p
+              custom={2}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+              className="text-base lg:text-lg leading-relaxed max-w-xl"
+              style={{ color: 'oklch(0.90 0.01 210)' }}
+            >
+              Heritage-inspired costume jewellery crafted to elevate everyday elegance,
+              festive radiance, and bridal grandeur.
+            </motion.p>
 
-          <motion.div
-            initial={{ x: 30 }}
-            animate={{ x: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="space-y-6"
-          >
-            <BaroqueCard animate={false}>
-               <BaroqueCardHeader withDivider={true}>
-                 <div className="flex items-center justify-center gap-3">
-                    <Crown size={28} weight="fill" className="text-accent" />
-                    <BaroqueCardTitle>SHOP BY MOOD</BaroqueCardTitle>
-                 </div>
-               </BaroqueCardHeader>
+            {/* CTA */}
+            <motion.div
+              custom={3}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col items-center gap-4 pt-2"
+            >
+              <Button
+                size="lg"
+                onClick={scrollToCollections}
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-[0.2em] text-sm px-10 py-6 group"
+              >
+                <Sparkle size={16} weight="fill" className="mr-2 group-hover:animate-pulse" />
+                EXPLORE COLLECTIONS
+              </Button>
+              <button
+                onClick={scrollToCollections}
+                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent"
+                style={{ color: 'oklch(0.75 0.05 78)' }}
+              >
+                or book a styling session
+              </button>
+            </motion.div>
 
-               <BaroqueCardContent className="space-y-4">
-                  {moodCategories.map((category, index) => (
-                    <motion.button
-                      key={category.label}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 1.2 + index * 0.1, duration: 0.6 }}
-                      onClick={scrollToCollections}
-                      className="w-full py-4 px-6 border border-border hover:border-accent bg-secondary/50 hover:bg-accent/10 transition-all duration-300 group rounded-xl"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg tracking-[0.2em] font-semibold">
-                          {category.label}
-                        </span>
-                        <span className="text-sm tracking-[0.15em] text-muted-foreground group-hover:text-accent transition-colors">
-                          {category.subtitle}
-                        </span>
-                      </div>
-                    </motion.button>
-                  ))}
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.6, duration: 0.8 }}
-                    className="pt-4 border-t border-border"
-                  >
-                    <button
-                      onClick={scrollToCollections}
-                      className="text-accent tracking-[0.15em] text-sm hover:underline"
-                    >
-                      CURATED SETS
-                      <br />
-                      <span className="text-xs text-muted-foreground">SIGNATURE</span>
-                    </button>
-                  </motion.div>
-               </BaroqueCardContent>
-            </BaroqueCard>
-          </motion.div>
-        </div>
+          </div>
+        </OrnamentalBorder>
       </div>
+
+      {/* Scroll indicator */}
+      <motion.button
+        onClick={scrollToCollections}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 px-8 py-3 rounded-full cursor-pointer"
+        style={{
+          background: 'oklch(0.10 0.02 210 / 0.60)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          border: '1px solid oklch(1 0 0 / 0.08)',
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        whileHover={{ background: 'oklch(0.16 0.03 210 / 0.75)', scale: 1.05 }}
+        transition={{ delay: 2.0, duration: 1 }}
+      >
+        <span
+          className="text-[9px] tracking-[0.4em] uppercase"
+          style={{ color: 'oklch(0.72 0.05 78)' }}
+        >
+          scroll
+        </span>
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+        >
+          <CaretDown size={16} style={{ color: 'oklch(0.65 0.10 78)' }} />
+        </motion.div>
+      </motion.button>
     </section>
   )
 }
