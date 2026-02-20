@@ -4,8 +4,10 @@ import { Footer } from '@/components/Footer'
 import { ScrollToHash } from '@/components/ScrollToHash'
 import { HomePage } from '@/pages/HomePage'
 import { CollectionsPage } from '@/pages/CollectionsPage'
+import { CollectionPage } from '@/pages/CollectionPage'
 import { ProductPage } from '@/pages/ProductPage'
 import { CartPage } from '@/pages/CartPage'
+import { Toaster } from 'sonner'
 import peacockTile from '@/assets/images/peacock-tile.webp'
 
 function App() {
@@ -32,11 +34,22 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/collections" element={<CollectionsPage />} />
+            <Route path="/collections/:handle" element={<CollectionPage />} />
             <Route path="/products/:handle" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
           </Routes>
         </main>
         <Footer />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: 'oklch(0.22 0.03 210)',
+              border: '1px solid oklch(1 0 0 / 0.1)',
+              color: 'oklch(0.90 0.01 210)',
+            },
+          }}
+        />
       </div>
     </BrowserRouter>
   )

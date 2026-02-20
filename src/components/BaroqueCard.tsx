@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator"
 // Animation constants suitable for the "regal" feel
 const FADE_IN_VARIANTS = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
 }
 
 const STAGGER_CONTAINER = {
@@ -70,6 +70,7 @@ interface BaroqueCardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 const BaroqueCardHeader = React.forwardRef<HTMLDivElement, BaroqueCardHeaderProps>(
   ({ className, children, withDivider = true, ...props }, ref) => {
     return (
+      // @ts-ignore — React 19 onDrag vs framer-motion onDrag conflict
       <motion.div 
         ref={ref} 
         variants={FADE_IN_VARIANTS}
@@ -130,6 +131,7 @@ BaroqueCardDescription.displayName = "BaroqueCardDescription"
 const BaroqueCardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
+      // @ts-ignore — React 19 onDrag vs framer-motion onDrag conflict
       <motion.div 
         ref={ref} 
         variants={FADE_IN_VARIANTS} 
@@ -152,6 +154,7 @@ interface BaroqueCardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 const BaroqueCardFooter = React.forwardRef<HTMLDivElement, BaroqueCardFooterProps>(
   ({ className, centered = true, ...props }, ref) => {
     return (
+      // @ts-ignore — React 19 onDrag vs framer-motion onDrag conflict
       <motion.div
         ref={ref}
         variants={FADE_IN_VARIANTS}

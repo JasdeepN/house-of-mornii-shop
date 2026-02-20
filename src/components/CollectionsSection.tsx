@@ -3,6 +3,7 @@ import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { JewelryImage } from '@/components/JewelryImage'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { 
   BaroqueCard, 
   BaroqueCardHeader, 
@@ -58,7 +59,7 @@ export function CollectionsSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {collections.map((collection, index) => (
-            <div key={collection.id} className="h-full">
+            <Link key={collection.id} to={`/collections/${collection.id}`} className="h-full block">
                <BaroqueCard 
                   className="h-full cursor-pointer hover:-translate-y-2 transition-transform duration-500"
                   animate
@@ -78,7 +79,7 @@ export function CollectionsSection() {
                     </p>
                   </BaroqueCardContent>
                </BaroqueCard>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

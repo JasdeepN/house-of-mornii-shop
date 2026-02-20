@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { List } from '@phosphor-icons/react'
+import { List, Handbag } from '@phosphor-icons/react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { BrandLockup } from '@/components/BrandLockup'
+import { useCart } from '@/context/CartContext'
 
 const navLinks = [
   { label: 'COLLECTIONS', href: '#collections' },
@@ -17,6 +18,7 @@ export function Header() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const location = useLocation()
+  const { itemCount } = useCart()
 
   const scrollToSection = (href: string) => {
     setIsOpen(false)
@@ -51,13 +53,17 @@ export function Header() {
 
           {isMobile ? (
             <div className="flex items-center gap-3">
-              <Button
-                size="sm"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
-                onClick={() => scrollToSection('#contact')}
-              >
-                SHOP
-              </Button>
+              <Link to="/cart" className="relative p-2 hover:text-accent transition-colors">
+                <Handbag size={22} weight="bold" />
+                {itemCount > 0 && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
+                    style={{ background: 'oklch(0.60 0.11 78)', color: 'oklch(0.15 0.02 210)' }}
+                  >
+                    {itemCount > 9 ? '9+' : itemCount}
+                  </span>
+                )}
+              </Link>
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -101,6 +107,17 @@ export function Header() {
               </nav>
 
               <div className="flex items-center gap-4">
+                <Link to="/cart" className="relative p-2 hover:text-accent transition-colors">
+                  <Handbag size={22} weight="bold" />
+                  {itemCount > 0 && (
+                    <span
+                      className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
+                      style={{ background: 'oklch(0.60 0.11 78)', color: 'oklch(0.15 0.02 210)' }}
+                    >
+                      {itemCount > 9 ? '9+' : itemCount}
+                    </span>
+                  )}
+                </Link>
                 <Button
                   variant="outline"
                   className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
