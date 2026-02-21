@@ -106,14 +106,14 @@ export const COLLECTIONS_QUERY = `
 `
 
 export const COLLECTION_BY_HANDLE_QUERY = `
-  query CollectionByHandle($handle: String!, $first: Int!, $after: String) {
+  query CollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys) {
     collection(handle: $handle) {
       id
       handle
       title
       description
       image { ...ImageFields }
-      products(first: $first, after: $after) {
+      products(first: $first, after: $after, sortKey: $sortKey) {
         edges {
           node { ...ProductCardFields }
           cursor
@@ -129,6 +129,22 @@ export const COLLECTION_BY_HANDLE_QUERY = `
 `
 
 // ─── Product Queries ─────────────────────────────────────────────────────────
+
+export const PRODUCTS_QUERY = `
+  query Products($first: Int!, $after: String, $sortKey: ProductSortKeys, $reverse: Boolean, $query: String) {
+    products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse, query: $query) {
+      edges {
+        node { ...ProductCardFields }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT}
+`
 
 export const PRODUCT_BY_HANDLE_QUERY = `
   query ProductByHandle($handle: String!) {
@@ -153,6 +169,14 @@ export const PRODUCT_BY_HANDLE_QUERY = `
       }
       tags
       vendor
+      collections(first: 1) {
+        edges {
+          node {
+            handle
+            title
+          }
+        }
+      }
     }
   }
   ${VARIANT_FRAGMENT}

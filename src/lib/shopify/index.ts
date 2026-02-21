@@ -1,9 +1,10 @@
 export { shopifyFetch } from './client'
-export { useCollections, useCollection, useProduct } from './hooks'
+export { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } from './hooks'
 export {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
   PRODUCT_BY_HANDLE_QUERY,
+  PRODUCTS_QUERY,
   CART_CREATE_MUTATION,
   CART_QUERY,
   CART_LINES_ADD_MUTATION,

@@ -4,6 +4,7 @@ import { Trash, Plus, Minus, ShoppingBag } from '@phosphor-icons/react'
 import { useCart } from '@/context/CartContext'
 import { formatMoney, flattenEdges } from '@/lib/shopify'
 import type { ShopifyCartLine } from '@/lib/shopify'
+import { TrustBadges, PaymentIcons } from '@/components/TrustBadges'
 
 function CartLineItem({ line }: { line: ShopifyCartLine }) {
   const { updateLineItem, removeLineItem, isLoading } = useCart()
@@ -173,6 +174,8 @@ export function CartPage() {
               Taxes and shipping calculated at checkout.
             </p>
 
+            <TrustBadges variant="full" className="my-2" />
+
             <a
               href={cart.checkoutUrl}
               className={`block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
@@ -187,6 +190,8 @@ export function CartPage() {
             >
               PROCEED TO CHECKOUT
             </a>
+
+            <PaymentIcons className="mt-3" />
 
             <Link
               to="/collections"

@@ -7,6 +7,7 @@ import { CollectionsPage } from '@/pages/CollectionsPage'
 import { CollectionPage } from '@/pages/CollectionPage'
 import { ProductPage } from '@/pages/ProductPage'
 import { CartPage } from '@/pages/CartPage'
+import { ShopPage } from '@/pages/ShopPage'
 import { Toaster } from 'sonner'
 import peacockTile from '@/assets/images/peacock-tile.webp'
 
@@ -33,6 +34,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/shop" element={<ShopPage />} />
             <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/collections/:handle" element={<CollectionPage />} />
             <Route path="/products/:handle" element={<ProductPage />} />

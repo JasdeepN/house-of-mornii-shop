@@ -1,5 +1,6 @@
 import React from 'react'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { TrustBadges } from '@/components/TrustBadges'
 
 const etchedText: React.CSSProperties = {
   textShadow: '0 0 12px oklch(0.60 0.08 210 / 0.5), 0 1px 8px oklch(0 0 0 / 0.4)',
@@ -46,6 +47,8 @@ export function Footer() {
           <p className="text-sm tracking-[0.15em]" style={etchedFaint}>
             REGAL · RADIANT · MODERN
           </p>
+
+          <TrustBadges variant="compact" className="mt-6" />
 
           <div
             className="pt-6 max-w-2xl mx-auto"

@@ -1,17 +1,34 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { CaretLeft } from '@phosphor-icons/react'
-import { useProduct, formatMoney, flattenEdges } from '@/lib/shopify'
+import { useProduct, useRelatedProducts, formatMoney, flattenEdges } from '@/lib/shopify'
 import type { ShopifyProductVariant } from '@/lib/shopify'
 import { ProductGallery } from '@/components/ProductGallery'
 import { VariantSelector } from '@/components/VariantSelector'
 import { AddToCartButton } from '@/components/AddToCartButton'
+import { TrustBadges } from '@/components/TrustBadges'
+import { ProductCard } from '@/components/ProductCard'
+import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 
 export function ProductPage() {
   const { handle } = useParams()
   const { data: product, isLoading, error } = useProduct(handle ?? '')
   const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null)
+  const [showStickyATC, setShowStickyATC] = useState(false)
+  const atcRef = useRef<HTMLDivElement>(null)
+
+  // Sticky mobile ATC — show when main ATC scrolls out of view
+  useEffect(() => {
+    const el = atcRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyATC(!entry.isIntersecting),
+      { threshold: 0 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [product])
 
   // Set initial variant once product loads
   const activeVariant = useMemo(() => {
@@ -25,6 +42,15 @@ export function ProductPage() {
     if (!product) return []
     return flattenEdges(product.images)
   }, [product])
+
+  // Related products — from the product's primary collection
+  const collectionHandle = useMemo(() => {
+    if (!product) return undefined
+    const cols = (product as any).collections?.edges
+    return cols?.[0]?.node?.handle as string | undefined
+  }, [product])
+
+  const { products: relatedProducts } = useRelatedProducts(collectionHandle, product?.id)
 
   if (isLoading) {
     return (
@@ -139,12 +165,17 @@ export function ProductPage() {
             />
 
             {/* Add to Cart */}
-            {activeVariant && (
-              <AddToCartButton
-                variantId={activeVariant.id}
-                availableForSale={activeVariant.availableForSale}
-              />
-            )}
+            <div ref={atcRef}>
+              {activeVariant && (
+                <AddToCartButton
+                  variantId={activeVariant.id}
+                  availableForSale={activeVariant.availableForSale}
+                />
+              )}
+            </div>
+
+            {/* Trust Badges */}
+            <TrustBadges variant="full" className="mt-2" />
 
             {/* Description */}
             {product.descriptionHtml && (
@@ -155,7 +186,73 @@ export function ProductPage() {
             )}
           </motion.div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-20"
+          >
+            <div className="text-center mb-10">
+              <h2 className="text-2xl lg:text-3xl tracking-[0.15em] mb-3">
+                You May Also Like
+              </h2>
+              <OrnamentalDivider />
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              {relatedProducts.map((rp, i) => (
+                <motion.div
+                  key={rp.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 * i }}
+                >
+                  <ProductCard product={rp} />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
+
+      {/* Sticky Mobile ATC Bar */}
+      <AnimatePresence>
+        {showStickyATC && activeVariant && (
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+            style={{
+              background: 'oklch(0.18 0.03 210 / 0.85)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderTop: '1px solid oklch(1 0 0 / 0.10)',
+              boxShadow: '0 -4px 24px oklch(0 0 0 / 0.4)',
+            }}
+          >
+            <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm tracking-widest truncate">{product.title}</p>
+                <p
+                  className="text-sm tracking-wider"
+                  style={{ color: 'oklch(0.60 0.11 78)' }}
+                >
+                  {formatMoney(activeVariant.price)}
+                </p>
+              </div>
+              <AddToCartButton
+                variantId={activeVariant.id}
+                availableForSale={activeVariant.availableForSale}
+                compact
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

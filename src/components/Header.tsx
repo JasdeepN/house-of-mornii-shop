@@ -8,9 +8,10 @@ import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
 
 const navLinks = [
-  { label: 'COLLECTIONS', href: '#collections' },
-  { label: 'ABOUT', href: '#about' },
-  { label: 'CONTACT', href: '#contact' },
+  { label: 'SHOP', href: '/shop', type: 'link' as const },
+  { label: 'COLLECTIONS', href: '/collections', type: 'link' as const },
+  { label: 'ABOUT', href: '#about', type: 'scroll' as const },
+  { label: 'CONTACT', href: '#contact', type: 'scroll' as const },
 ]
 
 export function Header() {
@@ -72,15 +73,26 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-card border-gold">
                   <nav className="flex flex-col gap-6 mt-12">
-                    {navLinks.map((link) => (
-                      <button
-                        key={link.href}
-                        onClick={() => scrollToSection(link.href)}
-                        className="text-lg tracking-widest hover:text-accent transition-colors text-left"
-                      >
-                        {link.label}
-                      </button>
-                    ))}
+                    {navLinks.map((link) =>
+                      link.type === 'link' ? (
+                        <Link
+                          key={link.href}
+                          to={link.href}
+                          onClick={() => setIsOpen(false)}
+                          className="text-lg tracking-widest hover:text-accent transition-colors text-left"
+                        >
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <button
+                          key={link.href}
+                          onClick={() => scrollToSection(link.href)}
+                          className="text-lg tracking-widest hover:text-accent transition-colors text-left"
+                        >
+                          {link.label}
+                        </button>
+                      ),
+                    )}
                     <Button
                       className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
                       onClick={() => scrollToSection('#contact')}
@@ -94,16 +106,27 @@ export function Header() {
           ) : (
             <>
               <nav className="flex items-center gap-8">
-                {navLinks.map((link) => (
-                  <button
-                    key={link.href}
-                    onClick={() => scrollToSection(link.href)}
-                    className="text-sm tracking-widest hover:text-accent transition-colors relative group"
-                  >
-                    {link.label}
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
-                  </button>
-                ))}
+                {navLinks.map((link) =>
+                  link.type === 'link' ? (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      className="text-sm tracking-widest hover:text-accent transition-colors relative group"
+                    >
+                      {link.label}
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
+                    </Link>
+                  ) : (
+                    <button
+                      key={link.href}
+                      onClick={() => scrollToSection(link.href)}
+                      className="text-sm tracking-widest hover:text-accent transition-colors relative group"
+                    >
+                      {link.label}
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
+                    </button>
+                  ),
+                )}
               </nav>
 
               <div className="flex items-center gap-4">
@@ -121,12 +144,6 @@ export function Header() {
                 <Button
                   variant="outline"
                   className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
-                  onClick={() => scrollToSection('#contact')}
-                >
-                  SHOP
-                </Button>
-                <Button
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
                   onClick={() => scrollToSection('#contact')}
                 >
                   BOOK A STYLING

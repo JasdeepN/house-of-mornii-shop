@@ -7,12 +7,14 @@ interface AddToCartButtonProps {
   variantId: string
   availableForSale: boolean
   className?: string
+  compact?: boolean
 }
 
 export function AddToCartButton({
   variantId,
   availableForSale,
   className,
+  compact,
 }: AddToCartButtonProps) {
   const { addToCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
@@ -27,7 +29,7 @@ export function AddToCartButton({
     return (
       <Button
         disabled
-        className={`w-full tracking-[0.2em] text-sm py-6 ${className ?? ''}`}
+        className={`${compact ? 'px-4 py-2 text-xs' : 'w-full py-6 text-sm'} tracking-[0.2em] ${className ?? ''}`}
       >
         SOLD OUT
       </Button>
@@ -38,14 +40,14 @@ export function AddToCartButton({
     <Button
       onClick={handleClick}
       disabled={isAdding}
-      className={`w-full bg-accent text-accent-foreground hover:bg-accent/90 tracking-[0.2em] text-sm py-6 group ${className ?? ''}`}
+      className={`${compact ? 'px-4 py-2 text-xs' : 'w-full py-6 text-sm'} bg-accent text-accent-foreground hover:bg-accent/90 tracking-[0.2em] group ${className ?? ''}`}
     >
       {isAdding ? (
-        <Spinner size={18} className="animate-spin mr-2" />
+        <Spinner size={compact ? 14 : 18} className="animate-spin mr-2" />
       ) : (
-        <ShoppingBag size={18} weight="bold" className="mr-2 group-hover:animate-pulse" />
+        <ShoppingBag size={compact ? 14 : 18} weight="bold" className="mr-2 group-hover:animate-pulse" />
       )}
-      {isAdding ? 'ADDING...' : 'ADD TO BAG'}
+      {isAdding ? 'ADDING...' : compact ? 'ADD' : 'ADD TO BAG'}
     </Button>
   )
 }
