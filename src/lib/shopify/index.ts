@@ -1,5 +1,11 @@
-export { shopifyFetch } from './client'
+export { shopifyFetch, IS_CONFIGURED } from './client'
 export { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } from './hooks'
+export {
+  getDemoCollections,
+  getDemoCollection,
+  getDemoProduct,
+  getDemoProducts,
+} from './demo-data'
 export {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,

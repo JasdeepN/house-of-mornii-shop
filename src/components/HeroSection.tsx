@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { CaretDown, Sparkle } from '@phosphor-icons/react'
 import { OrnamentalBorder } from '@/components/OrnamentalBorder'
@@ -15,10 +16,6 @@ const wordVariants = {
 }
 
 export function HeroSection() {
-  const scrollToCollections = () => {
-    document.querySelector('#collections')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
 
@@ -76,21 +73,22 @@ export function HeroSection() {
               animate="visible"
               className="flex flex-col items-center gap-4 pt-2"
             >
-              <Button
-                size="lg"
-                onClick={scrollToCollections}
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-[0.2em] text-sm px-10 py-6 group"
-              >
-                <Sparkle size={16} weight="fill" className="mr-2 group-hover:animate-pulse" />
-                EXPLORE COLLECTIONS
-              </Button>
-              <button
-                onClick={scrollToCollections}
+              <Link to="/collections">
+                <Button
+                  size="lg"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-[0.2em] text-sm px-10 py-6 group"
+                >
+                  <Sparkle size={16} weight="fill" className="mr-2 group-hover:animate-pulse" />
+                  EXPLORE COLLECTIONS
+                </Button>
+              </Link>
+              <Link
+                to="/contact"
                 className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent"
                 style={{ color: 'oklch(0.75 0.05 78)' }}
               >
                 or book a styling session
-              </button>
+              </Link>
             </motion.div>
 
           </div>
@@ -98,8 +96,7 @@ export function HeroSection() {
       </div>
 
       {/* Scroll indicator */}
-      <motion.button
-        onClick={scrollToCollections}
+      <motion.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 px-8 py-3 rounded-full cursor-pointer"
         style={{
           background: 'oklch(0.10 0.02 210 / 0.60)',
@@ -124,7 +121,7 @@ export function HeroSection() {
         >
           <CaretDown size={16} style={{ color: 'oklch(0.65 0.10 78)' }} />
         </motion.div>
-      </motion.button>
+      </motion.div>
     </section>
   )
 }

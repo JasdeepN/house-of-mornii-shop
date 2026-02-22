@@ -5,6 +5,22 @@ const domain = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN
 const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
 const API_VERSION = '2026-01'
 
+/**
+ * True when valid Shopify credentials are present.
+ * When false the app falls back to demo data automatically.
+ */
+export const IS_CONFIGURED =
+  !!domain &&
+  domain !== 'your-store.myshopify.com' &&
+  domain !== 'CHANGE_ME'
+
+if (!IS_CONFIGURED && import.meta.env.DEV) {
+  console.warn(
+    '[House of Mornii] Shopify credentials not configured — running in demo mode.\n' +
+      'Copy .env.example → .env.local and add your store domain + token.',
+  )
+}
+
 interface ShopifyResponse<T> {
   data: T
   errors?: { message: string; extensions?: Record<string, unknown> }[]
@@ -18,9 +34,9 @@ export async function shopifyFetch<T = unknown>(
   query: string,
   variables: Record<string, unknown> = {}
 ): Promise<T> {
-  if (!domain) {
+  if (!IS_CONFIGURED) {
     throw new Error(
-      'VITE_SHOPIFY_STORE_DOMAIN is not set. Add it to your .env file.'
+      'Shopify is not configured. The app should be using demo data — this call should not happen.',
     )
   }
 

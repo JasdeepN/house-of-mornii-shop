@@ -11,6 +11,7 @@ import {
   BaroqueCardDescription,
   BaroqueCardContent
 } from '@/components/BaroqueCard'
+import { fadeSlideUp, viewportOnce } from '@/lib/animations'
 
 const collections = [
   {
@@ -82,6 +83,23 @@ export function CollectionsSection() {
             </Link>
           ))}
         </div>
+
+        {/* View All link */}
+        <motion.div
+          variants={fadeSlideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="text-center mt-10"
+        >
+          <Link
+            to="/collections"
+            className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4"
+            style={{ color: 'oklch(0.75 0.05 78)' }}
+          >
+            VIEW ALL COLLECTIONS →
+          </Link>
+        </motion.div>
       </div>
     </section>
   )

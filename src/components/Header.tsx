@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { List, Handbag } from '@phosphor-icons/react'
@@ -8,32 +8,17 @@ import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
 
 const navLinks = [
-  { label: 'SHOP', href: '/shop', type: 'link' as const },
-  { label: 'COLLECTIONS', href: '/collections', type: 'link' as const },
-  { label: 'ABOUT', href: '#about', type: 'scroll' as const },
-  { label: 'CONTACT', href: '#contact', type: 'scroll' as const },
+  { label: 'SHOP', href: '/shop' },
+  { label: 'COLLECTIONS', href: '/collections' },
+  { label: 'ABOUT', href: '/about' },
+  { label: 'CONTACT', href: '/contact' },
 ]
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const isMobile = useIsMobile()
   const navigate = useNavigate()
-  const location = useLocation()
-  const { itemCount } = useCart()
-
-  const scrollToSection = (href: string) => {
-    setIsOpen(false)
-    if (location.pathname === '/') {
-      // Already on home page — just scroll
-      const element = document.querySelector(href)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' })
-      }
-    } else {
-      // On another route — navigate home with hash, ScrollToHash handles the rest
-      navigate('/' + href)
-    }
-  }
+  const { itemCount, openCart } = useCart()
 
   return (
     <header
@@ -54,7 +39,7 @@ export function Header() {
 
           {isMobile ? (
             <div className="flex items-center gap-3">
-              <Link to="/cart" className="relative p-2 hover:text-accent transition-colors">
+              <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
                 <Handbag size={22} weight="bold" />
                 {itemCount > 0 && (
                   <span
@@ -64,7 +49,7 @@ export function Header() {
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}
-              </Link>
+              </button>
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -73,32 +58,23 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-card border-gold">
                   <nav className="flex flex-col gap-6 mt-12">
-                    {navLinks.map((link) =>
-                      link.type === 'link' ? (
-                        <Link
-                          key={link.href}
-                          to={link.href}
-                          onClick={() => setIsOpen(false)}
-                          className="text-lg tracking-widest hover:text-accent transition-colors text-left"
-                        >
-                          {link.label}
-                        </Link>
-                      ) : (
-                        <button
-                          key={link.href}
-                          onClick={() => scrollToSection(link.href)}
-                          className="text-lg tracking-widest hover:text-accent transition-colors text-left"
-                        >
-                          {link.label}
-                        </button>
-                      ),
-                    )}
-                    <Button
-                      className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
-                      onClick={() => scrollToSection('#contact')}
-                    >
-                      BOOK A STYLING
-                    </Button>
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        onClick={() => setIsOpen(false)}
+                        className="text-lg tracking-widest hover:text-accent transition-colors text-left"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                    <Link to="/contact" onClick={() => setIsOpen(false)}>
+                      <Button
+                        className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest w-full"
+                      >
+                        BOOK A STYLING
+                      </Button>
+                    </Link>
                   </nav>
                 </SheetContent>
               </Sheet>
@@ -106,31 +82,20 @@ export function Header() {
           ) : (
             <>
               <nav className="flex items-center gap-8">
-                {navLinks.map((link) =>
-                  link.type === 'link' ? (
-                    <Link
-                      key={link.href}
-                      to={link.href}
-                      className="text-sm tracking-widest hover:text-accent transition-colors relative group"
-                    >
-                      {link.label}
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
-                    </Link>
-                  ) : (
-                    <button
-                      key={link.href}
-                      onClick={() => scrollToSection(link.href)}
-                      className="text-sm tracking-widest hover:text-accent transition-colors relative group"
-                    >
-                      {link.label}
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
-                    </button>
-                  ),
-                )}
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="text-sm tracking-widest hover:text-accent transition-colors relative group"
+                  >
+                    {link.label}
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
+                  </Link>
+                ))}
               </nav>
 
               <div className="flex items-center gap-4">
-                <Link to="/cart" className="relative p-2 hover:text-accent transition-colors">
+                <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
                   <Handbag size={22} weight="bold" />
                   {itemCount > 0 && (
                     <span
@@ -140,14 +105,15 @@ export function Header() {
                       {itemCount > 9 ? '9+' : itemCount}
                     </span>
                   )}
+                </button>
+                <Link to="/contact">
+                  <Button
+                    variant="outline"
+                    className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
+                  >
+                    BOOK A STYLING
+                  </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
-                  onClick={() => scrollToSection('#contact')}
-                >
-                  BOOK A STYLING
-                </Button>
               </div>
             </>
           )}

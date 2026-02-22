@@ -1,101 +1,85 @@
-import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { EnvelopeSimple, InstagramLogo, MapPin } from '@phosphor-icons/react'
-import { 
-  BaroqueCard, 
-  BaroqueCardHeader, 
-  BaroqueCardTitle, 
+import {
+  BaroqueCard,
+  BaroqueCardHeader,
+  BaroqueCardTitle,
   BaroqueCardContent,
-  BaroqueCardFooter
+  BaroqueCardFooter,
 } from '@/components/BaroqueCard'
+import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
+
+const contactItems = [
+  { icon: EnvelopeSimple, label: 'EMAIL', value: 'hello@houseofmornii.com', href: 'mailto:hello@houseofmornii.com' },
+  { icon: InstagramLogo, label: 'INSTAGRAM', value: '@houseofmornii', href: 'https://instagram.com/houseofmornii', external: true },
+  { icon: MapPin, label: 'LOCATION', value: 'By appointment only' },
+] as { icon: typeof EnvelopeSimple; label: string; value: string; href?: string; external?: boolean }[]
 
 export function ContactSection() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
-
   return (
-    <section id="contact" className="py-12 lg:py-16 scroll-mt-20" ref={ref}>
+    <section id="contact" className="py-16 lg:py-24 scroll-mt-20">
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
-          initial={{ y: 30 }}
-          animate={isInView ? { y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto"
+          variants={fadeSlideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="text-center mb-8"
         >
-          <h2 className="text-4xl lg:text-5xl text-center mb-4 tracking-[0.15em]">Contact</h2>
+          <h2 className="text-4xl lg:text-5xl mb-4 tracking-[0.15em]">Contact</h2>
           <OrnamentalDivider />
+        </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 mt-12">
-            <BaroqueCard animate>
-              <BaroqueCardHeader withDivider={false}>
-                <BaroqueCardTitle className="text-2xl text-accent">CONTACT US</BaroqueCardTitle>
-              </BaroqueCardHeader>
-              
-              <BaroqueCardContent className="space-y-4">
-                  <div className="flex items-start gap-3 justify-center">
-                    <EnvelopeSimple size={24} weight="fill" className="text-accent mt-1" />
-                    <div className="text-left">
-                      <p className="text-sm tracking-widest text-muted-foreground mb-1">EMAIL</p>
+        <motion.div
+          initial={{ opacity: 0, y: 40, filter: 'blur(4px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={viewportOnce}
+          transition={{ delay: 0.15, duration: 0.9, ease: luxuryEase }}
+          className="max-w-2xl mx-auto"
+        >
+          <BaroqueCard animate={false}>
+            <BaroqueCardHeader withDivider={false}>
+              <BaroqueCardTitle className="text-2xl text-accent">GET IN TOUCH</BaroqueCardTitle>
+            </BaroqueCardHeader>
+
+            <BaroqueCardContent className="space-y-4">
+              {contactItems.map((item) => (
+                <div key={item.label} className="flex items-start gap-3 justify-center">
+                  <item.icon size={22} weight="fill" className="text-accent mt-0.5" />
+                  <div className="text-left">
+                    <p className="text-xs tracking-widest text-muted-foreground mb-0.5">{item.label}</p>
+                    {item.href ? (
                       <a
-                        href="mailto:hello@houseofmornii.com"
-                        className="hover:text-accent transition-colors"
+                        href={item.href}
+                        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                        className="hover:text-accent transition-colors text-sm"
                       >
-                        hello@houseofmornii.com
+                        {item.value}
                       </a>
-                    </div>
+                    ) : (
+                      <p className="text-sm">{item.value}</p>
+                    )}
                   </div>
+                </div>
+              ))}
+            </BaroqueCardContent>
 
-                  <div className="flex items-start gap-3 justify-center">
-                    <InstagramLogo size={24} weight="fill" className="text-accent mt-1" />
-                    <div className="text-left">
-                      <p className="text-sm tracking-widest text-muted-foreground mb-1">INSTAGRAM</p>
-                      <a
-                        href="https://instagram.com/houseofmornii"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-accent transition-colors"
-                      >
-                        @houseofmornii
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 justify-center">
-                    <MapPin size={24} weight="fill" className="text-accent mt-1" />
-                    <div className="text-left">
-                      <p className="text-sm tracking-widest text-muted-foreground mb-1">LOCATION</p>
-                      <p>By appointment only</p>
-                    </div>
-                  </div>
-              </BaroqueCardContent>
-            </BaroqueCard>
-
-            <BaroqueCard animate>
-              <BaroqueCardHeader withDivider={false}>
-                 <BaroqueCardTitle className="text-2xl text-accent">BRONZE FIILG SHOP</BaroqueCardTitle>
-              </BaroqueCardHeader>
-
-              <BaroqueCardContent>
-                <p className="text-base leading-relaxed text-muted-foreground">
-                  Visit our exclusive boutique to experience the full collection and receive 
-                  personalized styling consultations.
-                </p>
-              </BaroqueCardContent>
-
-              <BaroqueCardFooter centered>
-                  <Button
-                    size="lg"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest w-full group"
-                  >
-                    <span className="group-hover:tracking-[0.2em] transition-all">
-                      BOOK YOUR APPOINTMENT
-                    </span>
-                  </Button>
-              </BaroqueCardFooter>
-            </BaroqueCard>
-          </div>
+            <BaroqueCardFooter centered>
+              <Link to="/contact">
+                <Button
+                  size="lg"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest group"
+                >
+                  <span className="group-hover:tracking-[0.2em] transition-all">
+                    GET IN TOUCH →
+                  </span>
+                </Button>
+              </Link>
+            </BaroqueCardFooter>
+          </BaroqueCard>
         </motion.div>
       </div>
     </section>
