@@ -9,25 +9,26 @@ interface OrnamentalBorderProps {
   backgroundStyle?: CSSProperties
   /** Override the inner content wrapper padding. Defaults to 'p-6 md:p-8 lg:p-10' */
   contentClassName?: string
-}
-
-const defaultBackgroundStyle: CSSProperties = {
-  background: 'oklch(0.18 0.03 210 / 0.55)',
-  backdropFilter: 'blur(6px)',
-  WebkitBackdropFilter: 'blur(6px)',
-  boxShadow: 'inset 0 1px 0 oklch(1 0 0 / 0.10), inset 0 -1px 0 oklch(0 0 0 / 0.25)',
+  /** Enable hover lift effect on the glass panel. Default: false */
+  hoverable?: boolean
 }
 
 export function OrnamentalBorder({ 
   children, 
   className, 
   backgroundClassName,
-  backgroundStyle = defaultBackgroundStyle,
+  backgroundStyle,
   contentClassName = 'p-6 md:p-8 lg:p-10',
+  hoverable = false,
 }: OrnamentalBorderProps) {
   return (
     <div
-      className={cn('relative', backgroundClassName, className)}
+      className={cn(
+        'glass-panel',
+        hoverable && 'glass-panel--hover',
+        backgroundClassName,
+        className,
+      )}
       style={backgroundStyle}
     >
       <div className={cn('relative z-10', contentClassName)}>

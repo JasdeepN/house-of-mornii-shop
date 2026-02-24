@@ -149,6 +149,69 @@
   @include ornamental-surface(0.08, 0.05, 0.03);
 }
 
+/* ------------------------------------------------------------------ */
+/*  Glass Panel — frosted glass effect adapted from glass-theme        */
+/* ------------------------------------------------------------------ */
+
+.glass-panel {
+  background: var(--glass-panel-bg);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  border: 1px solid var(--glass-panel-border);
+  border-radius: 1.25rem;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  perspective: var(--card-perspective);
+  transition:
+    transform 0.35s var(--glass-ease),
+    box-shadow 0.35s var(--glass-ease),
+    border-color 0.35s var(--glass-ease);
+
+  /* Radial highlight sheen overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at 18% 15%,
+      var(--glass-highlight),
+      oklch(1 0 0 / 0) 60%
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    opacity: 0.55;
+    z-index: 5;
+  }
+}
+
+/* Hover lift effect — only for interactive cards */
+.glass-panel--hover:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--glass-shadow-hover);
+  border-color: oklch(0.60 0.11 78 / 0.22);
+}
+
+/* Subtle variant — lighter blur for nested or secondary surfaces */
+.glass-panel--subtle {
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.25);
+
+  &::before {
+    opacity: 0.3;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel,
+  .glass-panel--hover:hover {
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}
+
 .ornamental-frame-content {
   padding-top: var(--ornamental-frame-pad-top);
   padding-right: var(--ornamental-frame-pad-right);

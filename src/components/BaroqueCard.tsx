@@ -26,10 +26,14 @@ interface BaroqueCardProps extends React.HTMLAttributes<HTMLDivElement> {
    * If true, applies a standard entrance animation to the card content
    */
   animate?: boolean
+  /**
+   * If true, the card lifts on hover with enhanced shadow
+   */
+  hoverable?: boolean
 }
 
 const BaroqueCard = React.forwardRef<HTMLDivElement, BaroqueCardProps>(
-  ({ children, className, animate = true, ...props }, ref) => {
+  ({ children, className, animate = true, hoverable = false, ...props }, ref) => {
     const Wrapper = animate ? motion.div : "div"
     const wrapperProps = animate ? {
       initial: "hidden",
@@ -39,7 +43,7 @@ const BaroqueCard = React.forwardRef<HTMLDivElement, BaroqueCardProps>(
     } : {}
 
     return (
-      <OrnamentalBorder className={cn("w-full", className)}>
+      <OrnamentalBorder className={cn("w-full", className)} hoverable={hoverable}>
         {/* @ts-ignore */}
         <Wrapper
           ref={ref}

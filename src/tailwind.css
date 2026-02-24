@@ -36,6 +36,29 @@
 	--slate-dark: oklch(0.20 0.02 210);
 
 	--radius: 1rem;
+
+	/* Glass panel tokens (dark-first, adapted to OKLCH palette) */
+	--glass-blur-sm: 8px;
+	--glass-blur-md: 16px;
+	--glass-blur-lg: 26px;
+	--glass-saturate: 170%;
+	--glass-contrast: 115%;
+	--glass-panel-bg: linear-gradient(
+		135deg,
+		oklch(0.45 0.08 210 / 0.18) 0%,
+		oklch(0.15 0.02 210 / 0.42) 100%
+	);
+	--glass-panel-border: oklch(1 0 0 / 0.12);
+	--glass-highlight: oklch(1 0 0 / 0.35);
+	--glass-shadow:
+		0 10px 42px -12px oklch(0 0 0 / 0.55),
+		0 4px 16px oklch(0 0 0 / 0.35);
+	--glass-shadow-hover:
+		0 15px 50px -12px oklch(0 0 0 / 0.65),
+		0 8px 24px oklch(0 0 0 / 0.45),
+		0 0 0 1px oklch(0.60 0.11 78 / 0.18);
+	--glass-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
+	--card-perspective: 1000px;
 }
 
 @theme {
