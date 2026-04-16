@@ -45,8 +45,11 @@ export function TrustBadges({ variant = 'full', className }: TrustBadgesProps) {
           key={label}
           className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-sm text-center"
           style={{
-            background: 'oklch(1 0 0 / 0.03)',
-            border: '1px solid oklch(1 0 0 / 0.06)',
+            background: 'oklch(0.22 0.03 210 / 0.65)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid oklch(1 0 0 / 0.16)',
+            boxShadow: '0 4px 16px oklch(0 0 0 / 0.30)',
           }}
         >
           <Icon

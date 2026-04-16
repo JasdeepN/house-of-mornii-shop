@@ -12,6 +12,7 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { FreeShippingBar } from '@/components/FreeShippingBar'
 
 function FlyoutLineItem({
   line,
@@ -178,6 +179,8 @@ export function CartFlyout() {
 
             {/* Footer */}
             <SheetFooter className="px-6 pt-4 pb-6 border-t flex-col gap-3" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
+              <FreeShippingBar subtotalAmount={cart.cost.subtotalAmount.amount} className="w-full mb-1" />
+
               {/* Subtotal */}
               <div className="flex items-center justify-between w-full">
                 <span className="text-sm tracking-widest">SUBTOTAL</span>

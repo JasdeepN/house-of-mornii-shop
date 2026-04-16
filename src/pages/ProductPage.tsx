@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CaretLeft } from '@phosphor-icons/react'
 import { useProduct, useRelatedProducts, formatMoney, flattenEdges } from '@/lib/shopify'
+import { StorefrontError } from '@/lib/shopify'
 import type { ShopifyProductVariant } from '@/lib/shopify'
 import { ProductGallery } from '@/components/ProductGallery'
 import { VariantSelector } from '@/components/VariantSelector'
@@ -10,6 +10,10 @@ import { AddToCartButton } from '@/components/AddToCartButton'
 import { TrustBadges } from '@/components/TrustBadges'
 import { ProductCard } from '@/components/ProductCard'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { useSEO } from '@/hooks/useSEO'
+import { trackViewItem } from '@/lib/analytics'
+import { JsonLd, productSchema, breadcrumbSchema } from '@/components/JsonLd'
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 
 export function ProductPage() {
   const { handle } = useParams()
@@ -37,6 +41,26 @@ export function ProductPage() {
     const variants = product.variants.edges.map((e) => e.node)
     return variants[0] ?? null
   }, [product, selectedVariant])
+
+  // SEO — dynamic per product
+  useSEO({
+    title: product?.title,
+    description: product?.description,
+    image: product?.featuredImage?.url,
+    type: 'product',
+  })
+
+  // Analytics — track view_item on PDP load
+  useEffect(() => {
+    if (product) {
+      trackViewItem({
+        id: product.id,
+        name: product.title,
+        price: product.priceRange.minVariantPrice.amount,
+        currency: product.priceRange.minVariantPrice.currencyCode,
+      })
+    }
+  }, [product?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const images = useMemo(() => {
     if (!product) return []
@@ -68,7 +92,46 @@ export function ProductPage() {
     )
   }
 
-  if (error || !product) {
+  if (error) {
+    const isServiceError =
+      error instanceof StorefrontError &&
+      (error.category === 'upstream_unavailable' || error.category === 'misconfigured')
+    return (
+      <div className="min-h-screen pt-28 pb-16">
+        <div className="container mx-auto px-6 lg:px-20 text-center">
+          {isServiceError ? (
+            <>
+              <h1 className="text-4xl tracking-[0.15em] mb-4">Service Unavailable</h1>
+              <p className="text-muted-foreground mb-8">
+                We're having trouble loading this product. Please try again shortly.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-accent hover:underline tracking-widest text-sm"
+              >
+                TRY AGAIN
+              </button>
+            </>
+          ) : (
+            <>
+              <h1 className="text-4xl tracking-[0.15em] mb-4">Product Not Found</h1>
+              <p className="text-muted-foreground mb-8">
+                This piece may no longer be available.
+              </p>
+              <Link
+                to="/collections"
+                className="text-accent hover:underline tracking-widest text-sm"
+              >
+                &larr; BROWSE COLLECTIONS
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (!product) {
     return (
       <div className="min-h-screen pt-28 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center">
@@ -92,22 +155,21 @@ export function ProductPage() {
 
   return (
     <div className="min-h-screen pt-28 pb-16">
+      <JsonLd data={productSchema(product)} />
+      <JsonLd data={breadcrumbSchema([
+        { name: 'Home', url: `${window.location.origin}/` },
+        { name: 'Collections', url: `${window.location.origin}/collections` },
+        { name: product.title, url: `${window.location.origin}/products/${product.handle}` },
+      ])} />
       <div className="container mx-auto px-6 lg:px-20">
-        {/* Breadcrumb */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+        <PageBreadcrumb
+          items={[
+            { label: 'HOME', to: '/' },
+            { label: 'COLLECTIONS', to: '/collections' },
+            { label: product.title.toUpperCase() },
+          ]}
           className="mb-8"
-        >
-          <Link
-            to="/collections"
-            className="inline-flex items-center gap-1 text-sm tracking-widest text-muted-foreground hover:text-accent transition-colors"
-          >
-            <CaretLeft size={14} weight="bold" />
-            COLLECTIONS
-          </Link>
-        </motion.div>
+        />
 
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Gallery */}

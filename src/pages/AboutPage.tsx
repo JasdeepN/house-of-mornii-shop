@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import {
   BaroqueCard,
   BaroqueCardHeader,
@@ -14,6 +14,7 @@ import {
   luxuryEase,
   viewportOnce,
 } from '@/lib/animations'
+import { useSEO } from '@/hooks/useSEO'
 
 const titleWords = ['About', 'House', 'of', 'Mornii']
 
@@ -28,20 +29,18 @@ const wordVariants = {
 }
 
 export function AboutPage() {
+  useSEO({
+    title: 'About',
+    description: 'Where heritage-inspired opulence meets modern styling. Discover the story behind House of Mornii costume jewellery.',
+  })
+
   return (
     <div className="min-h-screen pt-28 pb-16">
         <div className="container mx-auto px-6 lg:px-20">
-          {/* Breadcrumb */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, ease: luxuryEase }}
-            className="flex items-center gap-2 text-xs tracking-[0.2em] text-muted-foreground mb-10"
-          >
-            <Link to="/" className="hover:text-accent transition-colors">HOME</Link>
-            <span>/</span>
-            <span style={{ color: 'oklch(0.60 0.11 78)' }}>ABOUT</span>
-          </motion.div>
+          <PageBreadcrumb
+            items={[{ label: 'HOME', to: '/' }, { label: 'ABOUT' }]}
+            className="mb-10"
+          />
 
           {/* Hero title — word-split blur reveal */}
           <div className="text-center mb-6">

@@ -2,6 +2,8 @@ import { useCollections } from '@/lib/shopify'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
+import { useSEO } from '@/hooks/useSEO'
 import {
   BaroqueCard,
   BaroqueCardHeader,
@@ -13,9 +15,19 @@ import {
 export function CollectionsPage() {
   const { data: collections, isLoading, error } = useCollections()
 
+  useSEO({
+    title: 'Collections',
+    description: 'Explore our curated collections of regal costume jewellery — everyday elegance, festive radiance, and bridal grandeur.',
+  })
+
   return (
     <div className="min-h-screen pt-28 pb-16">
       <div className="container mx-auto px-6 lg:px-20">
+        <PageBreadcrumb
+          items={[{ label: 'HOME', to: '/' }, { label: 'COLLECTIONS' }]}
+          className="mb-8"
+          centered
+        />
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -56,8 +68,10 @@ export function CollectionsPage() {
                 className="block h-full"
               >
                 <BaroqueCard
-                  className="h-full cursor-pointer hover:-translate-y-2 transition-transform duration-500"
+                  className="h-full cursor-pointer"
                   animate
+                  noBorder
+                  hoverable
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   <BaroqueCardHeader withDivider>

@@ -1,11 +1,25 @@
-import { useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CaretDown, Funnel } from '@phosphor-icons/react'
-import { useProducts, useCollections } from '@/lib/shopify'
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
+import {
+  useProducts,
+  useCollections,
+  useCollection,
+  shopifyFetch,
+  IS_CONFIGURED,
+  STOREFRONT_MODE,
+  StorefrontError,
+  getDemoProducts,
+  PRODUCTS_QUERY,
+  PRODUCTS_QUERY_TOKENLESS,
+} from '@/lib/shopify'
+import type { ShopifyProduct } from '@/lib/shopify'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { ProductGrid } from '@/components/ProductGrid'
-import { Button } from '@/components/ui/button'
+import { useSEO } from '@/hooks/useSEO'
+import { trackViewItemList } from '@/lib/analytics'
 
 const SORT_OPTIONS = [
   { label: 'Best Selling', key: 'BEST_SELLING', reverse: false },
@@ -21,8 +35,28 @@ export function ShopPage() {
   const reverse = searchParams.get('reverse') === 'true'
   const collectionFilter = searchParams.get('collection') || ''
 
+  // Pagination state
+  const [afterCursor, setAfterCursor] = useState<string | undefined>(undefined)
+  const [loadedMore, setLoadedMore] = useState<ShopifyProduct[]>([])
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMorePages, setHasMorePages] = useState(true)
+
   const { data: collections } = useCollections()
-  const { data: productsData, isLoading } = useProducts(sortKey, reverse)
+  const { data: productsData, isLoading: isAllLoading, error: productsError } = useProducts(sortKey, reverse)
+  // When a collection filter is active, fetch that collection's products directly
+  const { data: collectionData, isLoading: isCollectionLoading, error: collectionError } = useCollection(
+    collectionFilter,
+    50,
+    sortKey,
+    reverse,
+  )
+
+  const loading = collectionFilter ? isCollectionLoading : isAllLoading
+
+  useSEO({
+    title: 'Shop All',
+    description: 'Explore our full collection of heritage-inspired costume jewellery. Everyday elegance, festive pieces, and bridal grandeur.',
+  })
 
   // Find the active sort option label
   const activeSortLabel = useMemo(() => {
@@ -32,33 +66,94 @@ export function ShopPage() {
     return match?.label ?? 'Best Selling'
   }, [sortKey, reverse])
 
-  const products = useMemo(() => {
+  const allProducts = useMemo(() => {
     if (!productsData) return []
     return productsData.edges.map((e) => e.node)
   }, [productsData])
 
-  const handleSort = (key: string, rev: boolean) => {
+  const handleSort = useCallback((key: string, rev: boolean) => {
     const params = new URLSearchParams(searchParams)
     params.set('sort', key)
     if (rev) params.set('reverse', 'true')
     else params.delete('reverse')
     setSearchParams(params, { replace: true })
-  }
+    setAfterCursor(undefined)
+    setLoadedMore([])
+    setHasMorePages(true)
+  }, [searchParams, setSearchParams])
 
-  const handleCollectionFilter = (handle: string) => {
+  const handleCollectionFilter = useCallback((handle: string) => {
     const params = new URLSearchParams(searchParams)
     if (handle) params.set('collection', handle)
     else params.delete('collection')
     setSearchParams(params, { replace: true })
-  }
+    setAfterCursor(undefined)
+    setLoadedMore([])
+    setHasMorePages(true)
+  }, [searchParams, setSearchParams])
 
-  // Filter products by collection tag if set (client-side filter for simplicity)
+  const handleLoadMore = useCallback(async () => {
+    const cursor = afterCursor || productsData?.pageInfo.endCursor
+    if (!cursor) return
+    setIsLoadingMore(true)
+    try {
+      if (!IS_CONFIGURED) {
+        const items = getDemoProducts()
+        const afterId = atob(cursor)
+        const idx = items.findIndex((p) => p.id === afterId)
+        const startIdx = idx >= 0 ? idx + 1 : 0
+        const page = items.slice(startIdx, startIdx + 12)
+        setLoadedMore((prev) => [...prev, ...page])
+        if (startIdx + 12 >= items.length) {
+          setHasMorePages(false)
+        } else {
+          setAfterCursor(btoa(page[page.length - 1].id))
+        }
+      } else {
+        const data = await shopifyFetch<{
+          products: {
+            edges: { node: ShopifyProduct; cursor: string }[]
+            pageInfo: { hasNextPage: boolean; endCursor: string | null }
+          }
+        }>(STOREFRONT_MODE === 'token' ? PRODUCTS_QUERY : PRODUCTS_QUERY_TOKENLESS, { first: 12, sortKey, reverse, after: cursor })
+        const newProducts = data.products.edges.map((e) => e.node)
+        setLoadedMore((prev) => [...prev, ...newProducts])
+        setHasMorePages(data.products.pageInfo.hasNextPage)
+        setAfterCursor(data.products.pageInfo.endCursor ?? undefined)
+      }
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [productsData, afterCursor, sortKey, reverse])
+
+  // Use collection-level fetch when filtered, otherwise show all products + loaded more
   const filteredProducts = useMemo(() => {
-    if (!collectionFilter) return products
-    return products.filter((p) =>
-      p.tags.some((t) => t.toLowerCase() === collectionFilter.toLowerCase()),
-    )
-  }, [products, collectionFilter])
+    if (!collectionFilter) return [...allProducts, ...loadedMore]
+    if (!collectionData?.products) return []
+    return collectionData.products.edges.map((e) => e.node)
+  }, [collectionFilter, allProducts, collectionData, loadedMore])
+
+  // Track view_item_list when products load
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      trackViewItemList(
+        collectionFilter || 'Shop All',
+        filteredProducts.slice(0, 12).map((p) => ({
+          id: p.id,
+          name: p.title,
+          price: p.priceRange.minVariantPrice.amount,
+        })),
+      )
+    }
+  }, [filteredProducts.length > 0, collectionFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const activeError = collectionFilter ? collectionError : productsError
+  const isServiceError =
+    activeError instanceof StorefrontError &&
+    (activeError.category === 'upstream_unavailable' ||
+      activeError.category === 'misconfigured')
+
+  const showLoadMore = !collectionFilter && hasMorePages && (productsData?.pageInfo.hasNextPage || loadedMore.length > 0)
 
   return (
     <div className="min-h-screen pt-28 pb-16">
@@ -71,11 +166,11 @@ export function ShopPage() {
           className="text-center mb-10"
         >
           {/* Breadcrumb */}
-          <div className="flex items-center justify-center gap-2 text-xs tracking-[0.2em] text-muted-foreground mb-6">
-            <Link to="/" className="hover:text-accent transition-colors">HOME</Link>
-            <span>/</span>
-            <span style={{ color: 'oklch(0.60 0.11 78)' }}>SHOP</span>
-          </div>
+          <PageBreadcrumb
+            items={[{ label: 'HOME', to: '/' }, { label: 'SHOP' }]}
+            className="mb-6"
+            centered
+          />
 
           <h1 className="text-4xl lg:text-5xl tracking-[0.15em] mb-4">
             Shop All
@@ -98,20 +193,7 @@ export function ShopPage() {
             <Funnel size={14} weight="bold" className="text-muted-foreground mr-1" />
             <button
               onClick={() => handleCollectionFilter('')}
-              className={`text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 rounded-sm transition-all ${
-                !collectionFilter
-                  ? 'font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              style={
-                !collectionFilter
-                  ? {
-                      background: 'oklch(0.60 0.11 78 / 0.15)',
-                      border: '1px solid oklch(0.60 0.11 78 / 0.3)',
-                      color: 'oklch(0.60 0.11 78)',
-                    }
-                  : { border: '1px solid oklch(1 0 0 / 0.08)' }
-              }
+              className={`pill-btn${!collectionFilter ? ' pill-btn--active' : ''}`}
             >
               All
             </button>
@@ -119,20 +201,7 @@ export function ShopPage() {
               <button
                 key={col.handle}
                 onClick={() => handleCollectionFilter(col.handle)}
-                className={`text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 rounded-sm transition-all ${
-                  collectionFilter === col.handle
-                    ? 'font-semibold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                style={
-                  collectionFilter === col.handle
-                    ? {
-                        background: 'oklch(0.60 0.11 78 / 0.15)',
-                        border: '1px solid oklch(0.60 0.11 78 / 0.3)',
-                        color: 'oklch(0.60 0.11 78)',
-                      }
-                    : { border: '1px solid oklch(1 0 0 / 0.08)' }
-                }
+                className={`pill-btn${collectionFilter === col.handle ? ' pill-btn--active' : ''}`}
               >
                 {col.title}
               </button>
@@ -141,26 +210,25 @@ export function ShopPage() {
 
           {/* Sort dropdown */}
           <div className="relative group">
-            <button
-              className="flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 rounded-sm"
-              style={{ border: '1px solid oklch(1 0 0 / 0.10)' }}
-            >
+            <button className="pill-btn">
               Sort: {activeSortLabel}
               <CaretDown size={12} weight="bold" />
             </button>
             <div
-              className="absolute right-0 mt-1 w-48 rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30 py-1"
+              className="absolute right-0 mt-1 w-52 rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30 py-1"
               style={{
-                background: 'oklch(0.20 0.03 210)',
-                border: '1px solid oklch(1 0 0 / 0.10)',
-                boxShadow: '0 8px 24px oklch(0 0 0 / 0.4)',
+                background: 'oklch(0.18 0.03 210 / 0.92)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid oklch(1 0 0 / 0.14)',
+                boxShadow: '0 8px 32px oklch(0 0 0 / 0.5)',
               }}
             >
               {SORT_OPTIONS.map((option) => (
                 <button
                   key={`${option.key}-${option.reverse}`}
                   onClick={() => handleSort(option.key, option.reverse)}
-                  className={`block w-full text-left px-4 py-2 text-[11px] tracking-[0.1em] uppercase transition-colors ${
+                  className={`block w-full text-left px-4 py-2.5 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors ${
                     sortKey === option.key && reverse === option.reverse
                       ? ''
                       : 'text-muted-foreground hover:text-foreground'
@@ -179,23 +247,36 @@ export function ShopPage() {
         </motion.div>
 
         {/* Product Grid */}
-        {isLoading ? (
+        {loading ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground tracking-widest animate-pulse">
               Loading products...
             </p>
           </div>
+        ) : isServiceError ? (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground tracking-widest mb-4">
+              We're having trouble loading products right now. Please try again shortly.
+            </p>
+            <button
+              className="pill-btn"
+              onClick={() => window.location.reload()}
+            >
+              TRY AGAIN
+            </button>
+          </div>
         ) : filteredProducts.length > 0 ? (
           <>
             <ProductGrid products={filteredProducts} />
-            {productsData?.pageInfo.hasNextPage && !collectionFilter && (
+            {showLoadMore && (
               <div className="text-center mt-12">
-                <Button
-                  variant="outline"
-                  className="border-accent text-foreground hover:bg-accent/10 tracking-widest"
+                <button
+                  className="pill-btn"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
                 >
-                  LOAD MORE
-                </Button>
+                  {isLoadingMore ? 'LOADING...' : 'LOAD MORE'}
+                </button>
               </div>
             )}
           </>
@@ -205,13 +286,12 @@ export function ShopPage() {
               No products found.
             </p>
             {collectionFilter && (
-              <Button
-                variant="outline"
-                className="border-accent text-foreground hover:bg-accent/10 tracking-widest"
+              <button
+                className="pill-btn"
                 onClick={() => handleCollectionFilter('')}
               >
                 CLEAR FILTER
-              </Button>
+              </button>
             )}
           </div>
         )}

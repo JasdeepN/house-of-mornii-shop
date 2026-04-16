@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { EnvelopeSimple, InstagramLogo, MapPin } from '@phosphor-icons/react'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import {
   BaroqueCard,
   BaroqueCardHeader,
@@ -17,6 +16,8 @@ import {
   luxuryEase,
   viewportOnce,
 } from '@/lib/animations'
+import { useSEO } from '@/hooks/useSEO'
+import { FAQAccordion } from '@/components/FAQAccordion'
 
 const contactItems = [
   { icon: EnvelopeSimple, label: 'EMAIL', value: 'hello@houseofmornii.com', href: 'mailto:hello@houseofmornii.com' },
@@ -25,20 +26,18 @@ const contactItems = [
 ] as { icon: typeof EnvelopeSimple; label: string; value: string; href?: string; external?: boolean }[]
 
 export function ContactPage() {
+  useSEO({
+    title: 'Contact',
+    description: 'Get in touch with House of Mornii. Book a styling appointment or reach out for enquiries about our heritage-inspired costume jewellery.',
+  })
+
   return (
     <div className="min-h-screen pt-28 pb-16">
         <div className="container mx-auto px-6 lg:px-20">
-          {/* Breadcrumb */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, ease: luxuryEase }}
-            className="flex items-center gap-2 text-xs tracking-[0.2em] text-muted-foreground mb-10"
-          >
-            <Link to="/" className="hover:text-accent transition-colors">HOME</Link>
-            <span>/</span>
-            <span style={{ color: 'oklch(0.60 0.11 78)' }}>CONTACT</span>
-          </motion.div>
+          <PageBreadcrumb
+            items={[{ label: 'HOME', to: '/' }, { label: 'CONTACT' }]}
+            className="mb-10"
+          />
 
           {/* Title */}
           <motion.div
@@ -121,17 +120,28 @@ export function ContactPage() {
                 </BaroqueCardContent>
 
                 <BaroqueCardFooter centered>
-                  <Button
-                    size="lg"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest w-full group"
+                  <a
+                    href="mailto:hello@houseofmornii.com?subject=Styling%20Appointment%20Request"
+                    className="pill-btn pill-btn--cta w-full justify-center py-4 text-sm inline-flex"
                   >
-                    <span className="group-hover:tracking-[0.2em] transition-all">
-                      BOOK YOUR APPOINTMENT
-                    </span>
-                  </Button>
+                    BOOK YOUR APPOINTMENT
+                  </a>
                 </BaroqueCardFooter>
               </BaroqueCard>
             </motion.div>
+          </motion.div>
+
+          {/* FAQ Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewportOnce}
+            transition={{ duration: 0.8, ease: luxuryEase }}
+            className="max-w-2xl mx-auto mt-16"
+          >
+            <h2 className="text-2xl tracking-[0.15em] text-center mb-6">Frequently Asked Questions</h2>
+            <OrnamentalDivider className="mb-8" />
+            <FAQAccordion />
           </motion.div>
         </div>
       </div>

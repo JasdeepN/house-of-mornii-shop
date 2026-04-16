@@ -1,5 +1,19 @@
 import '@testing-library/jest-dom/vitest'
 
+// Polyfill IntersectionObserver for jsdom (required by framer-motion)
+if (typeof IntersectionObserver === 'undefined') {
+  global.IntersectionObserver = class IntersectionObserver {
+    readonly root: Element | null = null
+    readonly rootMargin: string = ''
+    readonly thresholds: ReadonlyArray<number> = []
+    constructor(private callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords(): IntersectionObserverEntry[] { return [] }
+  } as unknown as typeof globalThis.IntersectionObserver
+}
+
 // Stub import.meta.env defaults for tests
 // Individual tests can override with vi.stubEnv()
 if (!import.meta.env.VITE_SHOPIFY_STORE_DOMAIN) {

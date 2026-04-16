@@ -11,6 +11,8 @@ interface OrnamentalBorderProps {
   contentClassName?: string
   /** Enable hover lift effect on the glass panel. Default: false */
   hoverable?: boolean
+  /** Hide the baroque border-image frame overlay. Default: false */
+  noBorder?: boolean
 }
 
 export function OrnamentalBorder({ 
@@ -20,6 +22,7 @@ export function OrnamentalBorder({
   backgroundStyle,
   contentClassName = 'p-6 md:p-8 lg:p-10',
   hoverable = false,
+  noBorder = false,
 }: OrnamentalBorderProps) {
   return (
     <div
@@ -35,19 +38,21 @@ export function OrnamentalBorder({
         {children}
       </div>
 
-      <div
-        className="absolute inset-0 z-20 pointer-events-none"
-        style={{
-          borderStyle: 'solid',
-          borderWidth: '50px',
-          borderImageSource: `url(${baroqueBorder})`,
-          borderImageSlice: '180',
-          borderImageWidth: '50px',
-          borderImageOutset: '24px',
-          borderImageRepeat: 'stretch'
-        }}
-        aria-hidden="true"
-      />
+      {!noBorder && (
+        <div
+          className="absolute inset-0 z-20 pointer-events-none"
+          style={{
+            borderStyle: 'solid',
+            borderWidth: '50px',
+            borderImageSource: `url(${baroqueBorder})`,
+            borderImageSlice: '180',
+            borderImageWidth: '50px',
+            borderImageOutset: '24px',
+            borderImageRepeat: 'stretch',
+          }}
+          aria-hidden="true"
+        />
+      )}
     </div>
   )
 }

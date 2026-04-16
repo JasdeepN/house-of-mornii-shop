@@ -13,27 +13,30 @@ import {
 } from '@/components/BaroqueCard'
 import { fadeSlideUp, viewportOnce } from '@/lib/animations'
 
+// To use real photos: import them here and set the `image` field, e.g.:
+// import everydayImg from '@/assets/images/collection-everyday.jpg'
+// Then set image: everydayImg on the relevant collection object.
 const collections = [
   {
     id: 'everyday' as const,
     title: 'EVERYDAY',
     subtitle: 'Polished essentials',
     description: 'Refined, versatile pieces that elevate your daily elegance with timeless sophistication.',
-    gradient: 'from-teal-deep/60 to-transparent',
+    image: null as string | null,
   },
   {
     id: 'festive' as const,
     title: 'FESTIVE',
     subtitle: 'Celebration shine',
     description: 'Radiant statement pieces designed to captivate and dazzle at every special occasion.',
-    gradient: 'from-accent/40 to-transparent',
+    image: null as string | null,
   },
   {
     id: 'bridal' as const,
     title: 'BRIDAL',
     subtitle: 'Bridal grandeur',
     description: 'Exquisite heirloom-quality jewellery that transforms your most treasured moments into lasting memories.',
-    gradient: 'from-gold/50 to-transparent',
+    image: null as string | null,
   },
 ]
 
@@ -53,7 +56,7 @@ export function CollectionsSection() {
           <h2 className="text-4xl lg:text-5xl mb-4 tracking-[0.15em]">Collections</h2>
           <OrnamentalDivider />
           <p className="text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed mt-6">
-            Parisfall's eyeshadow palettes and eyeshadow sticks, embodying timeless luxury and modern artistry. 
+            Discover our curated jewellery collections, embodying timeless luxury and modern artistry.
             Each piece is thoughtfully crafted to honor heritage while celebrating contemporary elegance.
           </p>
         </motion.div>
@@ -62,9 +65,11 @@ export function CollectionsSection() {
           {collections.map((collection, index) => (
             <Link key={collection.id} to={`/collections/${collection.id}`} className="h-full block">
                <BaroqueCard 
-                  className="h-full cursor-pointer hover:-translate-y-2 transition-transform duration-500"
+                  className="h-full cursor-pointer"
                   animate
-                  style={{ animationDelay: `${index * 150}ms` }} // Simple staggering
+                  noBorder
+                  hoverable
+                  style={{ animationDelay: `${index * 150}ms` }}
                >
                   <BaroqueCardHeader withDivider={true}>
                     <BaroqueCardTitle className="text-xl md:text-2xl">{collection.title}</BaroqueCardTitle>
@@ -73,7 +78,16 @@ export function CollectionsSection() {
 
                   <BaroqueCardContent className="flex flex-col gap-4">
                     <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm mx-auto">
+                      {collection.image ? (
+                        <img
+                          src={collection.image}
+                          alt={collection.title}
+                          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                          loading="lazy"
+                        />
+                      ) : (
                         <JewelryImage collection={collection.id} className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" />
+                      )}
                     </div>
                     <p className="text-sm leading-relaxed text-muted-foreground">
                       {collection.description}

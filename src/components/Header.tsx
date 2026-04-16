@@ -6,6 +6,7 @@ import { List, Handbag } from '@phosphor-icons/react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
+import { SearchBar } from '@/components/SearchBar'
 
 const navLinks = [
   { label: 'SHOP', href: '/shop' },
@@ -95,6 +96,7 @@ export function Header() {
               </nav>
 
               <div className="flex items-center gap-4">
+                <SearchBar />
                 <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
                   <Handbag size={22} weight="bold" />
                   {itemCount > 0 && (

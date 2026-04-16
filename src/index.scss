@@ -150,6 +150,112 @@
 }
 
 /* ------------------------------------------------------------------ */
+/*  Pill Button — smoky glass with peacock hover jelly effect          */
+/* ------------------------------------------------------------------ */
+
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: oklch(0.80 0.02 210);
+  background: oklch(0.22 0.03 210 / 0.60);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid oklch(1 0 0 / 0.14);
+  box-shadow: 0 2px 8px oklch(0 0 0 / 0.20);
+  transform: scale(1);
+  // colour + shadow animate fast; scale uses spring for the jelly bounce
+  transition:
+    transform    0.40s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background   0.25s ease,
+    border-color 0.25s ease,
+    color        0.25s ease,
+    box-shadow   0.25s ease;
+
+  &:hover {
+    color: oklch(0.88 0.10 195);
+    background: oklch(0.45 0.12 195 / 0.18);
+    border-color: oklch(0.55 0.14 195 / 0.55);
+    box-shadow:
+      0 4px 18px oklch(0.45 0.12 195 / 0.20),
+      0 0 0 1px oklch(0.55 0.14 195 / 0.16);
+    transform: scale(1.06);
+  }
+
+  &:active {
+    transform: scale(0.97);
+    transition-duration: 0.10s;
+  }
+}
+
+// Active / selected state — gold tint, no hover-grow
+.pill-btn--active {
+  color: oklch(0.75 0.12 78);
+  background: oklch(0.60 0.11 78 / 0.18);
+  border-color: oklch(0.60 0.11 78 / 0.45);
+  box-shadow:
+    0 4px 16px oklch(0.60 0.11 78 / 0.15),
+    0 0 0 1px oklch(0.60 0.11 78 / 0.18);
+
+  &:hover {
+    // keep gold look, only micro-scale
+    color: oklch(0.80 0.13 78);
+    background: oklch(0.60 0.11 78 / 0.24);
+    border-color: oklch(0.60 0.11 78 / 0.60);
+    box-shadow:
+      0 6px 20px oklch(0.60 0.11 78 / 0.22),
+      0 0 0 1px oklch(0.60 0.11 78 / 0.25);
+    transform: scale(1.04);
+  }
+}
+
+// CTA / primary action — rich gold glass, strong spring bounce
+.pill-btn--cta {
+  color: oklch(0.15 0.02 210);
+  background: oklch(0.60 0.11 78);
+  border-color: oklch(0.68 0.13 80 / 0.80);
+  box-shadow:
+    0 4px 20px oklch(0.60 0.11 78 / 0.30),
+    inset 0 1px 0 oklch(1 0 0 / 0.20);
+
+  &:hover {
+    color: oklch(0.10 0.02 210);
+    background: oklch(0.65 0.13 80);
+    border-color: oklch(0.72 0.14 80);
+    box-shadow:
+      0 8px 28px oklch(0.60 0.11 78 / 0.40),
+      inset 0 1px 0 oklch(1 0 0 / 0.25);
+    transform: scale(1.06);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-btn,
+  .pill-btn--active {
+    transition:
+      background   0.15s ease,
+      border-color 0.15s ease,
+      color        0.15s ease;
+
+    &:hover { transform: none; }
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Glass Panel — frosted glass effect adapted from glass-theme        */
 /* ------------------------------------------------------------------ */
 
@@ -223,6 +329,144 @@
   inset: var(--ornamental-frame-surface-inset);
 }
 
+/* ------------------------------------------------------------------ */
+/*  French Gold Baroque Frame — multi-layered CSS "swept" gilt frame   */
+/* ------------------------------------------------------------------ */
+
+.french-gold-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  border-radius: inherit;
+  transition: filter 0.5s ease;
+
+  // ── Multi-tiered beveled ridges (cross-section: lip→bevel→groove→band→groove→tier→lip→edge) ──
+  box-shadow:
+    // Inset glow — canvas-depth where frame meets content
+    inset 0 0 18px 2px oklch(0 0 0 / 0.35),
+    inset 0 0 4px 1px oklch(0 0 0 / 0.15),
+    // Inner bright lip (closest to content)
+    0 0 0 2px var(--frame-gold-bright),
+    // First bevel tier — main gold body
+    0 0 0 6px var(--frame-gold-base),
+    // Dark crevice — carved separation
+    0 0 0 7px var(--frame-shadow-deep),
+    // Middle ornate band — slightly cooler gold
+    0 0 0 12px var(--frame-gold-mid),
+    // Second crevice — warm shadow
+    0 0 0 13px var(--frame-shadow-mid),
+    // Wide outer ornate tier — main gold
+    0 0 0 20px var(--frame-gold-base),
+    // Outer bright catching lip
+    0 0 0 22px var(--frame-gold-highlight),
+    // Dark outer edge
+    0 0 0 23px var(--frame-shadow-deep),
+    // Ambient gold glow bleeding outward
+    0 0 14px 24px oklch(0.74 0.12 85 / 0.12),
+    // Wall drop shadows
+    0 8px 32px oklch(0 0 0 / 0.40),
+    0 2px 8px oklch(0 0 0 / 0.25);
+
+  // ── Metallic sheen + corner rosettes ──
+  &::before {
+    content: '';
+    position: absolute;
+    // Extend over the frame shadow area
+    inset: -24px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+    background:
+      // Corner rosette highlights — bright catch-light at each corner
+      radial-gradient(ellipse 70px 70px at 4% 4%,   oklch(0.92 0.14 88 / 0.50) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 60px at 96% 4%,   oklch(0.90 0.13 86 / 0.40) 0%, transparent 70%),
+      radial-gradient(ellipse 65px 65px at 96% 96%,  oklch(0.88 0.12 85 / 0.45) 0%, transparent 70%),
+      radial-gradient(ellipse 55px 55px at 4% 96%,   oklch(0.86 0.11 84 / 0.35) 0%, transparent 70%),
+      // Diagonal metallic sheen — simulates directional light
+      linear-gradient(
+        135deg,
+        oklch(1 0 0 / 0.22) 0%,
+        transparent 16%,
+        oklch(0.85 0.16 88 / 0.10) 40%,
+        transparent 55%,
+        oklch(1 0 0 / 0.08) 80%,
+        transparent 100%
+      );
+  }
+
+  // ── Hammered metal noise texture ──
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -24px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.10;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+}
+
+// ── Hover: brighten the frame as if light intensifies ──
+.glass-panel:hover > .french-gold-frame {
+  filter: brightness(1.10) contrast(1.02);
+}
+
+// ── Responsive: thinner frame on small viewports ──
+@media (max-width: 640px) {
+  .french-gold-frame {
+    box-shadow:
+      inset 0 0 12px 1px oklch(0 0 0 / 0.30),
+      inset 0 0 3px 1px oklch(0 0 0 / 0.12),
+      0 0 0 1.5px var(--frame-gold-bright),
+      0 0 0 4px var(--frame-gold-base),
+      0 0 0 5px var(--frame-shadow-deep),
+      0 0 0 8px var(--frame-gold-mid),
+      0 0 0 9px var(--frame-shadow-mid),
+      0 0 0 14px var(--frame-gold-base),
+      0 0 0 15px var(--frame-gold-highlight),
+      0 0 0 16px var(--frame-shadow-deep),
+      0 0 10px 17px oklch(0.74 0.12 85 / 0.10),
+      0 6px 24px oklch(0 0 0 / 0.35),
+      0 2px 6px oklch(0 0 0 / 0.20);
+
+    &::before,
+    &::after {
+      inset: -17px;
+    }
+
+    &::before {
+      background:
+        radial-gradient(ellipse 45px 45px at 5% 5%,   oklch(0.92 0.14 88 / 0.40) 0%, transparent 70%),
+        radial-gradient(ellipse 40px 40px at 95% 5%,   oklch(0.90 0.13 86 / 0.30) 0%, transparent 70%),
+        radial-gradient(ellipse 42px 42px at 95% 95%,  oklch(0.88 0.12 85 / 0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 38px 38px at 5% 95%,   oklch(0.86 0.11 84 / 0.28) 0%, transparent 70%),
+        linear-gradient(
+          135deg,
+          oklch(1 0 0 / 0.18) 0%,
+          transparent 16%,
+          oklch(0.85 0.16 88 / 0.08) 40%,
+          transparent 55%,
+          oklch(1 0 0 / 0.06) 80%,
+          transparent 100%
+        );
+    }
+  }
+}
+
+// ── Reduced motion ──
+@media (prefers-reduced-motion: reduce) {
+  .french-gold-frame {
+    transition: none !important;
+  }
+  .glass-panel:hover > .french-gold-frame {
+    filter: none;
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -231,6 +475,49 @@
     background-position: 1000px 0;
   }
 }
+
+/* Drifting gold glow that follows/opposes the ambient particles */
+@keyframes glowDrift {
+  0% {
+    --glow-x1: 25%;
+    --glow-y1: 35%;
+    --glow-x2: 75%;
+    --glow-y2: 65%;
+    --glow-x3: 50%;
+    --glow-y3: 20%;
+  }
+  33% {
+    --glow-x1: 65%;
+    --glow-y1: 55%;
+    --glow-x2: 35%;
+    --glow-y2: 30%;
+    --glow-x3: 20%;
+    --glow-y3: 70%;
+  }
+  66% {
+    --glow-x1: 40%;
+    --glow-y1: 70%;
+    --glow-x2: 60%;
+    --glow-y2: 20%;
+    --glow-x3: 80%;
+    --glow-y3: 50%;
+  }
+  100% {
+    --glow-x1: 75%;
+    --glow-y1: 30%;
+    --glow-x2: 25%;
+    --glow-y2: 70%;
+    --glow-x3: 55%;
+    --glow-y3: 80%;
+  }
+}
+
+@property --glow-x1 { syntax: '<percentage>'; inherits: false; initial-value: 30%; }
+@property --glow-y1 { syntax: '<percentage>'; inherits: false; initial-value: 40%; }
+@property --glow-x2 { syntax: '<percentage>'; inherits: false; initial-value: 70%; }
+@property --glow-y2 { syntax: '<percentage>'; inherits: false; initial-value: 60%; }
+@property --glow-x3 { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --glow-y3 { syntax: '<percentage>'; inherits: false; initial-value: 25%; }
 
 .shimmer {
   background: linear-gradient(

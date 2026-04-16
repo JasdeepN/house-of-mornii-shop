@@ -38,7 +38,7 @@ export interface ShopifyProduct {
     minVariantPrice: ShopifyMoney
     maxVariantPrice: ShopifyMoney
   }
-  tags: string[]
+  tags?: string[]
   vendor: string
 }
 

@@ -29,6 +29,24 @@ const PRODUCT_CARD_FRAGMENT = `
   ${IMAGE_FRAGMENT}
 `
 
+// Tokenless-safe variant: omits token-gated fields (tags, metafields).
+const PRODUCT_CARD_FRAGMENT_TOKENLESS = `
+  fragment ProductCardFields on Product {
+    id
+    handle
+    title
+    description
+    availableForSale
+    featuredImage { ...ImageFields }
+    priceRange {
+      minVariantPrice { amount currencyCode }
+      maxVariantPrice { amount currencyCode }
+    }
+    vendor
+  }
+  ${IMAGE_FRAGMENT}
+`
+
 const VARIANT_FRAGMENT = `
   fragment VariantFields on ProductVariant {
     id
@@ -106,14 +124,14 @@ export const COLLECTIONS_QUERY = `
 `
 
 export const COLLECTION_BY_HANDLE_QUERY = `
-  query CollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys) {
+  query CollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
     collection(handle: $handle) {
       id
       handle
       title
       description
       image { ...ImageFields }
-      products(first: $first, after: $after, sortKey: $sortKey) {
+      products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
         edges {
           node { ...ProductCardFields }
           cursor
@@ -126,6 +144,29 @@ export const COLLECTION_BY_HANDLE_QUERY = `
     }
   }
   ${PRODUCT_CARD_FRAGMENT}
+`
+
+export const COLLECTION_BY_HANDLE_QUERY_TOKENLESS = `
+  query CollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
+    collection(handle: $handle) {
+      id
+      handle
+      title
+      description
+      image { ...ImageFields }
+      products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
+        edges {
+          node { ...ProductCardFields }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT_TOKENLESS}
 `
 
 // ─── Product Queries ─────────────────────────────────────────────────────────
@@ -144,6 +185,22 @@ export const PRODUCTS_QUERY = `
     }
   }
   ${PRODUCT_CARD_FRAGMENT}
+`
+
+export const PRODUCTS_QUERY_TOKENLESS = `
+  query Products($first: Int!, $after: String, $sortKey: ProductSortKeys, $reverse: Boolean, $query: String) {
+    products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse, query: $query) {
+      edges {
+        node { ...ProductCardFields }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT_TOKENLESS}
 `
 
 export const PRODUCT_BY_HANDLE_QUERY = `
@@ -168,6 +225,41 @@ export const PRODUCT_BY_HANDLE_QUERY = `
         maxVariantPrice { amount currencyCode }
       }
       tags
+      vendor
+      collections(first: 1) {
+        edges {
+          node {
+            handle
+            title
+          }
+        }
+      }
+    }
+  }
+  ${VARIANT_FRAGMENT}
+`
+
+export const PRODUCT_BY_HANDLE_QUERY_TOKENLESS = `
+  query ProductByHandle($handle: String!) {
+    product(handle: $handle) {
+      id
+      handle
+      title
+      description
+      descriptionHtml
+      availableForSale
+      featuredImage { ...ImageFields }
+      images(first: 20) {
+        edges { node { ...ImageFields } }
+      }
+      options { id name values }
+      variants(first: 100) {
+        edges { node { ...VariantFields } }
+      }
+      priceRange {
+        minVariantPrice { amount currencyCode }
+        maxVariantPrice { amount currencyCode }
+      }
       vendor
       collections(first: 1) {
         edges {

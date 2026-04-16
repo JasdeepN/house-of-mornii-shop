@@ -2,12 +2,15 @@
 // Falls back to demo data when Shopify credentials are not configured.
 
 import { useQuery } from '@tanstack/react-query'
-import { shopifyFetch, IS_CONFIGURED } from './client'
+import { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE } from './client'
 import {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
+  COLLECTION_BY_HANDLE_QUERY_TOKENLESS,
   PRODUCT_BY_HANDLE_QUERY,
+  PRODUCT_BY_HANDLE_QUERY_TOKENLESS,
   PRODUCTS_QUERY,
+  PRODUCTS_QUERY_TOKENLESS,
 } from './queries'
 import {
   getDemoCollections,
@@ -43,30 +46,41 @@ interface CollectionByHandleResponse {
   collection: ShopifyCollection | null
 }
 
-export function useCollection(handle: string, first = 12, sortKey?: string) {
+// Map ProductSortKeys → ProductCollectionSortKeys where they differ
+const COLLECTION_SORT_KEY_MAP: Record<string, string> = {
+  CREATED_AT: 'CREATED',
+}
+
+export function useCollection(handle: string, first = 12, sortKey?: string, reverse = false, after?: string) {
+  // Translate sort keys that differ between Product and ProductCollection enums
+  const collectionSortKey = sortKey
+    ? COLLECTION_SORT_KEY_MAP[sortKey] ?? sortKey
+    : undefined
+
   return useQuery({
-    queryKey: ['collection', handle, first, sortKey],
+    queryKey: ['collection', handle, first, collectionSortKey, reverse, after],
     queryFn: async () => {
       if (!IS_CONFIGURED) {
         const col = getDemoCollection(handle)
         if (!col) return null
         // Respect sortKey for demo data
-        if (sortKey === 'PRICE') {
+        if (collectionSortKey === 'PRICE') {
           col.products.edges.sort(
             (a, b) =>
               parseFloat(a.node.priceRange.minVariantPrice.amount) -
               parseFloat(b.node.priceRange.minVariantPrice.amount),
           )
-        } else if (sortKey === 'TITLE') {
+        } else if (collectionSortKey === 'TITLE') {
           col.products.edges.sort((a, b) =>
             a.node.title.localeCompare(b.node.title),
           )
         }
+        if (reverse) col.products.edges.reverse()
         return col
       }
       const data = await shopifyFetch<CollectionByHandleResponse>(
-        COLLECTION_BY_HANDLE_QUERY,
-        { handle, first, sortKey },
+        STOREFRONT_MODE === 'token' ? COLLECTION_BY_HANDLE_QUERY : COLLECTION_BY_HANDLE_QUERY_TOKENLESS,
+        { handle, first, sortKey: collectionSortKey, reverse, after: after || undefined },
       )
       return data.collection
     },
@@ -105,7 +119,7 @@ export function useProduct(handle: string) {
         }
       }
       const data = await shopifyFetch<ProductByHandleResponse>(
-        PRODUCT_BY_HANDLE_QUERY,
+        STOREFRONT_MODE === 'token' ? PRODUCT_BY_HANDLE_QUERY : PRODUCT_BY_HANDLE_QUERY_TOKENLESS,
         { handle },
       )
       return data.product
@@ -129,9 +143,10 @@ export function useProducts(
   reverse = false,
   query?: string,
   first = 12,
+  after?: string,
 ) {
   return useQuery({
-    queryKey: ['products', sortKey, reverse, query, first],
+    queryKey: ['products', sortKey, reverse, query, first, after],
     queryFn: async () => {
       if (!IS_CONFIGURED) {
         let items = getDemoProducts()
@@ -151,20 +166,32 @@ export function useProducts(
           items = items.filter(
             (p) =>
               p.title.toLowerCase().includes(q) ||
-              p.tags.some((t) => t.toLowerCase().includes(q)),
+              p.tags?.some((t) => t.toLowerCase().includes(q)),
           )
         }
+        // Simulate cursor-based pagination for demo data
+        let startIdx = 0
+        if (after) {
+          const afterId = atob(after)
+          const idx = items.findIndex((p) => p.id === afterId)
+          if (idx >= 0) startIdx = idx + 1
+        }
+        const page = items.slice(startIdx, startIdx + first)
         return {
-          edges: items.slice(0, first).map((p) => ({ node: p, cursor: btoa(p.id) })),
-          pageInfo: { hasNextPage: items.length > first, endCursor: null },
+          edges: page.map((p) => ({ node: p, cursor: btoa(p.id) })),
+          pageInfo: { hasNextPage: startIdx + first < items.length, endCursor: page.length > 0 ? btoa(page[page.length - 1].id) : null },
         }
       }
-      const data = await shopifyFetch<ProductsResponse>(PRODUCTS_QUERY, {
-        first,
-        sortKey,
-        reverse,
-        query: query || undefined,
-      })
+      const data = await shopifyFetch<ProductsResponse>(
+        STOREFRONT_MODE === 'token' ? PRODUCTS_QUERY : PRODUCTS_QUERY_TOKENLESS,
+        {
+          first,
+          sortKey,
+          reverse,
+          query: query || undefined,
+          after: after || undefined,
+        },
+      )
       return data.products
     },
     staleTime: 5 * 60 * 1000,

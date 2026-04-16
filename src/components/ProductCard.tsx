@@ -8,7 +8,6 @@ import {
   BaroqueCardContent,
   BaroqueCardFooter,
 } from '@/components/BaroqueCard'
-import { Button } from '@/components/ui/button'
 import type { ShopifyProduct } from '@/lib/shopify'
 import { formatMoney } from '@/lib/shopify'
 
@@ -25,11 +24,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const imageUrl = product.featuredImage?.url
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.12 }}
+    >
     <Link to={`/products/${product.handle}`} className="block h-full">
       <BaroqueCard
-        className="h-full cursor-pointer hover:-translate-y-2 transition-transform duration-500"
-        animate
-        style={{ animationDelay: `${index * 120}ms` }}
+        className="h-full cursor-pointer"
+        animate={false}
+        hoverable
+        noBorder
       >
         <BaroqueCardHeader withDivider>
           <BaroqueCardTitle className="text-lg md:text-xl line-clamp-1">
@@ -79,15 +85,12 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         </BaroqueCardContent>
 
         <BaroqueCardFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-accent text-foreground hover:bg-accent/10 tracking-widest text-xs"
-          >
+          <button className="pill-btn">
             VIEW DETAILS
-          </Button>
+          </button>
         </BaroqueCardFooter>
       </BaroqueCard>
     </Link>
+    </motion.div>
   )
 }
