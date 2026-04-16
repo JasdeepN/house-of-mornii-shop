@@ -39,6 +39,7 @@ export function AddToCartButton({
 
   return (
     <button
+      data-testid="add-to-cart"
       onClick={handleClick}
       disabled={isAdding}
       className={`pill-btn pill-btn--cta ${compact ? 'text-xs px-4 py-2' : 'w-full py-4 text-sm justify-center'} ${className ?? ''}`}

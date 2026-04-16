@@ -30,7 +30,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.12 }}
     >
-    <Link to={`/products/${product.handle}`} className="block h-full">
+    <Link to={`/products/${product.handle}`} className="block h-full" data-testid="product-card">
       <BaroqueCard
         className="h-full cursor-pointer"
         animate={false}

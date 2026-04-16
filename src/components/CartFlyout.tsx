@@ -27,6 +27,7 @@ function FlyoutLineItem({
 
   return (
     <div
+      data-testid="cart-item"
       className="flex gap-3 py-4 border-b"
       style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}
     >
@@ -121,6 +122,7 @@ export function CartFlyout() {
   return (
     <Sheet open={isCartOpen} onOpenChange={setCartOpen}>
       <SheetContent
+        data-testid="cart-flyout"
         side="right"
         className="flex flex-col w-full sm:max-w-[420px] p-0"
         style={{
@@ -198,6 +200,7 @@ export function CartFlyout() {
 
               {/* Checkout */}
               <a
+                data-testid="checkout-button"
                 href={cart.checkoutUrl}
                 className={`block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
                   isLoading ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'

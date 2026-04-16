@@ -1,0 +1,57 @@
+name: E2E Smoke Tests
+
+on:
+  # Nightly against the production domain
+  schedule:
+    - cron: '0 4 * * *'
+  # Manual trigger for on-demand runs
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to run tests against (defaults to production)'
+        required: false
+        default: 'https://houseofmornii.com'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        env:
+          # Point at production (or the manually specified URL)
+          E2E_BASE_URL: ${{ inputs.base_url || 'https://houseofmornii.com' }}
+          # Not needed when testing against a deployed URL (no build happens here)
+          # The deployed site already has the Shopify credentials baked in.
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ github.run_id }}
+          path: test-results/
+          retention-days: 7

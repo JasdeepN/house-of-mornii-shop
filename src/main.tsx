@@ -6,9 +6,14 @@ import App from './App.tsx'
 import { ErrorFallback } from './ErrorFallback.tsx'
 import { CartProvider } from './context/CartContext'
 import { STOREFRONT_MODE } from './lib/shopify/client'
+import { initGA4, initMetaPixel } from './lib/analytics'
 
 import './tailwind.css'
 import './index.scss'
+
+// Initialise analytics early so the first page-view event fires correctly.
+initGA4()
+initMetaPixel()
 
 // In production, demo mode means Shopify credentials are absent.
 // Fail loudly rather than ship a visually-healthy but commercially-dead storefront.

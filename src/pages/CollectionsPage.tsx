@@ -66,6 +66,7 @@ export function CollectionsPage() {
                 key={collection.id}
                 to={`/collections/${collection.handle}`}
                 className="block h-full"
+                data-testid="collection-card"
               >
                 <BaroqueCard
                   className="h-full cursor-pointer"

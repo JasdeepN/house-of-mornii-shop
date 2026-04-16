@@ -10,7 +10,9 @@ interface SEOProps {
 
 const SITE_NAME = 'House of Mornii'
 const DEFAULT_DESCRIPTION = 'Regal costume jewellery embodying timeless luxury and modern artistry. Heritage-inspired pieces crafted to honor tradition while celebrating contemporary elegance.'
-const DEFAULT_IMAGE = '' // Set to your OG image URL when available
+// Absolute URL required for og:image sharing across platforms.
+// Place a 1200×630 PNG at public/og-image.png to activate.
+const DEFAULT_IMAGE = 'https://houseofmornii.com/og-image.png'
 
 function setMeta(property: string, content: string) {
   let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null
@@ -58,14 +60,15 @@ export function useSEO({ title, description, image, type = 'website' }: SEOProps
     setMeta('og:description', desc)
     setMeta('og:type', type)
     setMeta('og:url', url)
-    if (img) setMeta('og:image', img)
+    setMeta('og:image', img)
     setMeta('og:site_name', SITE_NAME)
 
     // Twitter Card
-    setMeta('twitter:card', img ? 'summary_large_image' : 'summary')
+    setMeta('twitter:card', 'summary_large_image')
     setMeta('twitter:title', fullTitle)
     setMeta('twitter:description', desc)
-    if (img) setMeta('twitter:image', img)
+    setMeta('twitter:image', img)
+    if (img !== DEFAULT_IMAGE) setMeta('twitter:image:alt', title || SITE_NAME)
 
     // Canonical
     setCanonical(url)
