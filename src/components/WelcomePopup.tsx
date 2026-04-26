@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from '@phosphor-icons/react'
 import { NewsletterSignup } from './NewsletterSignup'
+import { getWelcomePopupConfig } from '@/lib/siteConfig'
 
 const STORAGE_KEY = 'hom_welcome_shown'
 
 export function WelcomePopup() {
   const [open, setOpen] = useState(false)
+  const content = getWelcomePopupConfig()
 
   useEffect(() => {
     // Respect reduced motion
@@ -27,11 +29,11 @@ export function WelcomePopup() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-[60]"
+          className="fixed inset-0 z-60"
           style={{ background: 'oklch(0 0 0 / 0.6)', backdropFilter: 'blur(4px)' }}
         />
         <Dialog.Content
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[61] w-[90vw] max-w-md p-8 rounded-sm focus:outline-none"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-61 w-[90vw] max-w-md p-8 rounded-sm focus:outline-none"
           style={{
             background: 'oklch(0.14 0.03 210)',
             border: '1px solid oklch(1 0 0 / 0.12)',
@@ -52,15 +54,15 @@ export function WelcomePopup() {
               className="text-xs tracking-[0.3em] uppercase"
               style={{ color: 'oklch(0.60 0.11 78)' }}
             >
-              Welcome
+              {content.eyebrow}
             </p>
             <Dialog.Title className="text-2xl tracking-[0.12em]">
-              10% Off Your First Order
+              {content.title}
             </Dialog.Title>
             <Dialog.Description className="text-sm text-muted-foreground leading-relaxed">
-              Join the House of Mornii family and receive an exclusive welcome discount.
+              {content.description}
             </Dialog.Description>
-            <NewsletterSignup className="mt-4" />
+            <NewsletterSignup className="mt-4" source="welcome-popup" />
           </div>
         </Dialog.Content>
       </Dialog.Portal>

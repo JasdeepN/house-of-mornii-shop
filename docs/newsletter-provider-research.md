@@ -6,7 +6,11 @@
 
 ## Decision Summary
 
-**Recommended: Klaviyo**
+**Future recommendation: Klaviyo, if the business chooses an email provider now.**
+
+As of April 26, 2026, the immediate goal is a prototype / showcase site. The frontend should stay provider-neutral and use the configurable `VITE_NEWSLETTER_ENDPOINT` hook until the business is ready to make a final email platform decision.
+
+Do not treat the provider recommendation as approval to hardcode Klaviyo, a discount, or a welcome-flow promise into the site.
 
 Klaviyo is the industry standard for Shopify-native email marketing. It provides native Shopify sync (orders, abandoned carts, browse abandonment), pre-built flows, and a free tier up to 500 contacts / 500 email sends. House of Mornii is a luxury positioning brand — Klaviyo's segmentation and flow capabilities align with the high-touch, CRM-forward approach appropriate for the brand.
 
@@ -79,7 +83,14 @@ For House of Mornii:
 
 ## Frontend Integration Approach
 
-The existing `NewsletterSignup.tsx` component calls a form `onSubmit` handler. The implementation requires:
+The current prototype implementation should stay provider-neutral:
+
+1. Visible copy comes from environment variables
+2. The form calls a generic subscribe helper
+3. `VITE_NEWSLETTER_ENDPOINT` stays blank until the final integration exists
+4. When `VITE_NEWSLETTER_ENDPOINT` is set, the form posts `{ email, source }` to that endpoint
+
+A future direct Klaviyo implementation would require:
 
 1. Creating a Klaviyo list and getting the `List ID`
 2. Including the Klaviyo `Company ID` (public key — safe to expose in client code)
@@ -89,7 +100,7 @@ The existing `NewsletterSignup.tsx` component calls a form `onSubmit` handler. T
    ```
 4. No server-side proxy needed — Klaviyo's client API accepts CORS requests from the browser
 
-See [newsletter-integration-guide.md](newsletter-integration-guide.md) for the full implementation.
+See [newsletter-integration-guide.md](newsletter-integration-guide.md) for the current provider-neutral implementation.
 
 ---
 

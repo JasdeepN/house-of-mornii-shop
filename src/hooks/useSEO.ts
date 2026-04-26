@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { absoluteSiteUrl, getSiteConfig } from '@/lib/siteConfig'
 
 interface SEOProps {
   title?: string
@@ -7,12 +8,6 @@ interface SEOProps {
   image?: string
   type?: 'website' | 'product' | 'article'
 }
-
-const SITE_NAME = 'House of Mornii'
-const DEFAULT_DESCRIPTION = 'Regal costume jewellery embodying timeless luxury and modern artistry. Heritage-inspired pieces crafted to honor tradition while celebrating contemporary elegance.'
-// Absolute URL required for og:image sharing across platforms.
-// Place a 1200×630 PNG at public/og-image.png to activate.
-const DEFAULT_IMAGE = 'https://houseofmornii.com/og-image.png'
 
 function setMeta(property: string, content: string) {
   let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null
@@ -45,10 +40,12 @@ export function useSEO({ title, description, image, type = 'website' }: SEOProps
   const { pathname } = useLocation()
 
   useEffect(() => {
-    const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME
-    const desc = description || DEFAULT_DESCRIPTION
-    const img = image || DEFAULT_IMAGE
-    const url = `${window.location.origin}${pathname}`
+    const site = getSiteConfig()
+    const defaultImage = absoluteSiteUrl(site.ogImagePath)
+    const fullTitle = title ? `${title} | ${site.name}` : site.name
+    const desc = description || site.description
+    const img = image || defaultImage
+    const url = absoluteSiteUrl(pathname)
 
     document.title = fullTitle
 
@@ -61,14 +58,14 @@ export function useSEO({ title, description, image, type = 'website' }: SEOProps
     setMeta('og:type', type)
     setMeta('og:url', url)
     setMeta('og:image', img)
-    setMeta('og:site_name', SITE_NAME)
+    setMeta('og:site_name', site.name)
 
     // Twitter Card
     setMeta('twitter:card', 'summary_large_image')
     setMeta('twitter:title', fullTitle)
     setMeta('twitter:description', desc)
     setMeta('twitter:image', img)
-    if (img !== DEFAULT_IMAGE) setMeta('twitter:image:alt', title || SITE_NAME)
+    setMeta('twitter:image:alt', title || site.ogImageAlt)
 
     // Canonical
     setCanonical(url)

@@ -18,14 +18,22 @@ import {
 } from '@/lib/animations'
 import { useSEO } from '@/hooks/useSEO'
 import { FAQAccordion } from '@/components/FAQAccordion'
+import { getContactConfig } from '@/lib/siteConfig'
 
-const contactItems = [
-  { icon: EnvelopeSimple, label: 'EMAIL', value: 'hello@houseofmornii.com', href: 'mailto:hello@houseofmornii.com' },
-  { icon: InstagramLogo, label: 'INSTAGRAM', value: '@houseofmornii', href: 'https://instagram.com/houseofmornii', external: true },
-  { icon: MapPin, label: 'LOCATION', value: 'By appointment only' },
-] as { icon: typeof EnvelopeSimple; label: string; value: string; href?: string; external?: boolean }[]
+function getContactItems() {
+  const contact = getContactConfig()
+
+  return [
+    { icon: EnvelopeSimple, label: 'EMAIL', value: contact.emailLabel, href: contact.emailHref },
+    { icon: InstagramLogo, label: 'INSTAGRAM', value: contact.instagramHandle, href: contact.instagramUrl, external: true },
+    { icon: MapPin, label: 'LOCATION', value: contact.locationLabel },
+  ].filter((item) => item.value) as { icon: typeof EnvelopeSimple; label: string; value: string; href?: string; external?: boolean }[]
+}
 
 export function ContactPage() {
+  const contact = getContactConfig()
+  const contactItems = getContactItems()
+
   useSEO({
     title: 'Contact',
     description: 'Get in touch with House of Mornii. Book a styling appointment or reach out for enquiries about our heritage-inspired costume jewellery.',
@@ -120,12 +128,21 @@ export function ContactPage() {
                 </BaroqueCardContent>
 
                 <BaroqueCardFooter centered>
-                  <a
-                    href="mailto:hello@houseofmornii.com?subject=Styling%20Appointment%20Request"
-                    className="pill-btn pill-btn--cta w-full justify-center py-4 text-sm inline-flex"
-                  >
-                    BOOK YOUR APPOINTMENT
-                  </a>
+                  {contact.emailHref ? (
+                    <a
+                      href={`${contact.emailHref}?subject=Styling%20Appointment%20Request`}
+                      className="pill-btn pill-btn--cta w-full justify-center py-4 text-sm inline-flex"
+                    >
+                      BOOK YOUR APPOINTMENT
+                    </a>
+                  ) : (
+                    <span
+                      className="pill-btn pill-btn--cta w-full justify-center py-4 text-sm inline-flex opacity-70 cursor-not-allowed"
+                      aria-disabled="true"
+                    >
+                      CONTACT DETAILS COMING SOON
+                    </span>
+                  )}
                 </BaroqueCardFooter>
               </BaroqueCard>
             </motion.div>

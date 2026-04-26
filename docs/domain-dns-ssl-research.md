@@ -7,13 +7,13 @@
 ## Architecture Overview
 
 ```
-Domain Registrar (e.g., GoDaddy, Namecheap)
-  └── Nameservers → Cloudflare (DNS is managed via Cloudflare)
-        └── DNS A/CNAME → Cloudflare Pages
-              └── house-of-mornii.pages.dev (origin)
+Cloudflare Registrar
+  └── Cloudflare DNS
+    └── DNS A/CNAME → Cloudflare Pages
+      └── house-of-mornii.pages.dev (origin)
 ```
 
-The entire DNS is managed in Cloudflare. Cloudflare acts as both the CDN/proxy and the DNS provider. This gives:
+The domain is owned by the business and registered through Cloudflare. Cloudflare acts as registrar, DNS provider, CDN/proxy, and TLS manager. This gives:
 - Automatic TLS certificate via Cloudflare Universal SSL (no manual cert management)
 - Global CDN edge caching for static assets
 - DDoS protection at the network layer
@@ -21,23 +21,23 @@ The entire DNS is managed in Cloudflare. Cloudflare acts as both the CDN/proxy a
 
 ---
 
-## Step 1: Add Domain to Cloudflare
+## Step 1: Confirm Domain in Cloudflare
 
-1. Log in to Cloudflare Dashboard → **Add a Site**
-2. Enter `houseofmornii.com` → Select **Free plan** (or Pro for advanced WAF)
-3. Cloudflare scans existing DNS records — **review and confirm** they are correct
-4. Cloudflare provides two nameservers (e.g., `aria.ns.cloudflare.com`). **Note these down.**
+1. Log in to Cloudflare Dashboard
+2. Confirm `houseofmornii.com` appears under registered domains / websites
+3. Confirm DNS is managed in the same Cloudflare account that owns the domain
+4. Confirm the active Cloudflare Pages project is `house-of-mornii`
 
 ---
 
-## Step 2: Update Nameservers at Registrar
+## Step 2: Confirm Cloudflare DNS Authority
 
-1. Log in to your domain registrar (GoDaddy / Namecheap / Google Domains)
-2. Go to domain management → **Custom nameservers**
-3. Replace existing nameservers with the two Cloudflare nameservers from Step 1
-4. Save → propagation takes 24–48 hours (often under 1 hour)
+Because the registrar is Cloudflare, there is no external registrar nameserver handoff to perform.
 
-Cloudflare dashboard shows "Active" status once nameserver propagation completes.
+1. Cloudflare Dashboard → **Websites → houseofmornii.com → DNS**
+2. Confirm DNS records are editable in Cloudflare
+3. Confirm no legacy A/CNAME records conflict with the Cloudflare Pages records
+4. If any old records exist for `@` or `www`, document them before replacing
 
 ---
 
@@ -162,9 +162,9 @@ After completing all steps:
 
 ## Estimated Time to Complete
 
-- Creating Cloudflare account and adding site: 15 min
-- Updating nameservers at registrar: 5 min
-- DNS propagation: 15 min–24 hours
+- Confirming Cloudflare domain and DNS access: 10 min
+- Adding Cloudflare Pages custom domains: 10-15 min
+- DNS propagation: usually minutes when managed inside Cloudflare
 - SSL provisioning: automatic (minutes after nameserver activation)
 - Performance and security config: 30 min
 

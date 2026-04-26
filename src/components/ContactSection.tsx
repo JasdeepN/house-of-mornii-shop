@@ -11,14 +11,21 @@ import {
   BaroqueCardFooter,
 } from '@/components/BaroqueCard'
 import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
+import { getContactConfig } from '@/lib/siteConfig'
 
-const contactItems = [
-  { icon: EnvelopeSimple, label: 'EMAIL', value: 'hello@houseofmornii.com', href: 'mailto:hello@houseofmornii.com' },
-  { icon: InstagramLogo, label: 'INSTAGRAM', value: '@houseofmornii', href: 'https://instagram.com/houseofmornii', external: true },
-  { icon: MapPin, label: 'LOCATION', value: 'By appointment only' },
-] as { icon: typeof EnvelopeSimple; label: string; value: string; href?: string; external?: boolean }[]
+function getContactItems() {
+  const contact = getContactConfig()
+
+  return [
+    { icon: EnvelopeSimple, label: 'EMAIL', value: contact.emailLabel, href: contact.emailHref },
+    { icon: InstagramLogo, label: 'INSTAGRAM', value: contact.instagramHandle, href: contact.instagramUrl, external: true },
+    { icon: MapPin, label: 'LOCATION', value: contact.locationLabel },
+  ].filter((item) => item.value) as { icon: typeof EnvelopeSimple; label: string; value: string; href?: string; external?: boolean }[]
+}
 
 export function ContactSection() {
+  const contactItems = getContactItems()
+
   return (
     <section id="contact" className="py-16 lg:py-24 scroll-mt-20">
       <div className="container mx-auto px-6 lg:px-20">

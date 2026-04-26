@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithProviders, renderWithRouter } from '@/test/utils'
 
@@ -16,6 +16,10 @@ vi.mock('@/hooks/use-mobile', () => ({
 import { CollectionsSection } from '@/components/CollectionsSection'
 import { CartPage } from '@/pages/CartPage'
 import { ContactPage } from '@/pages/ContactPage'
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
 // ── Phase 1a: CollectionsSection copy fix ─────────────────────────────────────
 
@@ -48,7 +52,17 @@ describe('CartPage', () => {
 // ── Phase 1d: Book a Styling button ───────────────────────────────────────────
 
 describe('ContactPage Book a Styling', () => {
-  it('renders appointment link as an anchor with mailto href', () => {
+  it('renders a placeholder when contact email is not configured', () => {
+    vi.stubEnv('VITE_CONTACT_EMAIL', '')
+
+    renderWithProviders(<ContactPage />, { initialEntries: ['/contact'] })
+
+    expect(screen.getByText('CONTACT DETAILS COMING SOON')).toBeInTheDocument()
+  })
+
+  it('renders appointment link as an anchor with mailto href when contact email is configured', () => {
+    vi.stubEnv('VITE_CONTACT_EMAIL', 'hello@houseofmornii.com')
+
     renderWithProviders(<ContactPage />, { initialEntries: ['/contact'] })
 
     const bookLink = screen.getByText('BOOK YOUR APPOINTMENT')

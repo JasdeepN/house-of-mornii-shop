@@ -34,6 +34,14 @@ cp .env.example .env.local
 Edit `.env.local`:
 
 ```ini
+# Public site/prototype placeholders
+VITE_SITE_NAME=House of Mornii
+VITE_SITE_TITLE=House of Mornii Preview
+VITE_SITE_DESCRIPTION=Regal costume jewellery showcase in development. Final product, policy, contact, and marketing integrations are configured by environment.
+VITE_SITE_URL=http://localhost:5173
+VITE_CONTACT_EMAIL=
+VITE_NEWSLETTER_ENDPOINT=
+
 # Optional — leave empty to use demo product data
 VITE_SHOPIFY_STORE_DOMAIN=your-dev-store.myshopify.com
 VITE_SHOPIFY_STOREFRONT_TOKEN=your_storefront_api_token
@@ -44,6 +52,8 @@ VITE_META_PIXEL_ID=
 ```
 
 If `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are both empty, the app runs in **demo mode** — a full in-memory product catalog is used. This is the default for new contributors.
+
+If `VITE_NEWSLETTER_ENDPOINT` is empty, the newsletter form runs in **prototype mode** — it exercises the UI success path without writing to a real email provider.
 
 ### Start Dev Server
 
@@ -120,6 +130,24 @@ Add the following secrets to GitHub (repository **Settings → Secrets and varia
 | `VITE_SHOPIFY_STOREFRONT_TOKEN` | Shopify Admin → Apps → Storefront API tokens |
 | `VITE_GA4_MEASUREMENT_ID` | Google Analytics → Admin → Data Streams → Measurement ID |
 | `VITE_META_PIXEL_ID` | Meta Events Manager → Data Sources → Pixel → Pixel ID |
+
+Add these non-secret repository **Variables** when final public copy/config should override `.env.production` defaults:
+
+| Variable Name | Purpose |
+|---------------|---------|
+| `VITE_SITE_NAME` | Public brand/site name |
+| `VITE_SITE_TITLE` | Default HTML/social title |
+| `VITE_SITE_DESCRIPTION` | Default meta/social description |
+| `VITE_SITE_URL` | Canonical production URL, e.g. `https://houseofmornii.com` |
+| `VITE_SITE_OG_IMAGE_PATH` | Social image path, e.g. `/og-image.png` |
+| `VITE_SITE_OG_IMAGE_ALT` | Social image alt text |
+| `VITE_THEME_COLOR` | Browser theme color |
+| `VITE_CONTACT_EMAIL` | Public contact email, when ready |
+| `VITE_INSTAGRAM_HANDLE` | Public Instagram display handle |
+| `VITE_INSTAGRAM_URL` | Public Instagram URL |
+| `VITE_CONTACT_LOCATION_LABEL` | Public appointment/location placeholder or final text |
+| `VITE_NEWSLETTER_ENDPOINT` | Provider-neutral newsletter endpoint; leave blank for prototype mode |
+| `VITE_NEWSLETTER_*` | Public newsletter/welcome placeholder copy |
 
 ### Manual Deployment (Break-Glass)
 

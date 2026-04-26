@@ -2,189 +2,151 @@
 
 **Ticket:** #26 — Docs: Newsletter integration and subscriber management guide
 
-This guide covers how to wire the `NewsletterSignup.tsx` component to Klaviyo's Client API so subscribers are captured on form submission.
+This guide describes the current prototype-safe newsletter architecture. The app keeps the signup UI working for demos while leaving the final email provider decision open.
 
 ---
 
-## Prerequisites
+## Current Direction
 
-- Klaviyo account created (https://www.klaviyo.com/sign-up)
-- Shopify → Klaviyo integration installed in Shopify App Store
-- A Klaviyo **List** created (e.g. "Newsletter Subscribers" or "VIP Insiders")
+The site should not hardcode a newsletter provider, discount offer, or welcome-flow promise.
 
----
+Current implementation goals:
 
-## 1. Get Your Klaviyo Keys
-
-### Public API Key (Company ID)
-
-1. Klaviyo account → **Settings → API Keys**
-2. Copy the **Public API Key** (labeled "Company ID") — this is safe to use in client-side code
-3. Add to `.env.local`:
-   ```ini
-   VITE_KLAVIYO_COMPANY_ID=AbCdEf
-   ```
-
-### List ID
-
-1. Klaviyo → **Lists & Segments** → click your newsletter list
-2. The URL contains the list ID: `https://www.klaviyo.com/list/XXXXXX/members`
-3. Add to `.env.local`:
-   ```ini
-   VITE_KLAVIYO_LIST_ID=XXXXXX
-   ```
+1. Keep the frontend form usable for prototype showcases
+2. Keep all visible signup copy configurable through environment variables
+3. Keep a provider-neutral endpoint hook ready for future integration
+4. Avoid promising discounts, early access, or other business offers until approved
 
 ---
 
-## 2. Add Env Var Types
+## Environment Variables
 
-Add to `src/vite-end.d.ts`:
+Prototype/dev defaults live in `.env.development`. Production defaults live in `.env.production`. Override them in `.env.local`, GitHub Actions variables, or Cloudflare Pages environment variables when final business values are ready.
 
-```typescript
-VITE_KLAVIYO_COMPANY_ID?: string
-VITE_KLAVIYO_LIST_ID?: string
+```ini
+VITE_NEWSLETTER_ENDPOINT=
+VITE_NEWSLETTER_EYEBROW=Join the House of Mornii list
+VITE_NEWSLETTER_PLACEHOLDER=your@email.com
+VITE_NEWSLETTER_CTA=Join
+VITE_NEWSLETTER_LOADING_LABEL=Joining...
+VITE_NEWSLETTER_SUCCESS_MESSAGE=Thank you. We will share updates as the collection opens.
+VITE_NEWSLETTER_ERROR_MESSAGE=We could not save your email yet. Please try again.
+VITE_WELCOME_POPUP_EYEBROW=Welcome
+VITE_WELCOME_POPUP_TITLE=House of Mornii Preview
+VITE_WELCOME_POPUP_DESCRIPTION=Join the list for collection previews and launch updates.
 ```
 
+`VITE_NEWSLETTER_ENDPOINT` is intentionally blank for the prototype. When it is blank, the form shows success in prototype mode without writing to a real mailing list.
+
 ---
 
-## 3. Wire the NewsletterSignup Component
+## Provider-Neutral Endpoint Contract
 
-Replace the placeholder `fetch` call in `src/components/NewsletterSignup.tsx`:
+When the final email platform is selected, set `VITE_NEWSLETTER_ENDPOINT` to a relative or absolute endpoint that accepts this payload:
 
-```typescript
-const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault()
-  if (!email) return
-
-  setStatus('loading')
-  trackEvent('newsletter_signup', { email })
-
-  const companyId = import.meta.env.VITE_KLAVIYO_COMPANY_ID
-  const listId = import.meta.env.VITE_KLAVIYO_LIST_ID
-
-  if (!companyId || !listId) {
-    // Demo mode: simulate success
-    await new Promise((r) => setTimeout(r, 800))
-    setStatus('success')
-    setEmail('')
-    return
-  }
-
-  try {
-    const res = await fetch(
-      `https://a.klaviyo.com/client/subscriptions/?company_id=${companyId}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', revision: '2024-10-15' },
-        body: JSON.stringify({
-          data: {
-            type: 'subscription',
-            attributes: {
-              list_id: listId,
-              email,
-              consent_method: 'Form',
-              consent_form_id: 'newsletter-footer-form',
-              consent_form_version: 1,
-            },
-          },
-        }),
-      }
-    )
-    if (res.ok || res.status === 202) {
-      setStatus('success')
-      setEmail('')
-    } else {
-      setStatus('error')
-    }
-  } catch {
-    setStatus('error')
-  }
+```json
+{
+  "email": "guest@example.com",
+  "source": "newsletter-form"
 }
 ```
 
-**Notes:**
-- The Klaviyo client API returns `202 Accepted` on success (not 200)
-- No server proxy is required — this endpoint accepts browser-originated CORS requests
-- The `revision` header must match a supported Klaviyo API version; `2024-10-15` is stable
+Expected response behavior:
+
+- `2xx`: treat as success
+- Non-`2xx`: show the configured error message
+- Network failure: show the configured error message
+
+The `source` value identifies where the signup came from. Current sources:
+
+- `newsletter-form`
+- `welcome-popup`
 
 ---
 
-## 4. Test the Integration
+## Current Frontend Flow
 
-1. Set `VITE_KLAVIYO_COMPANY_ID` and `VITE_KLAVIYO_LIST_ID` in `.env.local`
-2. `npm run dev`
-3. Fill in the newsletter form on the home page and click Subscribe
-4. Check Klaviyo → **Lists & Segments** → your list → confirm the email appears
-5. Check Klaviyo → **Activity feed** → should show a new `Subscribed to List` event
+Files:
+
+- [../src/components/NewsletterSignup.tsx](../src/components/NewsletterSignup.tsx)
+- [../src/components/WelcomePopup.tsx](../src/components/WelcomePopup.tsx)
+- [../src/lib/newsletter.ts](../src/lib/newsletter.ts)
+- [../src/lib/siteConfig.ts](../src/lib/siteConfig.ts)
+
+Behavior:
+
+1. `NewsletterSignup` renders configurable copy from `getNewsletterConfig()`
+2. On submit, it calls `subscribeToNewsletter({ email, source })`
+3. If `VITE_NEWSLETTER_ENDPOINT` is blank, the helper returns prototype success
+4. If `VITE_NEWSLETTER_ENDPOINT` is set, the helper posts `{ email, source }` to that endpoint
+5. Success and error states remain visible and testable in both modes
 
 ---
 
-## 5. GitHub Secrets for Production
+## Optional Future Provider: Klaviyo
 
-Add to GitHub repository secrets so the production build includes these values:
+Klaviyo remains a strong future option for Shopify-native lifecycle email, but it is not required for the prototype.
 
-| Secret | Value |
-|--------|-------|
-| `VITE_KLAVIYO_COMPANY_ID` | Your Klaviyo public API key |
-| `VITE_KLAVIYO_LIST_ID` | Your list ID |
+If the business later chooses Klaviyo directly from the frontend, the implementation would need:
 
-Then add to the `Build` step env block in `.github/workflows/deploy.yml`:
-```yaml
-VITE_KLAVIYO_COMPANY_ID: ${{ secrets.VITE_KLAVIYO_COMPANY_ID }}
-VITE_KLAVIYO_LIST_ID: ${{ secrets.VITE_KLAVIYO_LIST_ID }}
+- Klaviyo account created
+- Shopify to Klaviyo app installed
+- Newsletter list created
+- Klaviyo `Company ID`
+- Klaviyo `List ID`
+- Approved consent / opt-in settings
+- Approved promotional wording, if any
+
+If the business chooses a server or edge function, that function can translate the provider-neutral frontend payload into the provider-specific API call.
+
+---
+
+## Promotional Offers
+
+Do not add a discount, early-access promise, gift, or any other offer to the UI until business explicitly approves:
+
+- Exact wording
+- Eligibility rules
+- Expiration / validity
+- Fulfillment mechanism
+- Compliance / opt-in requirements
+
+The prototype default is intentionally neutral: collection previews and launch updates.
+
+---
+
+## Testing
+
+Run targeted newsletter tests:
+
+```bash
+npx vitest run src/lib/newsletter.test.ts src/components/NewsletterSignup.test.tsx
+```
+
+Run the production build before launch or deployment:
+
+```bash
+npm run build
 ```
 
 ---
 
-## 6. Klaviyo Welcome Flow Setup
+## Later Production Activation Checklist
 
-After subscribers start flowing in, activate an automated welcome email:
+When the provider is selected:
 
-1. Klaviyo → **Flows → Create Flow → Build your own**
-2. **Flow trigger**: "Someone subscribes to a list" → select your newsletter list
-3. Add:
-   - **Time delay**: 0 minutes (send immediately)
-   - **Email action**: Subject: "Welcome to House of Mornii — Your 10% Off Inside"
-   - Body: Include the discount code + brand introduction + featured collection links
-4. Activate the flow
-
----
-
-## 7. Abandoned Cart Flow (Klaviyo + Shopify)
-
-Requires the Shopify → Klaviyo integration to be active (tracks cart events):
-
-1. Klaviyo → **Flows → Flow Library** → search "Abandoned Cart"
-2. Use the Shopify pre-built template
-3. Adjust timing: 1 hour after abandonment for the first email, 24 hours for the second
-4. Customize subject lines and product display
-5. Test with a real cart action on the dev store
-
----
-
-## 8. Subscriber Management in Klaviyo
-
-- **View subscribers**: Lists & Segments → your list → Members tab
-- **Export CSV**: Lists & Segments → list → Export
-- **Unsubscribe**: Klaviyo handles unsubscribes automatically; do NOT re-add unsubscribed users
-- **GDPR compliance**: Klaviyo provides consent management and double opt-in settings (Settings → Email → Opt-in)
-- **Suppression list**: Permanently suppressed/bounced emails are automatically excluded from sends
-
----
-
-## 9. Alternative: Shopify Customer Subscription
-
-If Klaviyo is not adopted, the simplest alternative is to use Shopify's Customer API:
-
-1. In Shopify Admin → **Settings → Notifications → Customer email marketing**
-2. Enable the newsletter checkbox at checkout
-3. Or POST to Shopify Storefront API to create a customer with `acceptsMarketing: true`
-
-This approach uses only Shopify with no third-party dependency but lacks advanced flow automation.
+1. Create or configure the provider account
+2. Create the subscriber list / audience / segment
+3. Implement or configure the endpoint behind `VITE_NEWSLETTER_ENDPOINT`
+4. Add the endpoint variable to production build configuration
+5. Submit a test email through the live site
+6. Confirm the email appears in the provider dashboard
+7. Confirm success/error states still behave correctly
+8. Confirm analytics do not send raw email addresses
 
 ---
 
 *See also:*
-- [newsletter-provider-research.md](newsletter-provider-research.md) — provider selection rationale
-- [deployment-runbook.md](deployment-runbook.md) — how to add secrets to CI
-- Klaviyo Client API docs: https://developers.klaviyo.com/en/reference/subscribe_profiles
+
+- [newsletter-provider-research.md](newsletter-provider-research.md) — future provider comparison
+- [deployment-runbook.md](deployment-runbook.md) — deployment and environment setup
