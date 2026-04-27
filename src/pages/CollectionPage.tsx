@@ -102,6 +102,25 @@ export function CollectionPage() {
     }
   }, [handle, collection, afterCursor, sortKey, reverse])
 
+  const baseProducts = collection?.products.edges.map((e) => e.node) ?? []
+  const products = [...baseProducts, ...loadedProducts]
+  const showLoadMore = !!collection && hasMorePages && collection.products.pageInfo.hasNextPage
+
+  // Track view_item_list when collection products load.
+  // Keep this before any conditional return so hook order stays stable.
+  useEffect(() => {
+    if (collection && products.length > 0) {
+      trackViewItemList(
+        collection.title,
+        products.slice(0, 12).map((product) => ({
+          id: product.id,
+          name: product.title,
+          price: product.priceRange.minVariantPrice.amount,
+        })),
+      )
+    }
+  }, [collection, products])
+
   if (isLoading) {
     return (
       <div className="min-h-screen pt-28 pb-16">
@@ -159,24 +178,6 @@ export function CollectionPage() {
       </div>
     )
   }
-
-  const baseProducts = collection.products.edges.map((e) => e.node)
-  const products = [...baseProducts, ...loadedProducts]
-  const showLoadMore = hasMorePages && collection.products.pageInfo.hasNextPage
-
-  // Track view_item_list when collection products load
-  useEffect(() => {
-    if (products.length > 0 && collection) {
-      trackViewItemList(
-        collection.title,
-        products.slice(0, 12).map((p) => ({
-          id: p.id,
-          name: p.title,
-          price: p.priceRange.minVariantPrice.amount,
-        })),
-      )
-    }
-  }, [collection?.handle, products.length > 0]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen pt-28 pb-16">
@@ -237,7 +238,7 @@ export function CollectionPage() {
                   <button
                     key={`${option.key}-${option.reverse}`}
                     onClick={() => handleSort(option.key, option.reverse)}
-                    className={`block w-full text-left px-4 py-2.5 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors ${
+                    className={`block w-full text-left px-4 py-2.5 text-[12px] font-semibold tracking-widest uppercase transition-colors ${
                       isActive
                         ? ''
                         : 'text-muted-foreground hover:text-foreground'
