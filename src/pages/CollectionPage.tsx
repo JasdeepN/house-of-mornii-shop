@@ -123,7 +123,7 @@ export function CollectionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-28 pb-16">
+      <div className="min-h-screen pt-24 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center py-20">
           <p className="text-muted-foreground tracking-widest animate-pulse">
             Loading collection...
@@ -138,7 +138,7 @@ export function CollectionPage() {
       error instanceof StorefrontError &&
       (error.category === 'upstream_unavailable' || error.category === 'misconfigured')
     return (
-      <div className="min-h-screen pt-28 pb-16">
+      <div className="min-h-screen pt-24 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center py-20">
           {isServiceError ? (
             <>
@@ -168,7 +168,7 @@ export function CollectionPage() {
 
   if (!collection) {
     return (
-      <div className="min-h-screen pt-28 pb-16">
+      <div className="min-h-screen pt-24 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center py-20">
           <h1 className="text-4xl tracking-[0.15em] mb-4">Collection Not Found</h1>
           <p className="text-muted-foreground">
@@ -180,7 +180,7 @@ export function CollectionPage() {
   }
 
   return (
-    <div className="min-h-screen pt-28 pb-16">
+    <div className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-6 lg:px-20">
         <PageBreadcrumb
           items={[

@@ -85,6 +85,28 @@ describe('useCollection (demo mode)', () => {
     const sorted = [...titles].sort()
     expect(titles).toEqual(sorted)
   })
+
+  it('does not mutate shared demo collection ordering when sorted', async () => {
+    const { getDemoCollection } = await import('./demo-data')
+    const originalOrder = getDemoCollection('everyday')!.products.edges.map((e) => e.node.handle)
+
+    const { result: sortedResult } = renderHook(
+      () => useCollection('everyday', 12, 'TITLE', true),
+      { wrapper: createWrapper() },
+    )
+
+    await waitFor(() => expect(sortedResult.current.isSuccess).toBe(true))
+
+    expect(getDemoCollection('everyday')!.products.edges.map((e) => e.node.handle)).toEqual(originalOrder)
+
+    const { result: unsortedResult } = renderHook(
+      () => useCollection('everyday'),
+      { wrapper: createWrapper() },
+    )
+
+    await waitFor(() => expect(unsortedResult.current.isSuccess).toBe(true))
+    expect(unsortedResult.current.data!.products.edges.map((e) => e.node.handle)).toEqual(originalOrder)
+  })
 })
 
 describe('useProduct (demo mode)', () => {

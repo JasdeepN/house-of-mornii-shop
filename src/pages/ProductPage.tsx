@@ -70,7 +70,7 @@ export function ProductPage() {
   // Related products — from the product's primary collection
   const collectionHandle = useMemo(() => {
     if (!product) return undefined
-    const cols = (product as any).collections?.edges
+    const cols = (product as { collections?: { edges: { node: { handle: string; title: string } }[] } }).collections?.edges
     return cols?.[0]?.node?.handle as string | undefined
   }, [product])
 
@@ -232,6 +232,9 @@ export function ProductPage() {
                 <AddToCartButton
                   variantId={activeVariant.id}
                   availableForSale={activeVariant.availableForSale}
+                  productTitle={product.title}
+                  productPrice={activeVariant.price.amount}
+                  currencyCode={activeVariant.price.currencyCode}
                 />
               )}
             </div>
@@ -309,6 +312,9 @@ export function ProductPage() {
               <AddToCartButton
                 variantId={activeVariant.id}
                 availableForSale={activeVariant.availableForSale}
+                productTitle={product.title}
+                productPrice={activeVariant.price.amount}
+                currencyCode={activeVariant.price.currencyCode}
                 compact
               />
             </div>

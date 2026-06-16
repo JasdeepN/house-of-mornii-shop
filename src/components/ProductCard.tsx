@@ -10,13 +10,27 @@ import {
 } from '@/components/BaroqueCard'
 import type { ShopifyProduct } from '@/lib/shopify'
 import { formatMoney } from '@/lib/shopify'
+import { memo } from 'react'
 
 interface ProductCardProps {
   product: ShopifyProduct
   index?: number
 }
 
-export function ProductCard({ product, index = 0 }: ProductCardProps) {
+// Comparison function for React.memo to prevent unnecessary re-renders
+const areProductCardPropsEqual = (prevProps: ProductCardProps, nextProps: ProductCardProps): boolean => {
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.product.title === nextProps.product.title &&
+    prevProps.product.description === nextProps.product.description &&
+    prevProps.product.priceRange.minVariantPrice.amount === nextProps.product.priceRange.minVariantPrice.amount &&
+    prevProps.product.priceRange.maxVariantPrice?.amount === nextProps.product.priceRange.maxVariantPrice?.amount &&
+    prevProps.product.featuredImage?.url === nextProps.product.featuredImage?.url &&
+    prevProps.index === nextProps.index
+  )
+}
+
+export const ProductCard = memo(function ProductCard({ product, index = 0 }: ProductCardProps) {
   const price = product.priceRange.minVariantPrice
   const compareAt = product.priceRange.maxVariantPrice
   const hasDiscount =
@@ -35,7 +49,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         className="h-full cursor-pointer"
         animate={false}
         hoverable
-        noBorder
+        noGlow
       >
         <BaroqueCardHeader withDivider>
           <BaroqueCardTitle className="text-lg md:text-xl line-clamp-1">
@@ -93,4 +107,4 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     </Link>
     </motion.div>
   )
-}
+}, areProductCardPropsEqual)

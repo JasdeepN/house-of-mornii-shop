@@ -12,7 +12,7 @@ import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
 
 export function AboutSection() {
   return (
-    <section id="about" className="py-16 lg:py-24 scroll-mt-20">
+    <section id="about" className="py-8 lg:py-12 scroll-mt-24">
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
           variants={fadeSlideUp}

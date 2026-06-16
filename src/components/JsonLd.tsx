@@ -1,4 +1,5 @@
 import { absoluteSiteUrl, getContactConfig, getSiteConfig } from '@/lib/siteConfig'
+import DOMPurify from 'dompurify'
 
 interface JsonLdProps {
   data: Record<string, unknown>
@@ -8,7 +9,12 @@ export function JsonLd({ data }: JsonLdProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{
+        __html: DOMPurify.sanitize(JSON.stringify(data), {
+          ADD_ATTR: ['type'],
+          FORBID_ATTR: ['src', 'href', 'onclick', 'onerror', 'onload']
+        })
+      }}
     />
   )
 }

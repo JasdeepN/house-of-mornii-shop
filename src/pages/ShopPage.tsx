@@ -18,6 +18,7 @@ import {
 import type { ShopifyProduct } from '@/lib/shopify'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { ProductGrid } from '@/components/ProductGrid'
+import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
 import { useSEO } from '@/hooks/useSEO'
 import { trackViewItemList } from '@/lib/analytics'
 
@@ -133,19 +134,20 @@ export function ShopPage() {
     return collectionData.products.edges.map((e) => e.node)
   }, [collectionFilter, allProducts, collectionData, loadedMore])
 
+  const trackedProducts = useMemo(() => {
+    return filteredProducts.slice(0, 12).map((product) => ({
+      id: product.id,
+      name: product.title,
+      price: product.priceRange.minVariantPrice.amount,
+    }))
+  }, [filteredProducts])
+
   // Track view_item_list when products load
   useEffect(() => {
-    if (filteredProducts.length > 0) {
-      trackViewItemList(
-        collectionFilter || 'Shop All',
-        filteredProducts.slice(0, 12).map((p) => ({
-          id: p.id,
-          name: p.title,
-          price: p.priceRange.minVariantPrice.amount,
-        })),
-      )
+    if (trackedProducts.length > 0) {
+      trackViewItemList(collectionFilter || 'Shop All', trackedProducts)
     }
-  }, [filteredProducts.length > 0, collectionFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [collectionFilter, trackedProducts])
 
   const activeError = collectionFilter ? collectionError : productsError
   const isServiceError =
@@ -156,30 +158,39 @@ export function ShopPage() {
   const showLoadMore = !collectionFilter && hasMorePages && (productsData?.pageInfo.hasNextPage || loadedMore.length > 0)
 
   return (
-    <div className="min-h-screen pt-28 pb-16">
-      <div className="container mx-auto px-6 lg:px-20">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-10"
-        >
-          {/* Breadcrumb */}
+    <div className="min-h-screen pt-24 pb-16">
+        <div className="container mx-auto px-6 lg:px-20">
           <PageBreadcrumb
             items={[{ label: 'HOME', to: '/' }, { label: 'SHOP' }]}
-            className="mb-6"
-            centered
+            className="mb-10"
           />
 
-          <h1 className="text-4xl lg:text-5xl tracking-[0.15em] mb-4">
-            Shop All
-          </h1>
-          <OrnamentalDivider />
-          <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-6">
+          {/* Hero title */}
+          <div className="text-center mb-6">
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl tracking-[0.15em] flex flex-wrap items-center justify-center gap-x-4">
+              Shop All
+            </h1>
+          </div>
+
+          {/* Divider */}
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ delay: 0.7, duration: 0.8, ease: luxuryEase }}
+          >
+            <OrnamentalDivider className="mb-12" />
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            variants={fadeSlideUp}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.5 }}
+            className="text-center text-lg lg:text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto mb-16"
+          >
             Explore our full collection of heritage-inspired jewellery.
-          </p>
-        </motion.div>
+          </motion.p>
 
         {/* Toolbar: Sort + Filter Chips */}
         <motion.div

@@ -223,3 +223,218 @@ export function getDemoProduct(handle: string): ShopifyProduct | null {
 export function getDemoProducts(): ShopifyProduct[] {
   return allProducts
 }
+
+// ─── Edge Case Products ───────────────────────────────────────────────────────
+
+// Product with no images (edge case)
+const noImageProduct: ShopifyProduct = {
+  id: gid('Product'),
+  handle: 'no-image-product',
+  title: 'Product With No Image',
+  description: 'A product for testing edge cases with no images.',
+  descriptionHtml: '<p>A product for testing edge cases with no images.</p>',
+  availableForSale: true,
+  featuredImage: null,
+  images: { edges: [] },
+  options: [{ id: gid('ProductOption'), name: 'Title', values: ['Default Title'] }],
+  variants: {
+    edges: [
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'Default Title',
+          availableForSale: true,
+          price: money('29.99'),
+          compareAtPrice: null,
+          selectedOptions: [{ name: 'Title', value: 'Default Title' }],
+          image: null,
+        },
+      },
+    ],
+  },
+  priceRange: {
+    minVariantPrice: money('29.99'),
+    maxVariantPrice: money('29.99'),
+  },
+  tags: ['edge-case', 'no-image'],
+  vendor: 'House of Mornii',
+}
+
+// Product with multiple variants (edge case)
+const multiVariantProduct: ShopifyProduct = {
+  id: gid('Product'),
+  handle: 'multi-variant-product',
+  title: 'Product With Multiple Variants',
+  description: 'A product with multiple variants for testing variant selection.',
+  descriptionHtml: '<p>A product with multiple variants for testing variant selection.</p>',
+  availableForSale: true,
+  featuredImage: placeholder(800, 800, 'Multi-Variant'),
+  images: {
+    edges: [
+      { node: placeholder(800, 800, 'Multi-Variant') },
+      { node: placeholder(800, 800, 'Multi-Variant-2') },
+    ],
+  },
+  options: [
+    { id: gid('ProductOption'), name: 'Size', values: ['S', 'M', 'L'] },
+    { id: gid('ProductOption'), name: 'Color', values: ['Gold', 'Silver'] },
+  ],
+  variants: {
+    edges: [
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'S / Gold',
+          availableForSale: true,
+          price: money('149.99'),
+          compareAtPrice: null,
+          selectedOptions: [{ name: 'Size', value: 'S' }, { name: 'Color', value: 'Gold' }],
+          image: placeholder(800, 800, 'Multi-Variant'),
+        },
+      },
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'M / Gold',
+          availableForSale: true,
+          price: money('149.99'),
+          compareAtPrice: null,
+          selectedOptions: [{ name: 'Size', value: 'M' }, { name: 'Color', value: 'Gold' }],
+          image: placeholder(800, 800, 'Multi-Variant'),
+        },
+      },
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'L / Silver',
+          availableForSale: true,
+          price: money('149.99'),
+          compareAtPrice: null,
+          selectedOptions: [{ name: 'Size', value: 'L' }, { name: 'Color', value: 'Silver' }],
+          image: placeholder(800, 800, 'Multi-Variant'),
+        },
+      },
+    ],
+  },
+  priceRange: {
+    minVariantPrice: money('149.99'),
+    maxVariantPrice: money('149.99'),
+  },
+  tags: ['edge-case', 'multi-variant'],
+  vendor: 'House of Mornii',
+}
+
+// Product with special characters in name (edge case)
+const specialCharsProduct: ShopifyProduct = {
+  id: gid('Product'),
+  handle: 'special-chars-product',
+  title: "Product's Name With 'Special\" Characters & <Tags>",
+  description: 'A product with special characters in the name for testing escaping.',
+  descriptionHtml: "<p>A product with special characters in the name for testing escaping.</p>",
+  availableForSale: true,
+  featuredImage: placeholder(800, 800, 'Special-Chars'),
+  images: { edges: [{ node: placeholder(800, 800, 'Special-Chars') }] },
+  options: [{ id: gid('ProductOption'), name: 'Title', values: ['Default Title'] }],
+  variants: {
+    edges: [
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'Default Title',
+          availableForSale: true,
+          price: money('99.99'),
+          compareAtPrice: null,
+          selectedOptions: [{ name: 'Title', value: 'Default Title' }],
+          image: placeholder(800, 800, 'Special-Chars'),
+        },
+      },
+    ],
+  },
+  priceRange: {
+    minVariantPrice: money('99.99'),
+    maxVariantPrice: money('99.99'),
+  },
+  tags: ['edge-case', 'special-chars'],
+  vendor: 'House of Mornii',
+}
+
+// Product with very high price (edge case)
+const premiumProduct: ShopifyProduct = {
+  id: gid('Product'),
+  handle: 'premium-product',
+  title: 'Premium Edition',
+  description: 'A high-end product with premium pricing.',
+  descriptionHtml: '<p>A high-end product with premium pricing.</p>',
+  availableForSale: true,
+  featuredImage: placeholder(800, 800, 'Premium'),
+  images: { edges: [{ node: placeholder(800, 800, 'Premium') }] },
+  options: [{ id: gid('ProductOption'), name: 'Title', values: ['Default Title'] }],
+  variants: {
+    edges: [
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'Default Title',
+          availableForSale: true,
+          price: money('2499.99'),
+          compareAtPrice: money('2999.99'),
+          selectedOptions: [{ name: 'Title', value: 'Default Title' }],
+          image: placeholder(800, 800, 'Premium'),
+        },
+      },
+    ],
+  },
+  priceRange: {
+    minVariantPrice: money('2499.99'),
+    maxVariantPrice: money('2499.99'),
+  },
+  tags: ['premium', 'high-price'],
+  vendor: 'House of Mornii',
+}
+
+// Product with very low price (edge case)
+const budgetProduct: ShopifyProduct = {
+  id: gid('Product'),
+  handle: 'budget-product',
+  title: 'Budget Friendly',
+  description: 'An affordable option for everyday use.',
+  descriptionHtml: '<p>An affordable option for everyday use.</p>',
+  availableForSale: true,
+  featuredImage: placeholder(800, 800, 'Budget'),
+  images: { edges: [{ node: placeholder(800, 800, 'Budget') }] },
+  options: [{ id: gid('ProductOption'), name: 'Title', values: ['Default Title'] }],
+  variants: {
+    edges: [
+      {
+        node: {
+          id: gid('ProductVariant'),
+          title: 'Default Title',
+          availableForSale: true,
+          price: money('9.99'),
+          compareAtPrice: null,
+          selectedOptions: [{ name: 'Title', value: 'Default Title' }],
+          image: placeholder(800, 800, 'Budget'),
+        },
+      },
+    ],
+  },
+  priceRange: {
+    minVariantPrice: money('9.99'),
+    maxVariantPrice: money('9.99'),
+  },
+  tags: ['budget', 'low-price'],
+  vendor: 'House of Mornii',
+}
+
+// Add edge case products to the allProducts array
+const edgeCaseProducts = [
+  noImageProduct,
+  multiVariantProduct,
+  specialCharsProduct,
+  premiumProduct,
+  budgetProduct,
+]
+
+export function getEdgeCaseProducts(): ShopifyProduct[] {
+  return edgeCaseProducts
+}

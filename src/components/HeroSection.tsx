@@ -1,9 +1,12 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { CaretDown, Sparkle } from '@phosphor-icons/react'
 import { OrnamentalBorder } from '@/components/OrnamentalBorder'
 import { BrandLockup } from '@/components/BrandLockup'
+
+const SCROLL_HIDE_THRESHOLD = 80 // px below which indicator is visible
 
 const wordVariants = {
   hidden: { opacity: 0, y: 40, filter: 'blur(8px)' },
@@ -16,12 +19,32 @@ const wordVariants = {
 }
 
 export function HeroSection() {
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true)
+
+  useEffect(() => {
+    let ticking = false
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setShowScrollIndicator(window.scrollY < SCROLL_HIDE_THRESHOLD)
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center overflow-hidden pt-28 pb-12">
 
       {/* Content card — same glass style as all other cards */}
       <div className="relative z-10 w-full max-w-2xl px-6">
-        <OrnamentalBorder contentClassName="p-8 md:p-12 lg:p-14">
+        <OrnamentalBorder
+          contentClassName="p-8 md:p-12 lg:p-14"
+          hoverable
+        >
           <div className="flex flex-col items-center text-center gap-8">
 
             {/* Brand lockup */}
@@ -42,14 +65,13 @@ export function HeroSection() {
               animate="visible"
               className="flex items-center gap-4 w-full max-w-sm"
             >
-              <div className="flex-1 h-px" style={{ background: 'oklch(0.60 0.08 78 / 0.40)' }} />
+              <div className="flex-1 h-px hero-line-decorative" />
               <p
-                className="text-[10px] tracking-[0.4em] uppercase whitespace-nowrap font-medium"
-                style={{ color: 'oklch(0.80 0.07 78)' }}
+                className="text-[10px] tracking-[0.4em] uppercase whitespace-nowrap font-medium text-hero-tagline hero-text-glow"
               >
                 Regal · Radiant · Modern
               </p>
-              <div className="flex-1 h-px" style={{ background: 'oklch(0.60 0.08 78 / 0.40)' }} />
+              <div className="flex-1 h-px hero-line-decorative" />
             </motion.div>
 
             {/* Description */}
@@ -58,8 +80,7 @@ export function HeroSection() {
               variants={wordVariants}
               initial="hidden"
               animate="visible"
-              className="text-base lg:text-lg leading-relaxed max-w-xl"
-              style={{ color: 'oklch(0.90 0.01 210)' }}
+              className="text-base lg:text-lg leading-relaxed max-w-xl text-hero-description hero-text-glow"
             >
               Heritage-inspired costume jewellery crafted to elevate everyday elegance,
               festive radiance, and bridal grandeur.
@@ -84,8 +105,7 @@ export function HeroSection() {
               </Link>
               <Link
                 to="/contact"
-                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent"
-                style={{ color: 'oklch(0.75 0.05 78)' }}
+                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent text-hero-subtle-link hero-text-glow"
               >
                 or book a styling session
               </Link>
@@ -95,32 +115,47 @@ export function HeroSection() {
         </OrnamentalBorder>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll indicator — fixed position, fades on scroll down */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 px-8 py-3 rounded-full cursor-pointer"
-        style={{
-          background: 'oklch(0.10 0.02 210 / 0.60)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          border: '1px solid oklch(1 0 0 / 0.08)',
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to collections"
+        onClick={() => {
+          const el = document.getElementById('collections')
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' })
+          }
         }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        whileHover={{ background: 'oklch(0.16 0.03 210 / 0.75)', scale: 1.05 }}
-        transition={{ delay: 2.0, duration: 1 }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            const el = document.getElementById('collections')
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' })
+            }
+          }
+        }}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-40 px-8 py-3 rounded-full cursor-pointer hero-scroll-indicator bg-transparent border-none outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{
+          opacity: showScrollIndicator ? 1 : 0,
+          y: showScrollIndicator ? 0 : 12
+        }}
+        whileHover={{ scale: 1.05 }}
+        transition={{ duration: 0.35 }}
       >
         <span
-          className="text-[9px] tracking-[0.4em] uppercase"
-          style={{ color: 'oklch(0.72 0.05 78)' }}
+          className="text-[9px] tracking-[0.4em] uppercase text-hero-scroll-text"
         >
           scroll
         </span>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
-        >
-          <CaretDown size={16} style={{ color: 'oklch(0.65 0.10 78)' }} />
-        </motion.div>
+        {showScrollIndicator && (
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+          >
+            <CaretDown size={16} className="hero-scroll-arrow" />
+          </motion.div>
+        )}
       </motion.div>
     </section>
   )

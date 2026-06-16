@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { List, Handbag } from '@phosphor-icons/react'
+import { List, Handbag, Sun, Moon } from '@phosphor-icons/react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
 import { SearchBar } from '@/components/SearchBar'
+import { useTheme } from '@/hooks/useTheme'
 
 const navLinks = [
   { label: 'SHOP', href: '/shop' },
@@ -20,27 +21,71 @@ export function Header() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const { itemCount, openCart } = useCart()
+  const { theme, toggleTheme } = useTheme()
+  
+  // Debounce navigation to prevent rapid state updates
+  const navigateDebounced = useCallback(
+    (path: string) => {
+      if (navigateDebounced.timeoutId) {
+        clearTimeout(navigateDebounced.timeoutId)
+      }
+      navigateDebounced.timeoutId = setTimeout(() => {
+        navigate(path)
+      }, 200) as unknown as number
+    },
+    [navigate],
+  )
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (navigateDebounced.timeoutId) {
+        clearTimeout(navigateDebounced.timeoutId)
+      }
+    }
+  }, [])
+  
+  // Debounce sheet open state to prevent rapid toggling
+  const setIsOpenDebounced = useCallback(
+    (open: boolean) => {
+      if (setIsOpenDebounced.timeoutId) {
+        clearTimeout(setIsOpenDebounced.timeoutId)
+      }
+      setIsOpenDebounced.timeoutId = setTimeout(() => {
+        setIsOpen(open)
+      }, 100) as unknown as number
+    },
+    [],
+  )
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (setIsOpenDebounced.timeoutId) {
+        clearTimeout(setIsOpenDebounced.timeoutId)
+      }
+    }
+  }, [])
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50"
-      style={{
-        background: 'oklch(0.18 0.03 210 / 0.30)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid oklch(1 0 0 / 0.12)',
-        boxShadow: 'inset 0 1px 0 oklch(1 0 0 / 0.10), 0 4px 24px oklch(0 0 0 / 0.3)',
-      }}
-    >
+    <header style={{ position: 'fixed', top: 0, left: 0, right: 0 }} className="z-50 glass-panel glass-panel--flat border-b border-border/40">
       <div className="container mx-auto px-6 lg:px-20 relative">
         <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateDebounced('/')}>
             <BrandLockup size="sm" />
           </div>
 
           {isMobile ? (
-            <div className="flex items-center gap-3">
-              <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
+              <div className="flex items-center gap-2">
+                {/* Theme toggle */}
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 hover:text-accent transition-colors"
+                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                  {theme === 'dark' ? <Sun size={20} weight="bold" /> : <Moon size={20} weight="bold" />}
+                </button>
+                <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
                 <Handbag size={22} weight="bold" />
                 {itemCount > 0 && (
                   <span
@@ -51,7 +96,7 @@ export function Header() {
                   </span>
                 )}
               </button>
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <Sheet open={isOpen} onOpenChange={setIsOpenDebounced}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
                     <List size={24} weight="bold" />
@@ -63,13 +108,13 @@ export function Header() {
                       <Link
                         key={link.href}
                         to={link.href}
-                        onClick={() => setIsOpen(false)}
+                        onClick={() => setIsOpenDebounced(false)}
                         className="text-lg tracking-widest hover:text-accent transition-colors text-left"
                       >
                         {link.label}
                       </Link>
                     ))}
-                    <Link to="/contact" onClick={() => setIsOpen(false)}>
+                    <Link to="/contact" onClick={() => setIsOpenDebounced(false)}>
                       <Button
                         className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest w-full"
                       >
@@ -95,7 +140,15 @@ export function Header() {
                 ))}
               </nav>
 
-              <div className="flex items-center gap-4">
+               <div className="flex items-center gap-3">
+                {/* Theme toggle — desktop */}
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 hover:text-accent transition-colors hidden lg:inline-flex"
+                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                  {theme === 'dark' ? <Sun size={20} weight="bold" /> : <Moon size={20} weight="bold" />}
+                </button>
                 <SearchBar />
                 <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
                   <Handbag size={22} weight="bold" />

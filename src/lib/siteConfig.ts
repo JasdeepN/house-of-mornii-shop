@@ -1,5 +1,49 @@
+import { z } from 'zod'
+
 const DEFAULT_SITE_NAME = 'House of Mornii'
 const DEFAULT_DESCRIPTION = 'Regal costume jewellery embodying timeless luxury and modern artistry. Heritage-inspired pieces crafted to honor tradition while celebrating contemporary elegance.'
+
+// ─── Environment Validation ───────────────────────────────────────────────────
+
+const envSchema = z.object({
+  VITE_SHOPIFY_STORE_DOMAIN: z.string().min(1, 'Shopify store domain is required'),
+  VITE_SHOPIFY_STOREFRONT_TOKEN: z.string().min(1, 'Storefront token is required'),
+  VITE_GA4_MEASUREMENT_ID: z.string().optional(),
+  VITE_META_PIXEL_ID: z.string().optional(),
+  VITE_SITE_NAME: z.string().min(1, 'Site name is required'),
+  VITE_SITE_URL: z.string().url('Invalid URL format'),
+  VITE_SITE_DESCRIPTION: z.string().min(1, 'Site description is required'),
+  VITE_SITE_TITLE: z.string().optional(),
+  VITE_SITE_OG_IMAGE_PATH: z.string().optional(),
+  VITE_SITE_OG_IMAGE_ALT: z.string().optional(),
+  VITE_CONTACT_EMAIL: z.string().optional(),
+  VITE_INSTAGRAM_HANDLE: z.string().optional(),
+  VITE_INSTAGRAM_URL: z.string().url('Invalid Instagram URL').optional(),
+  VITE_NEWSLETTER_ENDPOINT: z.string().optional(),
+  VITE_NEWSLETTER_EYEBROW: z.string().optional(),
+  VITE_NEWSLETTER_PLACEHOLDER: z.string().optional(),
+  VITE_NEWSLETTER_CTA: z.string().optional(),
+  VITE_NEWSLETTER_LOADING_LABEL: z.string().optional(),
+  VITE_NEWSLETTER_SUCCESS_MESSAGE: z.string().optional(),
+  VITE_NEWSLETTER_ERROR_MESSAGE: z.string().optional(),
+  VITE_WELCOME_POPUP_EYEBROW: z.string().optional(),
+  VITE_WELCOME_POPUP_TITLE: z.string().optional(),
+  VITE_WELCOME_POPUP_DESCRIPTION: z.string().optional(),
+  VITE_CONTACT_LOCATION_LABEL: z.string().optional(),
+})
+
+// Validate environment variables at build time (skip in test mode)
+const isTest = import.meta.env.VITEST === 'true' || import.meta.env.TEST === 'true'
+if (!isTest) {
+  try {
+    envSchema.parse(import.meta.env)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('Environment variable validation failed:', error.errors)
+      throw new Error(`Invalid environment variables: ${error.errors.map(e => e.message).join(', ')}`)
+    }
+  }
+}
 
 function envValue(key: keyof ImportMetaEnv, fallback = '') {
   const value = import.meta.env[key]

@@ -8,6 +8,7 @@ import { TrustBadges, PaymentIcons } from '@/components/TrustBadges'
 import { useSEO } from '@/hooks/useSEO'
 import { trackBeginCheckout } from '@/lib/analytics'
 import { FreeShippingBar } from '@/components/FreeShippingBar'
+import { isValidCheckoutUrl } from '@/lib/cart'
 
 function CartLineItem({ line }: { line: ShopifyCartLine }) {
   const { updateLineItem, removeLineItem, isLoading } = useCart()
@@ -109,7 +110,7 @@ export function CartPage() {
 
   if (!cart || lines.length === 0) {
     return (
-      <div className="min-h-screen pt-28 pb-16">
+      <div className="min-h-screen pt-24 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -135,7 +136,7 @@ export function CartPage() {
   }
 
   return (
-    <div className="min-h-screen pt-28 pb-16">
+    <div className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-6 lg:px-20">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -183,21 +184,33 @@ export function CartPage() {
 
             <TrustBadges variant="full" className="my-2" />
 
-            <a
-              href={cart.checkoutUrl}
-              onClick={() => trackBeginCheckout(cart.cost.totalAmount.amount, cart.cost.totalAmount.currencyCode)}
-              className={`block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
-                isLoading
-                  ? 'opacity-50 pointer-events-none'
-                  : 'hover:opacity-90'
-              }`}
-              style={{
-                background: 'oklch(0.60 0.11 78)',
-                color: 'oklch(0.15 0.02 210)',
-              }}
-            >
-              PROCEED TO CHECKOUT
-            </a>
+            {isValidCheckoutUrl(cart.checkoutUrl) ? (
+              <a
+                href={cart.checkoutUrl}
+                onClick={() => trackBeginCheckout(cart.cost.totalAmount.amount, cart.cost.totalAmount.currencyCode)}
+                className={`block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
+                  isLoading
+                    ? 'opacity-50 pointer-events-none'
+                    : 'hover:opacity-90'
+                }`}
+                style={{
+                  background: 'oklch(0.60 0.11 78)',
+                  color: 'oklch(0.15 0.02 210)',
+                }}
+              >
+                PROCEED TO CHECKOUT
+              </a>
+            ) : (
+              <div
+                className="block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none"
+                style={{
+                  background: 'oklch(0.60 0.11 78)',
+                  color: 'oklch(0.15 0.02 210)',
+                }}
+              >
+                PROCEED TO CHECKOUT
+              </div>
+            )}
 
             <PaymentIcons className="mt-3" />
 

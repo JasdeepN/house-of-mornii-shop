@@ -31,6 +31,7 @@ interface CartContextValue {
   addToCart: (variantId: string, quantity?: number) => Promise<void>
   updateLineItem: (lineId: string, quantity: number) => Promise<void>
   removeLineItem: (lineId: string) => Promise<void>
+  clearCart: () => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -116,23 +117,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Restore cart from localStorage on mount (Shopify mode only)
   useEffect(() => {
     if (!IS_CONFIGURED) return
-    const savedCartId = localStorage.getItem(CART_ID_KEY)
-    if (savedCartId) {
-      setIsLoading(true)
-      shopifyFetch<{ cart: ShopifyCart | null }>(CART_QUERY, {
-        cartId: savedCartId,
-      })
-        .then((data) => {
-          if (data.cart) {
-            setCart(data.cart)
-          } else {
+    try {
+      const savedCartId = localStorage.getItem(CART_ID_KEY)
+      if (savedCartId) {
+        setIsLoading(true)
+        shopifyFetch<{ cart: ShopifyCart | null }>(CART_QUERY, {
+          cartId: savedCartId,
+        })
+          .then((data) => {
+            if (data.cart) {
+              setCart(data.cart)
+            } else {
+              localStorage.removeItem(CART_ID_KEY)
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to restore cart:', error)
             localStorage.removeItem(CART_ID_KEY)
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem(CART_ID_KEY)
-        })
-        .finally(() => setIsLoading(false))
+          })
+          .finally(() => setIsLoading(false))
+      }
+    } catch (error) {
+      console.error('Failed to restore cart:', error)
+      // Reset to empty cart state on localStorage error
     }
   }, [])
 
@@ -290,7 +297,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const updatedLines = cart.lines.edges
             .map((e) => e.node)
             .filter((l) => l.id !== lineId)
-          setCart(updatedLines.length > 0 ? buildDemoCart(updatedLines) : null)
+          const newCart = updatedLines.length > 0 ? buildDemoCart(updatedLines) : null
+          setCart(newCart)
+          if (!newCart) {
+            localStorage.removeItem(CART_ID_KEY)
+          }
           toast.success('Removed from cart')
           return
         }
@@ -308,6 +319,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           throw new Error(data.cartLinesRemove.userErrors[0].message)
         }
         setCart(data.cartLinesRemove.cart)
+        if (!data.cartLinesRemove.cart) {
+          localStorage.removeItem(CART_ID_KEY)
+        }
         toast.success('Removed from cart')
       } catch (err) {
         toast.error(
@@ -319,6 +333,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     },
     [cart],
   )
+
+  // ── Clear Cart (for logout) ────────────────────────────────────────────────
+
+  const clearCart = useCallback(() => {
+    setCart(null)
+    localStorage.removeItem(CART_ID_KEY)
+  }, [])
 
   const itemCount = cart?.totalQuantity ?? 0
 
@@ -334,6 +355,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addToCart,
         updateLineItem,
         removeLineItem,
+        clearCart,
       }}
     >
       {children}

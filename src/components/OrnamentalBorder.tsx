@@ -1,6 +1,5 @@
 import { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
-import baroqueBorder from '@/assets/images/Borders-tight.png'
 
 interface OrnamentalBorderProps {
   children: ReactNode
@@ -11,23 +10,24 @@ interface OrnamentalBorderProps {
   contentClassName?: string
   /** Enable hover lift effect on the glass panel. Default: false */
   hoverable?: boolean
-  /** Hide the baroque border-image frame overlay. Default: false */
-  noBorder?: boolean
+  /** Hide the golden glow under-lighting effect. Default: false */
+  noGlow?: boolean
 }
 
-export function OrnamentalBorder({ 
-  children, 
-  className, 
+export function OrnamentalBorder({
+  children,
+  className,
   backgroundClassName,
   backgroundStyle,
   contentClassName = 'p-6 md:p-8 lg:p-10',
   hoverable = false,
-  noBorder = false,
+  noGlow = false,
 }: OrnamentalBorderProps) {
   return (
     <div
       className={cn(
         'glass-panel',
+        !noGlow && 'golden-glow',
         hoverable && 'glass-panel--hover',
         backgroundClassName,
         className,
@@ -37,22 +37,6 @@ export function OrnamentalBorder({
       <div className={cn('relative z-10', contentClassName)}>
         {children}
       </div>
-
-      {!noBorder && (
-        <div
-          className="absolute inset-0 z-20 pointer-events-none"
-          style={{
-            borderStyle: 'solid',
-            borderWidth: '50px',
-            borderImageSource: `url(${baroqueBorder})`,
-            borderImageSlice: '180',
-            borderImageWidth: '50px',
-            borderImageOutset: '24px',
-            borderImageRepeat: 'stretch',
-          }}
-          aria-hidden="true"
-        />
-      )}
     </div>
   )
 }

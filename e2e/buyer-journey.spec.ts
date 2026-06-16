@@ -98,6 +98,149 @@ test.describe('Buyer journey', () => {
   })
 })
 
+test.describe('Checkout flow', () => {
+  test('complete checkout flow with single product', async ({ page }) => {
+    // Navigate to collections page
+    await page.goto('/collections')
+    
+    // Get first product
+    const firstProduct = page.locator('[data-testid="product-card"]').first()
+    await expect(firstProduct).toBeVisible({ timeout: 10_000 })
+    await firstProduct.click()
+    
+    // Add to cart
+    const atcButton = page.locator('[data-testid="add-to-cart"]')
+    await expect(atcButton).toBeEnabled({ timeout: 10_000 })
+    await atcButton.click()
+    
+    // Verify cart flyout opens
+    const flyout = page.locator('[data-testid="cart-flyout"]')
+    await expect(flyout).toBeVisible({ timeout: 5_000 })
+    
+    // Verify checkout button exists and has valid URL
+    const checkoutBtn = flyout.locator('[data-testid="checkout-button"]')
+    await expect(checkoutBtn).toBeVisible()
+    
+    const href = await checkoutBtn.getAttribute('href')
+    expect(href, 'Checkout URL must be a valid URL').toMatch(/https?:\/\//)
+  })
+
+  test('add multiple products to cart', async ({ page }) => {
+    // Navigate to collections page
+    await page.goto('/collections')
+    
+    // Get first product and add to cart
+    const firstProduct = page.locator('[data-testid="product-card"]').first()
+    await expect(firstProduct).toBeVisible({ timeout: 10_000 })
+    await firstProduct.click()
+    
+    const atcButton = page.locator('[data-testid="add-to-cart"]')
+    await expect(atcButton).toBeEnabled({ timeout: 10_000 })
+    await atcButton.click()
+    
+    // Verify cart flyout opens with 1 item
+    const flyout = page.locator('[data-testid="cart-flyout"]')
+    await expect(flyout).toBeVisible({ timeout: 5_000 })
+    await expect(flyout.locator('[data-testid="cart-item"]')).toHaveCount(1)
+    
+    // Go back to collections
+    await page.goto('/collections')
+    
+    // Get second product and add to cart
+    const secondProduct = page.locator('[data-testid="product-card"]').nth(1)
+    await expect(secondProduct).toBeVisible({ timeout: 10_000 })
+    await secondProduct.click()
+    
+    const secondAtcButton = page.locator('[data-testid="add-to-cart"]')
+    await expect(secondAtcButton).toBeEnabled({ timeout: 10_000 })
+    await secondAtcButton.click()
+    
+    // Verify cart has 2 items
+    await expect(flyout.locator('[data-testid="cart-item"]')).toHaveCount(2)
+  })
+
+  test('update cart item quantity', async ({ page }) => {
+    // Navigate to collections page
+    await page.goto('/collections')
+    
+    // Get first product and add to cart
+    const firstProduct = page.locator('[data-testid="product-card"]').first()
+    await expect(firstProduct).toBeVisible({ timeout: 10_000 })
+    await firstProduct.click()
+    
+    const atcButton = page.locator('[data-testid="add-to-cart"]')
+    await expect(atcButton).toBeEnabled({ timeout: 10_000 })
+    await atcButton.click()
+    
+    // Open cart flyout
+    const flyout = page.locator('[data-testid="cart-flyout"]')
+    await expect(flyout).toBeVisible({ timeout: 5_000 })
+    
+    // Increase quantity
+    const increaseBtn = flyout.locator('[aria-label*="Increase quantity"]').first()
+    await increaseBtn.click()
+    
+    // Verify quantity updated
+    const quantity = flyout.locator('[role="status"][aria-live="polite"]').first()
+    await expect(quantity).toHaveText('2')
+  })
+
+  test('remove item from cart', async ({ page }) => {
+    // Navigate to collections page
+    await page.goto('/collections')
+    
+    // Get first product and add to cart
+    const firstProduct = page.locator('[data-testid="product-card"]').first()
+    await expect(firstProduct).toBeVisible({ timeout: 10_000 })
+    await firstProduct.click()
+    
+    const atcButton = page.locator('[data-testid="add-to-cart"]')
+    await expect(atcButton).toBeEnabled({ timeout: 10_000 })
+    await atcButton.click()
+    
+    // Open cart flyout
+    const flyout = page.locator('[data-testid="cart-flyout"]')
+    await expect(flyout).toBeVisible({ timeout: 5_000 })
+    
+    // Remove item
+    const removeBtn = flyout.locator('[aria-label*="Remove"]').first()
+    await removeBtn.click()
+    
+    // Verify cart is empty
+    await expect(flyout.locator('[data-testid="cart-item"]')).toHaveCount(0)
+  })
+
+  test('empty cart state', async ({ page }) => {
+    // Navigate to collections page
+    await page.goto('/collections')
+    
+    // Get first product and add to cart
+    const firstProduct = page.locator('[data-testid="product-card"]').first()
+    await expect(firstProduct).toBeVisible({ timeout: 10_000 })
+    await firstProduct.click()
+    
+    const atcButton = page.locator('[data-testid="add-to-cart"]')
+    await expect(atcButton).toBeEnabled({ timeout: 10_000 })
+    await atcButton.click()
+    
+    // Open cart flyout
+    const flyout = page.locator('[data-testid="cart-flyout"]')
+    await expect(flyout).toBeVisible({ timeout: 5_000 })
+    
+    // Remove all items
+    const removeBtns = flyout.locator('[aria-label*="Remove"]')
+    const count = await removeBtns.count()
+    for (let i = 0; i < count; i++) {
+      await removeBtns.nth(0).click()
+      await page.waitForTimeout(500)
+    }
+    
+    // Verify empty state
+    await expect(flyout.locator('[data-testid="cart-item"]')).toHaveCount(0)
+    await expect(flyout.locator('p:text("Your bag is empty")')).toBeVisible()
+  })
+})
+
 test.describe('SEO / meta', () => {
   test('root page has og:image meta tag', async ({ page }) => {
     await page.goto('/')

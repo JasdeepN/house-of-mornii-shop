@@ -45,7 +45,7 @@ export function CollectionsSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section id="collections" className="py-12 lg:py-16 scroll-mt-20" ref={ref}>
+    <section id="collections" className="py-6 lg:py-8 scroll-mt-24" ref={ref}>
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -64,10 +64,10 @@ export function CollectionsSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {collections.map((collection, index) => (
             <Link key={collection.id} to={`/collections/${collection.id}`} className="h-full block">
-               <BaroqueCard 
+               <BaroqueCard
                   className="h-full cursor-pointer"
                   animate
-                  noBorder
+                  noGlow
                   hoverable
                   style={{ animationDelay: `${index * 150}ms` }}
                >

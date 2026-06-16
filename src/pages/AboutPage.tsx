@@ -35,7 +35,7 @@ export function AboutPage() {
   })
 
   return (
-    <div className="min-h-screen pt-28 pb-16">
+    <div className="min-h-screen pt-24 pb-16">
         <div className="container mx-auto px-6 lg:px-20">
           <PageBreadcrumb
             items={[{ label: 'HOME', to: '/' }, { label: 'ABOUT' }]}

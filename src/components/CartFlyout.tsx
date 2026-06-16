@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { FreeShippingBar } from '@/components/FreeShippingBar'
+import { useCallback, useRef, useEffect } from 'react'
+import { isValidCheckoutUrl } from '@/lib/cart'
 
 function FlyoutLineItem({
   line,
@@ -25,11 +27,55 @@ function FlyoutLineItem({
   const variant = line.merchandise
   const image = variant.image
 
+  // Debounced quantity update to prevent rapid state updates
+  const updateQuantity = useCallback((newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeLineItem(line.id)
+    } else if (newQuantity === 1) {
+      updateLineItem(line.id, 1)
+    } else {
+      updateLineItem(line.id, newQuantity)
+    }
+  }, [line.id, updateLineItem, removeLineItem])
+
+  // Debounce handler for rapid clicks
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingQuantityRef = useRef(line.quantity)
+
+  useEffect(() => {
+    pendingQuantityRef.current = line.quantity
+  }, [line.quantity])
+
+  const handleQuantityChange = useCallback((delta: number) => {
+    pendingQuantityRef.current = Math.max(0, pendingQuantityRef.current + delta)
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+
+    debounceRef.current = setTimeout(() => {
+      const nextQuantity = pendingQuantityRef.current
+      debounceRef.current = null
+      updateQuantity(nextQuantity)
+    }, 300) // 300ms debounce delay
+  }, [updateQuantity])
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
+  }, [])
+
   return (
     <div
       data-testid="cart-item"
       className="flex gap-3 py-4 border-b"
       style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}
+      role="listitem"
+      aria-label={`${variant.product.title}, quantity ${line.quantity}`}
     >
       {/* Thumbnail */}
       <div className="w-16 h-16 flex-shrink-0 rounded-sm overflow-hidden">
@@ -56,6 +102,7 @@ function FlyoutLineItem({
             to={`/products/${variant.product.handle}`}
             onClick={onClose}
             className="text-xs tracking-widest hover:text-accent transition-colors line-clamp-1"
+            aria-label={`View details for ${variant.product.title}`}
           >
             {variant.product.title}
           </Link>
@@ -70,23 +117,25 @@ function FlyoutLineItem({
           {/* Quantity */}
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() =>
-                line.quantity > 1
-                  ? updateLineItem(line.id, line.quantity - 1)
-                  : removeLineItem(line.id)
-              }
+              onClick={() => handleQuantityChange(-1)}
               disabled={isLoading}
               className="w-6 h-6 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              aria-label={`Decrease quantity for ${variant.product.title}`}
             >
               <Minus size={10} weight="bold" />
             </button>
-            <span className="text-xs tracking-widest w-5 text-center">
+            <span 
+              className="text-xs tracking-widest w-5 text-center" 
+              role="status"
+              aria-live="polite"
+            >
               {line.quantity}
             </span>
             <button
-              onClick={() => updateLineItem(line.id, line.quantity + 1)}
+              onClick={() => handleQuantityChange(1)}
               disabled={isLoading}
               className="w-6 h-6 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              aria-label={`Increase quantity for ${variant.product.title}`}
             >
               <Plus size={10} weight="bold" />
             </button>
@@ -104,6 +153,7 @@ function FlyoutLineItem({
               onClick={() => removeLineItem(line.id)}
               disabled={isLoading}
               className="text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-40"
+              aria-label={`Remove ${variant.product.title} from cart`}
             >
               <Trash size={14} weight="bold" />
             </button>
@@ -118,6 +168,7 @@ export function CartFlyout() {
   const { cart, isLoading, itemCount, isCartOpen, setCartOpen } = useCart()
   const lines = cart ? flattenEdges(cart.lines) : []
   const isEmpty = !cart || lines.length === 0
+  const canCheckout = cart ? isValidCheckoutUrl(cart.checkoutUrl) : false
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setCartOpen}>
@@ -152,7 +203,7 @@ export function CartFlyout() {
 
         {isEmpty ? (
           /* Empty state */
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6" role="status">
             <ShoppingBag size={40} weight="thin" className="text-muted-foreground" />
             <p className="text-muted-foreground text-sm tracking-widest">
               Your bag is empty.
@@ -169,7 +220,7 @@ export function CartFlyout() {
         ) : (
           <>
             {/* Line items */}
-            <ScrollArea className="flex-1 px-6">
+            <ScrollArea className="flex-1 px-6" role="list" aria-label="Cart items">
               {lines.map((line) => (
                 <FlyoutLineItem
                   key={line.id}
@@ -199,19 +250,33 @@ export function CartFlyout() {
               </p>
 
               {/* Checkout */}
-              <a
-                data-testid="checkout-button"
-                href={cart.checkoutUrl}
-                className={`block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
-                  isLoading ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'
-                }`}
-                style={{
-                  background: 'oklch(0.60 0.11 78)',
-                  color: 'oklch(0.15 0.02 210)',
-                }}
-              >
-                PROCEED TO CHECKOUT
-              </a>
+              {canCheckout ? (
+                <a
+                  data-testid="checkout-button"
+                  href={cart.checkoutUrl}
+                  className={`block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
+                    isLoading ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'
+                  }`}
+                  style={{
+                    background: 'oklch(0.60 0.11 78)',
+                    color: 'oklch(0.15 0.02 210)',
+                  }}
+                >
+                  PROCEED TO CHECKOUT
+                </a>
+              ) : (
+                <div
+                  data-testid="checkout-button"
+                  aria-disabled="true"
+                  className="block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none"
+                  style={{
+                    background: 'oklch(0.60 0.11 78)',
+                    color: 'oklch(0.15 0.02 210)',
+                  }}
+                >
+                  PROCEED TO CHECKOUT
+                </div>
+              )}
 
               {/* Continue shopping */}
               <button

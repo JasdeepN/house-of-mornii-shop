@@ -3,27 +3,61 @@ import { trackEvent } from '@/lib/analytics'
 import { subscribeToNewsletter } from '@/lib/newsletter'
 import { getNewsletterConfig } from '@/lib/siteConfig'
 
+// ─── Email Validation ─────────────────────────────────────────────────────────
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const isValidEmail = (email: string): boolean => {
+  return emailRegex.test(email.trim().toLowerCase())
+}
+
+const sanitizeEmail = (email: string): string => {
+  return email.trim().toLowerCase()
+}
+
 interface NewsletterSignupProps {
   className?: string
   source?: string
 }
 
+interface EmailState {
+  value: string
+  isValid: boolean
+  error: string | null
+}
+
 export function NewsletterSignup({ className, source = 'newsletter-form' }: NewsletterSignupProps) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState<EmailState>({
+    value: '',
+    isValid: false,
+    error: null
+  })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const content = getNewsletterConfig()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!email) return
+    
+    const sanitizedEmail = sanitizeEmail(email.value)
+    if (!sanitizedEmail) {
+      setEmail(prev => ({ ...prev, error: 'Email is required', isValid: false }))
+      setStatus('error')
+      return
+    }
+    
+    if (!isValidEmail(sanitizedEmail)) {
+      setEmail(prev => ({ ...prev, error: 'Invalid email format', isValid: false }))
+      setStatus('error')
+      return
+    }
 
     setStatus('loading')
 
     try {
-      const result = await subscribeToNewsletter({ email, source })
+      const result = await subscribeToNewsletter({ email: sanitizedEmail, source })
       trackEvent('newsletter_signup', { source, mode: result.mode })
       setStatus('success')
-      setEmail('')
+      setEmail({ value: '', isValid: false, error: null })
     } catch {
       setStatus('error')
     }
@@ -53,8 +87,15 @@ export function NewsletterSignup({ className, source = 'newsletter-form' }: News
           type="email"
           required
           placeholder={content.placeholder}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={email.value}
+          onChange={(e) => {
+            const value = e.target.value
+            setEmail({
+              value,
+              isValid: isValidEmail(value),
+              error: null
+            })
+          }}
           className="flex-1 px-4 py-2.5 text-sm tracking-wider rounded-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
           style={{
             border: '1px solid oklch(1 0 0 / 0.15)',
@@ -70,7 +111,13 @@ export function NewsletterSignup({ className, source = 'newsletter-form' }: News
         </button>
       </div>
       {status === 'error' && (
-        <p className="text-xs text-red-400" role="alert">{content.errorMessage}</p>
+        <p 
+          className="text-xs text-red-400" 
+          role="alert"
+          aria-live="polite"
+        >
+          {email.isValid ? content.errorMessage : 'Please enter a valid email address'}
+        </p>
       )}
     </form>
   )

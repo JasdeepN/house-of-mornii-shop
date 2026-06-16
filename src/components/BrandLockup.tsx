@@ -15,18 +15,18 @@ export function BrandLockup({ size = 'sm', className }: BrandLockupProps) {
       <span
         className={cn(
           'font-bold uppercase tracking-[0.28em]',
-          size === 'xl' ? 'text-sm' : size === 'lg' ? 'text-sm' : 'text-xs'
+          size === 'xl' ? 'text-sm' : size === 'lg' ? 'text-sm' : 'text-xs',
+          'brand-title'
         )}
-        style={{ color: 'oklch(0.88 0.02 210)' }}
       >
         House of
       </span>
       <span
         className={cn(
           'font-script',
-          size === 'xl' ? 'text-7xl lg:text-8xl' : size === 'lg' ? 'text-6xl lg:text-7xl' : 'text-3xl lg:text-4xl'
+          size === 'xl' ? 'text-7xl lg:text-8xl' : size === 'lg' ? 'text-6xl lg:text-7xl' : 'text-3xl lg:text-4xl',
+          'brand-name'
         )}
-        style={{ color: 'oklch(0.60 0.11 78)' }}
       >
         Mornii
       </span>

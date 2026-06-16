@@ -24,3 +24,6 @@ if (!import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN) {
   // @ts-expect-error — writable in test env
   import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN = ''
 }
+// Mark as test environment for siteConfig.ts
+// @ts-expect-error — writable in test env
+import.meta.env.VITEST = 'true'

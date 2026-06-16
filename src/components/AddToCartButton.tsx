@@ -6,6 +6,9 @@ import { trackAddToCart } from '@/lib/analytics'
 interface AddToCartButtonProps {
   variantId: string
   availableForSale: boolean
+  productTitle: string
+  productPrice: string
+  currencyCode?: string
   className?: string
   compact?: boolean
 }
@@ -13,6 +16,9 @@ interface AddToCartButtonProps {
 export function AddToCartButton({
   variantId,
   availableForSale,
+  productTitle,
+  productPrice,
+  currencyCode,
   className,
   compact,
 }: AddToCartButtonProps) {
@@ -21,7 +27,13 @@ export function AddToCartButton({
 
   const handleClick = async () => {
     setIsAdding(true)
-    trackAddToCart({ id: variantId, name: variantId, price: '0', quantity: 1 })
+    trackAddToCart({
+      id: variantId,
+      name: productTitle,
+      price: productPrice,
+      quantity: 1,
+      currency: currencyCode,
+    })
     await addToCart(variantId)
     setIsAdding(false)
   }

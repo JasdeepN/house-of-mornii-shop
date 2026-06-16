@@ -63,20 +63,27 @@ export function useCollection(handle: string, first = 12, sortKey?: string, reve
       if (!IS_CONFIGURED) {
         const col = getDemoCollection(handle)
         if (!col) return null
+        const demoCollection = {
+          ...col,
+          products: {
+            ...col.products,
+            edges: [...col.products.edges],
+          },
+        }
         // Respect sortKey for demo data
         if (collectionSortKey === 'PRICE') {
-          col.products.edges.sort(
+          demoCollection.products.edges.sort(
             (a, b) =>
               parseFloat(a.node.priceRange.minVariantPrice.amount) -
               parseFloat(b.node.priceRange.minVariantPrice.amount),
           )
         } else if (collectionSortKey === 'TITLE') {
-          col.products.edges.sort((a, b) =>
+          demoCollection.products.edges.sort((a, b) =>
             a.node.title.localeCompare(b.node.title),
           )
         }
-        if (reverse) col.products.edges.reverse()
-        return col
+        if (reverse) demoCollection.products.edges.reverse()
+        return demoCollection
       }
       const data = await shopifyFetch<CollectionByHandleResponse>(
         STOREFRONT_MODE === 'token' ? COLLECTION_BY_HANDLE_QUERY : COLLECTION_BY_HANDLE_QUERY_TOKENLESS,

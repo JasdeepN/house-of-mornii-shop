@@ -7,7 +7,6 @@ import { CartFlyout } from '@/components/CartFlyout'
 import { ScrollToHash } from '@/components/ScrollToHash'
 import { PageTransition } from '@/components/PageTransition'
 import { Toaster } from 'sonner'
-import { GoldDustBackground } from '@/components/GoldDustBackground'
 import { trackPageView } from '@/lib/analytics'
 import { JsonLd, organizationSchema } from '@/components/JsonLd'
 import { WelcomePopup } from '@/components/WelcomePopup'
@@ -24,7 +23,7 @@ const CartPage = lazy(() => import('@/pages/CartPage').then((m) => ({ default: m
 
 function RouteLoader() {
   return (
-    <div className="min-h-screen pt-28 pb-16 flex items-center justify-center">
+    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div
           className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
@@ -70,29 +69,11 @@ function App() {
   return (
     <BrowserRouter>
       <JsonLd data={organizationSchema()} />
-      <div
-        style={{
-          backgroundColor: 'oklch(0.10 0.02 210)',
-          backgroundImage: `
-            radial-gradient(ellipse 150% 60% at 50% -10%, oklch(0.40 0.12 78 / 0.55), transparent 55%),
-            radial-gradient(ellipse 110% 55% at 50% 8%,   oklch(0.32 0.09 70 / 0.40), transparent 50%),
-            radial-gradient(ellipse 80%  60% at 5%  35%,  oklch(0.30 0.08 210 / 0.55), transparent 55%),
-            radial-gradient(ellipse 80%  60% at 95% 35%,  oklch(0.30 0.08 210 / 0.55), transparent 55%),
-            radial-gradient(ellipse 100% 70% at 50% 55%,  oklch(0.25 0.06 200 / 0.40), transparent 55%),
-            radial-gradient(ellipse 70%  50% at 25% 72%,  oklch(0.35 0.09 78 / 0.30), transparent 55%),
-            radial-gradient(ellipse 70%  50% at 75% 78%,  oklch(0.32 0.08 78 / 0.28), transparent 55%),
-            radial-gradient(ellipse 200% 200% at 50% 50%, transparent 30%, oklch(0.05 0.01 210 / 0.55) 70%),
-            linear-gradient(180deg, oklch(0.20 0.05 210 / 0.50) 0%, oklch(0.16 0.04 200 / 0.35) 40%, oklch(0.18 0.04 200 / 0.40) 70%, oklch(0.10 0.02 210 / 0.55) 100%)
-          `,
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        <GoldDustBackground />
+      <div>
         <div className="relative" style={{ zIndex: 2 }}>
           <Header />
           <ScrollToHash />
-          <main>
+          <main className="pt-24">
             <AnimatedRoutes />
           </main>
           <Footer />

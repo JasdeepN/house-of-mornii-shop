@@ -137,3 +137,21 @@ export async function shopifyFetch<T = unknown>(
 
   return json.data
 }
+
+/**
+ * Validate that the current query mode matches the storefront mode
+ * Logs warnings for potential token-gated field mismatches
+ */
+export function validateQueryMode(query: string, mode: StorefrontMode) {
+  const tokenGatedPatterns = ['tags', 'metafields', 'customerAccessToken']
+  const hasTokenGated = tokenGatedPatterns.some(pattern => query.includes(pattern))
+  
+  if (hasTokenGated && mode === 'tokenless') {
+    console.error(
+      '[Shopify] Token-gated field requested in tokenless mode.\n' +
+      'This will cause GraphQL errors. Use token mode or remove token-gated fields.\n' +
+      'Fields: ' + tokenGatedPatterns.filter(p => query.includes(p)).join(', ')
+    )
+  }
+}
+

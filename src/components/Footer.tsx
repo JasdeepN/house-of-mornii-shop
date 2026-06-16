@@ -3,49 +3,21 @@ import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { TrustBadges } from '@/components/TrustBadges'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
 
-const etchedText: React.CSSProperties = {
-  textShadow: '0 0 12px oklch(0.60 0.08 210 / 0.5), 0 1px 8px oklch(0 0 0 / 0.4)',
-  color: 'oklch(0.95 0.02 210)',
-  WebkitFontSmoothing: 'antialiased',
-  MozOsxFontSmoothing: 'grayscale',
-}
-
-const etchedFaint: React.CSSProperties = {
-  textShadow: '0 0 10px oklch(0.60 0.08 210 / 0.35), 0 1px 6px oklch(0 0 0 / 0.3)',
-  color: 'oklch(0.82 0.03 210)',
-  WebkitFontSmoothing: 'antialiased',
-  MozOsxFontSmoothing: 'grayscale',
-}
-
 export function Footer() {
   return (
-    <footer
-      style={{
-        background: 'oklch(0.20 0.03 210 / 0.15)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderTop: '1px solid oklch(1 0 0 / 0.10)',
-        boxShadow:
-          'inset 0 1px 0 oklch(1 0 0 / 0.12), inset 0 -1px 0 oklch(0 0 0 / 0.35), 0 -8px 32px oklch(0 0 0 / 0.45)',
-      }}
-    >
+    <footer className="glass-panel glass-panel--full glass-panel--flat rounded-t-none relative z-50">
       <div className="container mx-auto px-6 lg:px-20 py-12">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 relative z-10">
           <div className="flex items-center justify-center gap-3">
-            <div className="text-xl" style={etchedText}>
-              <span className="font-bold tracking-wider">HOUSE</span>
-              <span
-                className="font-script text-2xl ml-2"
-                style={{ ...etchedText, color: 'oklch(0.60 0.11 78)', textShadow: '0 0 14px oklch(0.60 0.11 78 / 0.5), 0 1px 8px oklch(0 0 0 / 0.4)' }}
-              >
-                Mornii
-              </span>
+            <div className="text-xl footer-brand-name">
+              <span className="font-bold tracking-wider text-[var(--foreground)]">HOUSE</span>
+              <span className="font-script text-2xl ml-2 footer-brand-gold text-accent">Mornii</span>
             </div>
           </div>
 
           <OrnamentalDivider className="my-6" />
 
-          <p className="text-sm tracking-[0.15em]" style={etchedFaint}>
+          <p className="text-sm tracking-[0.15em] footer-tagline text-muted-foreground/90">
             REGAL · RADIANT · MODERN
           </p>
 
@@ -53,11 +25,8 @@ export function Footer() {
 
           <NewsletterSignup className="mt-8 pt-6" />
 
-          <div
-            className="pt-6 max-w-2xl mx-auto"
-            style={{ borderTop: '1px solid oklch(1 0 0 / 0.07)' }}
-          >
-            <p className="text-xs" style={etchedFaint}>
+          <div className="pt-6 max-w-2xl mx-auto footer-divider border-t border-border/40">
+            <p className="text-xs footer-copyright text-muted-foreground/70 leading-relaxed">
               © {new Date().getFullYear()} House of Mornii. All rights reserved.
               <br />
               Heritage-inspired costume jewellery for life's most precious moments.
