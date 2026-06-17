@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { ShoppingBag, Spinner } from '@phosphor-icons/react'
 import { useCart } from '@/context/CartContext'
 import { trackAddToCart } from '@/lib/analytics'
+import { logger } from '@/lib/logger'
+import { toast } from 'sonner'
 
 interface AddToCartButtonProps {
   variantId: string
@@ -34,8 +36,17 @@ export function AddToCartButton({
       quantity: 1,
       currency: currencyCode,
     })
-    await addToCart(variantId)
-    setIsAdding(false)
+    try {
+      await addToCart(variantId)
+    } catch (err) {
+      logger.error('Failed to add item to cart', {
+        component: 'AddToCartButton',
+        variantId,
+        action: 'addToCart',
+      })
+      toast.error('Failed to add item. Please try again.')
+      setIsAdding(false)
+    }
   }
 
   if (!availableForSale) {
@@ -53,15 +64,25 @@ export function AddToCartButton({
     <button
       data-testid="add-to-cart"
       onClick={handleClick}
-      disabled={isAdding}
+      disabled={isAdding || !availableForSale}
       className={`pill-btn pill-btn--cta ${compact ? 'text-xs px-4 py-2' : 'w-full py-4 text-sm justify-center'} ${className ?? ''}`}
     >
       {isAdding ? (
-        <Spinner size={compact ? 14 : 18} className="animate-spin mr-2" />
+        <>
+          <Spinner size={compact ? 14 : 18} className="animate-spin mr-2" />
+          ADDING...
+        </>
+      ) : compact ? (
+        <>
+          <ShoppingBag size={compact ? 14 : 18} weight="bold" className="mr-2" />
+          ADD
+        </>
       ) : (
-        <ShoppingBag size={compact ? 14 : 18} weight="bold" className="mr-2" />
+        <>
+          <ShoppingBag size={compact ? 14 : 18} weight="bold" className="mr-2" />
+          ADD TO BAG
+        </>
       )}
-      {isAdding ? 'ADDING...' : compact ? 'ADD' : 'ADD TO BAG'}
     </button>
   )
 }

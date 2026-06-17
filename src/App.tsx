@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer'
 import { CartFlyout } from '@/components/CartFlyout'
 import { ScrollToHash } from '@/components/ScrollToHash'
 import { PageTransition } from '@/components/PageTransition'
+import { EnvironmentWarning } from '@/components/EnvironmentWarning'
 import { Toaster } from 'sonner'
 import { trackPageView } from '@/lib/analytics'
 import { JsonLd, organizationSchema } from '@/components/JsonLd'
@@ -20,6 +21,7 @@ const ProductPage = lazy(() => import('@/pages/ProductPage').then((m) => ({ defa
 const AboutPage = lazy(() => import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage })))
 const ContactPage = lazy(() => import('@/pages/ContactPage').then((m) => ({ default: m.ContactPage })))
 const CartPage = lazy(() => import('@/pages/CartPage').then((m) => ({ default: m.CartPage })))
+const HealthPage = lazy(() => import('@/pages/HealthPage').then((m) => ({ default: m.HealthPage })))
 
 function RouteLoader() {
   return (
@@ -58,6 +60,7 @@ function AnimatedRoutes() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/_health" element={<HealthPage />} />
           </Routes>
         </Suspense>
       </PageTransition>
@@ -69,6 +72,7 @@ function App() {
   return (
     <BrowserRouter>
       <JsonLd data={organizationSchema()} />
+      <EnvironmentWarning />
       <div>
         <div className="relative" style={{ zIndex: 2 }}>
           <Header />

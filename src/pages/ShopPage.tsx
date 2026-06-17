@@ -10,11 +10,11 @@ import {
   shopifyFetch,
   IS_CONFIGURED,
   STOREFRONT_MODE,
-  StorefrontError,
   getDemoProducts,
   PRODUCTS_QUERY,
   PRODUCTS_QUERY_TOKENLESS,
 } from '@/lib/shopify'
+import { isServiceError as checkIsServiceError, useErrorHandler } from '@/lib/errorHandler'
 import type { ShopifyProduct } from '@/lib/shopify'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { ProductGrid } from '@/components/ProductGrid'
@@ -44,6 +44,7 @@ export function ShopPage() {
 
   const { data: collections } = useCollections()
   const { data: productsData, isLoading: isAllLoading, error: productsError } = useProducts(sortKey, reverse)
+  const errorDisplay = useErrorHandler(productsError)
   // When a collection filter is active, fetch that collection's products directly
   const { data: collectionData, isLoading: isCollectionLoading, error: collectionError } = useCollection(
     collectionFilter,
@@ -150,10 +151,7 @@ export function ShopPage() {
   }, [collectionFilter, trackedProducts])
 
   const activeError = collectionFilter ? collectionError : productsError
-  const isServiceError =
-    activeError instanceof StorefrontError &&
-    (activeError.category === 'upstream_unavailable' ||
-      activeError.category === 'misconfigured')
+  const isServiceError = checkIsServiceError(activeError)
 
   const showLoadMore = !collectionFilter && hasMorePages && (productsData?.pageInfo.hasNextPage || loadedMore.length > 0)
 
@@ -208,13 +206,13 @@ export function ShopPage() {
             >
               All
             </button>
-            {collections?.map((col) => (
+            {collections?.filter(Boolean).map((col) => (
               <button
                 key={col.handle}
                 onClick={() => handleCollectionFilter(col.handle)}
                 className={`pill-btn${collectionFilter === col.handle ? ' pill-btn--active' : ''}`}
               >
-                {col.title}
+                {col.title || col.handle}
               </button>
             ))}
           </div>
@@ -265,16 +263,8 @@ export function ShopPage() {
             </p>
           </div>
         ) : isServiceError ? (
-          <div className="text-center py-20">
-            <p className="text-muted-foreground tracking-widest mb-4">
-              We're having trouble loading products right now. Please try again shortly.
-            </p>
-            <button
-              className="pill-btn"
-              onClick={() => window.location.reload()}
-            >
-              TRY AGAIN
-            </button>
+          <div style={{ padding: '1rem', color: '#a6a6a6', textAlign: 'center' }}>
+            {errorDisplay?.message ?? 'Unable to fetch products.'}
           </div>
         ) : filteredProducts.length > 0 ? (
           <>

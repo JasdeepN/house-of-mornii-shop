@@ -133,12 +133,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })
           .catch((error) => {
             console.error('Failed to restore cart:', error)
+            toast.error('Failed to load your cart. Please refresh the page.')
             localStorage.removeItem(CART_ID_KEY)
           })
           .finally(() => setIsLoading(false))
       }
     } catch (error) {
       console.error('Failed to restore cart:', error)
+      toast.error('Failed to load your cart. Please refresh the page.')
       // Reset to empty cart state on localStorage error
     }
   }, [])

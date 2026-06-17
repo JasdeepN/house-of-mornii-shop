@@ -2,8 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useProduct, useRelatedProducts, formatMoney, flattenEdges } from '@/lib/shopify'
-import { StorefrontError } from '@/lib/shopify'
 import type { ShopifyProductVariant } from '@/lib/shopify'
+import { useErrorHandler } from '@/lib/errorHandler'
 import { ProductGallery } from '@/components/ProductGallery'
 import { VariantSelector } from '@/components/VariantSelector'
 import { AddToCartButton } from '@/components/AddToCartButton'
@@ -18,6 +18,7 @@ import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 export function ProductPage() {
   const { handle } = useParams()
   const { data: product, isLoading, error } = useProduct(handle ?? '')
+  const errorDisplay = useErrorHandler(error)
   const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null)
   const [showStickyATC, setShowStickyATC] = useState(false)
   const atcRef = useRef<HTMLDivElement>(null)
@@ -92,39 +93,49 @@ export function ProductPage() {
     )
   }
 
-  if (error) {
-    const isServiceError =
-      error instanceof StorefrontError &&
-      (error.category === 'upstream_unavailable' || error.category === 'misconfigured')
+  if (errorDisplay) {
     return (
-      <div className="min-h-screen pt-28 pb-16">
-        <div className="container mx-auto px-6 lg:px-20 text-center">
-          {isServiceError ? (
-            <>
-              <h1 className="text-4xl tracking-[0.15em] mb-4">Service Unavailable</h1>
-              <p className="text-muted-foreground mb-8">
-                We're having trouble loading this product. Please try again shortly.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="text-accent hover:underline tracking-widest text-sm"
-              >
-                TRY AGAIN
-              </button>
-            </>
-          ) : (
-            <>
-              <h1 className="text-4xl tracking-[0.15em] mb-4">Product Not Found</h1>
-              <p className="text-muted-foreground mb-8">
-                This piece may no longer be available.
-              </p>
-              <Link
-                to="/collections"
-                className="text-accent hover:underline tracking-widest text-sm"
-              >
-                &larr; BROWSE COLLECTIONS
-              </Link>
-            </>
+      <div className="min-h-screen pt-28 pb-16 flex items-center justify-center" style={{ background: 'oklch(0.18 0.03 210)' }}>
+        <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
+          <div className="mb-6">
+            <svg
+              className="w-16 h-16 mx-auto"
+              style={{ color: 'oklch(0.65 0.02 78 / 0.6)' }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-semibold tracking-[0.15em] mb-4" style={{ color: 'oklch(0.92 0.01 78)' }}>
+            {errorDisplay.title}
+          </h1>
+          <p className="mb-8 leading-relaxed" style={{ color: 'oklch(0.65 0.02 78 / 0.8)' }}>
+            {errorDisplay.message}
+          </p>
+          {errorDisplay.showRetry && (
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2.5 text-sm tracking-[0.2em] uppercase border text-accent hover:bg-white/5 transition-colors"
+              style={{ borderColor: 'oklch(0.60 0.11 78 / 0.4)', color: 'oklch(0.60 0.11 78)' }}
+            >
+              Try Again
+            </button>
+          )}
+          {!errorDisplay.showRetry && (
+            <Link
+              to="/collections"
+              className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-accent hover:opacity-80 transition-opacity"
+              style={{ color: 'oklch(0.60 0.11 78)' }}
+            >
+              <span>&larr;</span> Browse Collections
+            </Link>
           )}
         </div>
       </div>
@@ -133,17 +144,36 @@ export function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen pt-28 pb-16">
-        <div className="container mx-auto px-6 lg:px-20 text-center">
-          <h1 className="text-4xl tracking-[0.15em] mb-4">Product Not Found</h1>
-          <p className="text-muted-foreground mb-8">
+      <div className="min-h-screen pt-28 pb-16 flex items-center justify-center" style={{ background: 'oklch(0.18 0.03 210)' }}>
+        <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
+          <div className="mb-6">
+            <svg
+              className="w-16 h-16 mx-auto"
+              style={{ color: 'oklch(0.65 0.02 78 / 0.6)' }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-semibold tracking-[0.15em] mb-4" style={{ color: 'oklch(0.92 0.01 78)' }}>
+            Product Not Found
+          </h1>
+          <p className="mb-8 leading-relaxed" style={{ color: 'oklch(0.65 0.02 78 / 0.8)' }}>
             This piece may no longer be available.
           </p>
           <Link
             to="/collections"
-            className="text-accent hover:underline tracking-widest text-sm"
+            className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-accent hover:opacity-80 transition-opacity"
+            style={{ color: 'oklch(0.60 0.11 78)' }}
           >
-            &larr; BROWSE COLLECTIONS
+            <span>&larr;</span> Browse Collections
           </Link>
         </div>
       </div>

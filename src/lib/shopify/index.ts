@@ -34,12 +34,10 @@ export {
 } from './types'
 export { EnvironmentWarning } from '../../components/EnvironmentWarning'
 export { ErrorBoundary } from '../../components/ErrorBoundary'
-export { useShopifyError } from '../../hooks/useShopifyError'
 export {
   TOKEN_GATED_FIELDS,
   getRequiredModeForFields,
   hasTokenGatedFields,
 } from './token-requirements'
-export { shopifyLogger } from './logger'
 export { getHealthStatus, type HealthStatus } from './health'
 export { validateEnv } from './env-schema'

@@ -1,6 +1,8 @@
 // Thin GraphQL client for Shopify Storefront API
 // No SDK dependency — just fetch against a single POST endpoint
 
+import { logger, type LogContext } from '@/lib/logger'
+
 const domain = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN
 const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
 const API_VERSION = '2026-01'
@@ -54,26 +56,33 @@ if (STOREFRONT_MODE === 'tokenless' && import.meta.env.DEV) {
  * - 'misconfigured'        Credentials present but invalid (401/403).
  * - 'upstream_unavailable' Shopify service error (5xx) or network failure.
  * - 'query_error'          GraphQL-level error (malformed query, permission, etc.).
+ * - 'network_error'        Unhandled network failure (fetch rejected, DNS error, etc.).
  */
 export type StorefrontErrorCategory =
   | 'not_found'
   | 'misconfigured'
   | 'upstream_unavailable'
   | 'query_error'
+  | 'network_error'
 
 export class StorefrontError extends Error {
   readonly category: StorefrontErrorCategory
   readonly statusCode?: number
+  readonly timestamp: Date
+  readonly context?: LogContext
 
   constructor(
     message: string,
     category: StorefrontErrorCategory,
     statusCode?: number,
+    context?: LogContext,
   ) {
     super(message)
     this.name = 'StorefrontError'
     this.category = category
     this.statusCode = statusCode
+    this.timestamp = new Date()
+    this.context = context
   }
 }
 
@@ -88,7 +97,8 @@ interface ShopifyResponse<T> {
  */
 export async function shopifyFetch<T = unknown>(
   query: string,
-  variables: Record<string, unknown> = {}
+  variables: Record<string, unknown> = {},
+  context?: LogContext,
 ): Promise<T> {
   if (STOREFRONT_MODE === 'demo') {
     throw new Error(
@@ -106,22 +116,48 @@ export async function shopifyFetch<T = unknown>(
     headers['X-Shopify-Storefront-Access-Token'] = token as string
   }
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query, variables }),
-  })
+  let response: Response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query, variables }),
+    })
+  } catch (error) {
+    // Network error: fetch() rejects on DNS failure, connection refused, etc.
+    const networkError = new StorefrontError(
+      'Network request to Shopify API failed',
+      'network_error',
+      undefined,
+      context,
+    )
+    logger.error('Shopify API network error', {
+      ...context,
+      action: 'shopifyFetch',
+      endpoint,
+    })
+    throw networkError
+  }
 
   if (!response.ok) {
     let category: StorefrontErrorCategory
     if (response.status === 404) category = 'not_found'
     else if (response.status === 401 || response.status === 403) category = 'misconfigured'
     else category = 'upstream_unavailable'
-    throw new StorefrontError(
+
+    const error = new StorefrontError(
       `Shopify API error: ${response.status} ${response.statusText}`,
       category,
       response.status,
+      context,
     )
+    logger.error('Shopify API HTTP error', {
+      ...context,
+      action: 'shopifyFetch',
+      category,
+      statusCode: response.status,
+    })
+    throw error
   }
 
   const json: ShopifyResponse<T> = await response.json()
@@ -132,7 +168,20 @@ export async function shopifyFetch<T = unknown>(
     const code = first.extensions?.code as string | undefined
     const category =
       code === 'NOT_FOUND' ? 'not_found' : 'query_error'
-    throw new StorefrontError(`Shopify GraphQL errors: ${messages}`, category)
+
+    const error = new StorefrontError(
+      `Shopify GraphQL errors: ${messages}`,
+      category,
+      undefined,
+      context,
+    )
+    logger.error('Shopify GraphQL error', {
+      ...context,
+      action: 'shopifyFetch',
+      category,
+      graphqlErrors: messages,
+    })
+    throw error
   }
 
   return json.data
@@ -141,17 +190,35 @@ export async function shopifyFetch<T = unknown>(
 /**
  * Validate that the current query mode matches the storefront mode
  * Logs warnings for potential token-gated field mismatches
+ * In dev/staging mode, throws an error to prevent silent failures
  */
 export function validateQueryMode(query: string, mode: StorefrontMode) {
   const tokenGatedPatterns = ['tags', 'metafields', 'customerAccessToken']
   const hasTokenGated = tokenGatedPatterns.some(pattern => query.includes(pattern))
-  
+
   if (hasTokenGated && mode === 'tokenless') {
-    console.error(
-      '[Shopify] Token-gated field requested in tokenless mode.\n' +
-      'This will cause GraphQL errors. Use token mode or remove token-gated fields.\n' +
-      'Fields: ' + tokenGatedPatterns.filter(p => query.includes(p)).join(', ')
-    )
+    const matchedFields = tokenGatedPatterns.filter(p => query.includes(p))
+    
+    logger.warn('Token-gated field requested in tokenless mode', {
+      action: 'validateQueryMode',
+      fields: matchedFields,
+      mode,
+    })
+
+    // In dev/staging, throw to prevent silent GraphQL errors
+    if (import.meta.env.DEV ||
+        typeof window !== 'undefined' && (
+          window.location.hostname.includes('staging') ||
+          window.location.hostname.includes('preview') ||
+          window.location.hostname.includes('test')
+        )) {
+      throw new StorefrontError(
+        `Token-gated fields (${matchedFields.join(', ')}) requested in tokenless mode. ` +
+        `Set VITE_SHOPIFY_STOREFRONT_TOKEN to enable token mode.`,
+        'query_error',
+        undefined,
+        { action: 'validateQueryMode' },
+      )
+    }
   }
 }
-

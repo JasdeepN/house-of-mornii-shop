@@ -1,9 +1,12 @@
 // Error boundary component for consistent error handling
 // Displays user-friendly error messages based on error category
+// Uses centralized logger and error message registry
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { StorefrontError, type StorefrontErrorCategory } from '@/lib/shopify'
+import { StorefrontError } from '@/lib/shopify'
 import { Link } from 'react-router-dom'
+import { logger } from '@/lib/logger'
+import { getErrorMessage, normalizeErrorCategory } from '@/lib/errorMessages'
 
 interface Props {
   children: ReactNode
@@ -12,7 +15,7 @@ interface Props {
 
 interface State {
   hasError: boolean
-  error?: StorefrontError
+  error?: Error
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -21,48 +24,37 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
-    if (error instanceof StorefrontError) {
-      return { hasError: true, error }
-    }
-    return { hasError: true }
+    return { hasError: true, error }
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo)
+    logger.error('ErrorBoundary caught error', {
+      component: 'ErrorBoundary',
+      action: 'componentDidCatch',
+      errorName: error.name,
+    })
   }
 
-  private getCategoryTitle(category?: StorefrontErrorCategory): string {
-    switch (category) {
-      case 'not_found': return 'Content Not Found'
-      case 'misconfigured': return 'Configuration Error'
-      case 'upstream_unavailable': return 'Service Unavailable'
-      case 'query_error': return 'Data Error'
-      default: return 'Something went wrong'
+  private getErrorDisplay() {
+    const error = this.state.error
+    if (!error) {
+      return getErrorMessage('unknown')
     }
-  }
 
-  private getCategoryMessage(category?: StorefrontErrorCategory): string {
-    switch (category) {
-      case 'not_found':
-        return 'The content you is looking for does not exist or has been removed.'
-      case 'misconfigured':
-        return 'The storefront is not properly configured. Please check your environment variables.'
-      case 'upstream_unavailable':
-        return 'Our storefront API is currently unavailable. Please try again later.'
-      case 'query_error':
-        return 'An error occurred while fetching data. Please try refreshing the page.'
-      default:
-        return 'An unexpected error occurred. Please try again.'
+    if (error instanceof StorefrontError) {
+      const category = normalizeErrorCategory(error.category)
+      return getErrorMessage(category, error.context)
     }
+
+    return getErrorMessage('unknown')
   }
 
   public render() {
     if (this.state.hasError) {
-      const error = this.state.error
-      const category = error?.category
-
       // Show custom fallback if provided
       if (this.props.fallback) return this.props.fallback
+
+      const display = this.getErrorDisplay()
 
       return (
         <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
@@ -83,18 +75,26 @@ class ErrorBoundary extends Component<Props, State> {
               </svg>
             </div>
             <h2 className="text-2xl font-semibold tracking-wider mb-4">
-              {this.getCategoryTitle(category)}
+              {display.title}
             </h2>
             <p className="text-muted-foreground mb-8">
-              {this.getCategoryMessage(category)}
+              {display.message}
             </p>
-            {category === 'misconfigured' && (
+            {(display.showHomeLink || display.title === 'Configuration Error') && (
               <Link
                 to="/"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-accent text-white hover:bg-accent/90 transition-colors"
               >
                 <span className="text-sm tracking-[0.2em] uppercase">Back to Home</span>
               </Link>
+            )}
+            {display.showRetry && (
+              <button
+                onClick={() => window.location.reload()}
+                className="text-accent hover:underline tracking-widest text-sm"
+              >
+                TRY AGAIN
+              </button>
             )}
           </div>
         </div>

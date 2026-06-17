@@ -190,6 +190,12 @@ body[data-theme="light"] {
 }
 
 :root {
+  // ── Dark mode color tokens (default) ────────────────────────
+  --foreground: oklch(0.92 0.01 78);
+  --card-foreground: oklch(0.90 0.01 78);
+  --muted-foreground: oklch(0.65 0.02 78);
+  --border: oklch(1 0 0 / 0.08);
+
   --ornamental-frame-pad-top: clamp(2.75rem, 5vw, 5rem);
   --ornamental-frame-pad-right: clamp(2.5rem, 4.5vw, 4.5rem);
   --ornamental-frame-pad-bottom: clamp(4.5rem, 8vw, 7rem);
