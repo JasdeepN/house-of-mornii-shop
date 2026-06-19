@@ -35,12 +35,34 @@ graph TD
         ProductGrid[ProductGrid]
         TrustBadges[TrustBadges]
         FreeShippingBar[FreeShippingBar]
+        AddToCartButton[AddToCartButton]
+        ScrollToHash[ScrollToHash]
+        PageTransition[PageTransition]
+        EnvironmentWarning[EnvironmentWarning]
     end
 
     Primitives --> Application
 ```
 
 ## Layout Components
+
+### [`ScrollToHash`](src/components/ScrollToHash.tsx)
+
+Utility component that scrolls to hash fragment on page load.
+
+**Props:** None
+
+### [`PageTransition`](src/components/PageTransition.tsx)
+
+Framer Motion wrapper for route transition animations.
+
+**Props:** `children: ReactNode`
+
+### [`EnvironmentWarning`](src/components/EnvironmentWarning.tsx)
+
+Displays a warning banner when Shopify credentials are missing in production.
+
+**Props:** None
 
 ### [`Header`](src/components/Header.tsx)
 
@@ -64,6 +86,16 @@ Fixed navigation header with glass-panel styling, responsive mobile menu, and ca
 | ABOUT | `/about` |
 | CONTACT | `/contact` |
 
+**Desktop Extra Buttons:**
+- Theme toggle (dark/light)
+- SearchBar (Cmd+K / Ctrl+K)
+- Cart button with badge
+- "BOOK A STYLING" CTA linking to `/contact`
+
+**Mobile Menu:**
+- Navigation links
+- "BOOK A STYLING" button at bottom
+
 **Usage:**
 ```tsx
 // Rendered automatically in App.tsx
@@ -72,32 +104,58 @@ import { Header } from '@/components/Header'
 
 ### [`Footer`](src/components/Footer.tsx)
 
-Site footer with navigation links, brand information, and legal links.
+Site footer with brand lockup, trust badges, newsletter signup, and copyright.
 
 **Props:** None (uses context internally)
 
 **Key Features:**
-- Links to Shop, Collections, About, Contact pages
-- Newsletter signup integration
-- Social media links (Instagram)
-- Copyright and branding
+- Ornamental divider between sections
+- TrustBadges component (compact variant)
+- NewsletterSignup integration
+- Dynamic copyright year
+- Tagline "REGAL · RADIANT · MODERN"
 
 ### [`CartFlyout`](src/components/CartFlyout.tsx)
 
-Slide-out cart drawer that appears when user opens cart from any page.
+Slide-out cart drawer (Sheet) that appears when user opens cart from any page.
 
 **Props:** None (uses `useCart()` context internally)
 
 **Key Features:**
 - Controlled by `isCartOpen` state from CartContext
 - Displays cart items with images, quantities, prices
-- Quantity adjustment per line item
+- Debounced quantity adjustment per line item (300ms debounce)
 - Remove line item functionality
+- FreeShippingBar integration
 - Cart subtotal display
-- Checkout button linking to Shopify checkout URL
+- Checkout button linking to Shopify checkout URL (validates URL)
 - Closes when clicking outside or pressing Escape
 
 ## Product Components
+
+### [`AddToCartButton`](src/components/AddToCartButton.tsx)
+
+Product detail page button for adding items to cart with loading states.
+
+**Props:**
+```typescript
+interface AddToCartButtonProps {
+  variantId: string
+  availableForSale: boolean
+  productTitle: string
+  productPrice: string
+  currencyCode?: string
+  className?: string
+  compact?: boolean
+}
+```
+
+**Key Features:**
+- Loading spinner state during add-to-cart operation
+- Analytics tracking via `trackAddToCart()`
+- Error handling with toast notification
+- "SOLD OUT" disabled state when unavailable
+- Compact mode for smaller layouts
 
 ### [`ProductCard`](src/components/ProductCard.tsx)
 
@@ -137,54 +195,51 @@ Grid layout for displaying multiple product cards with responsive columns.
 ```typescript
 interface ProductGridProps {
   products: ShopifyProduct[]
-  title?: string
-}
-```
-
-**Key Features:**
-- Responsive grid (1 col mobile, 2 col tablet, 3-4 col desktop)
-- Section heading with ornamental styling
-- Staggered entrance animation for cards
-- Empty state handling
-
-### [`JewelryImage`](src/components/JewelryImage.tsx)
-
-Optimized image component for product photography with lazy loading and fallback.
-
-**Props:**
-```typescript
-interface JewelryImageProps {
-  src: string
-  alt: string
-  width?: number
-  height?: number
   className?: string
 }
 ```
 
 **Key Features:**
-- Appends `&width={size}` parameter for Shopify client-side resizing
-- Loading="lazy" for performance
-- Fallback placeholder on error
-- Aspect ratio preservation
+- Responsive grid (1 col mobile, 2 col tablet, 3 col desktop)
+- Empty state handling ("No products found in this collection.")
+
+### [`JewelryImage`](src/components/JewelryImage.tsx)
+
+SVG illustration component for collection placeholders (not actual product images).
+
+**Props:**
+```typescript
+interface JewelryImageProps {
+  collection: 'everyday' | 'festive' | 'bridal'
+  className?: string
+}
+```
+
+**Key Features:**
+- Renders unique SVG jewelry illustrations per collection
+- Everyday: pearl pendant with gold chain
+- Festive: emerald jewel with gold setting
+- Bridal: multi-pearl arrangement with gold accents
+- Radial gradient backgrounds specific to each collection
 
 ### [`VariantSelector`](src/components/VariantSelector.tsx)
 
-Product variant selection UI for multi-option products (size, color, material).
+Product variant selection UI for multi-option products.
 
 **Props:**
 ```typescript
 interface VariantSelectorProps {
   product: ShopifyProduct
-  onSelect: (variantId: string) => void
+  selectedVariant: ShopifyProductVariant | null
+  onVariantChange: (variant: ShopifyProductVariant) => void
 }
 ```
 
 **Key Features:**
-- Renders option groups (e.g., Color, Size)
-- Visual variant options (color swatches, text buttons)
-- Disabled state for unavailable variants
-- Selected state highlighting with accent color
+- Renders option groups (e.g., Color, Size) as text buttons
+- Disabled state for unavailable variants (opacity + line-through)
+- Selected state highlighting with accent border
+- Returns null when only one variant exists
 
 ## Decorative Components
 
@@ -331,7 +386,18 @@ interface FAQAccordionProps {
 
 Row of trust signals (shipping, returns, quality guarantees).
 
-**Props:** None (uses hardcoded content)
+**Props:**
+```typescript
+interface TrustBadgesProps {
+  variant?: 'full' | 'compact'
+  className?: string
+}
+```
+
+**Key Features:**
+- `full` variant: grid layout with icons, labels, and subtitles
+- `compact` variant: inline labels for footer use
+- Includes `PaymentIcons` sub-component for payment method badges (Visa, Mastercard, Amex, Apple Pay, Google Pay)
 
 ### [`FreeShippingBar`](src/components/FreeShippingBar.tsx)
 
@@ -340,23 +406,35 @@ Progress bar showing free shipping threshold.
 **Props:**
 ```typescript
 interface FreeShippingBarProps {
-  cartTotal: number
-  threshold: number
+  subtotalAmount: string
+  className?: string
 }
 ```
+
+**Key Features:**
+- Threshold hardcoded at $150
+- Progress bar fills based on subtotal
+- Shows "unlocked" message when threshold reached
 
 ## Utility Components
 
 ### [`PageBreadcrumb`](src/components/PageBreadcrumb.tsx)
 
-Breadcrumb navigation for SEO and user orientation.
+Breadcrumb navigation for SEO and user orientation with structured data.
 
 **Props:**
 ```typescript
 interface PageBreadcrumbProps {
-  items: { label: string; href?: string }[]
+  items: BreadcrumbItem[]  // { label: string; to?: string }
+  className?: string
+  centered?: boolean
 }
 ```
+
+**Key Features:**
+- Generates JSON-LD breadcrumb schema automatically
+- Framer Motion slide-in animation
+- Links to parent pages via `to` prop
 
 ### [`ProductGallery`](src/components/ProductGallery.tsx)
 
@@ -366,9 +444,14 @@ Multi-image gallery for product detail pages.
 ```typescript
 interface ProductGalleryProps {
   images: ShopifyImage[]
-  altTexts: string[]
+  title: string
 }
 ```
+
+**Key Features:**
+- Main image with hover zoom effect
+- Thumbnail strip with scroll
+- Selected image border highlight
 
 ### [`BrandLockup`](src/components/BrandLockup.tsx)
 
@@ -377,9 +460,14 @@ Brand logo lockup with typography and optional ornamentation.
 **Props:**
 ```typescript
 interface BrandLockupProps {
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'lg' | 'xl'
+  className?: string
 }
 ```
+
+**Key Features:**
+- Three sizes: 'sm' (navbar), 'lg' (section headers), 'xl' (hero)
+- "House of" in uppercase tracking + "Mornii" in script font
 
 ### [`JsonLd`](src/components/JsonLd.tsx)
 
@@ -401,11 +489,30 @@ interface JsonLdProps {
 
 Session-based welcome modal shown once per session.
 
+**Props:** None (reads config from env vars via `getWelcomePopupConfig()`)
+
 **Key Features:**
 - Shows after 4-second delay on first visit
-- Uses `sessionStorage` to track visibility
-- Newsletter signup integration
+- Uses `sessionStorage` with key `hom_welcome_shown` to track visibility
+- Newsletter signup integration (`source="welcome-popup"`)
 - Dismissible with close button
+- Respects `prefers-reduced-motion`
+- Radix Dialog with z-index 60/61 overlay
+
+### [`FAQAccordion`](src/components/FAQAccordion.tsx)
+
+Collapsible FAQ section using Radix Accordion with hardcoded content.
+
+**Props:**
+```typescript
+interface FAQAccordionProps {
+  className?: string
+}
+```
+
+**Key Features:**
+- Hardcoded FAQ items (5 questions about materials, care, shipping, returns, bespoke)
+- Single collapsible accordion type
 
 ## UI Primitives (Radix Wrappers)
 

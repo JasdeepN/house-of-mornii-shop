@@ -55,6 +55,8 @@ Read [`references/qdrant-api-endpoints.md`](references/qdrant-api-endpoints.md) 
 
 If the collection does not exist, create it with dimension matching nomic-embed-text (768):
 
+**Collection naming convention:** Workspace-scoped collections use a hex suffix that is a hash of the workspace root path (e.g., `ws-038204cd35e49cb8`). Shared collections like `rag-memory` and `checkpoint-memory` are project-agnostic. When creating a new collection, choose a descriptive name or check if a workspace-scoped variant already exists.
+
 ```bash
 curl -X PUT http://localhost:6333/collections/my-collection \
   -H "Content-Type: application/json" \

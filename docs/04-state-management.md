@@ -24,8 +24,8 @@ graph TB
 
     subgraph Persistence["Browser Storage"]
         LocalCart[(localStorage: hom-cart-id)]
-        LocalTheme[(localStorage: theme)]
-        SessionSession[(sessionStorage: welcome-shown)]
+        LocalTheme[(localStorage: hom-theme-preference)]
+        SessionSession[(sessionStorage: hom_welcome_shown)]
     end
 
     CartCtx --> LocalCart
@@ -177,9 +177,9 @@ const { theme, toggleTheme } = useTheme()
 // Returns: { theme: 'dark' | 'light', toggleTheme: () => void }
 ```
 
-**Persistence:** Theme preference stored in `localStorage` and restored on mount.
+**Persistence:** Theme preference stored in `localStorage` with key `hom-theme-preference` and restored on mount. Respects `prefers-color-scheme: light` system preference as fallback.
 
-**Implementation:** Uses `data-theme` attribute on `<html>` element for CSS targeting.
+**Implementation:** Uses `data-theme` attribute on `<body>` element for CSS targeting (not `<html>`).
 
 ## UI State (Local Component State)
 
@@ -214,16 +214,18 @@ const navigateDebounced = useCallback(
 
 ### localStorage Keys
 
-| Key | Value | Purpose |
-|-----|-------|---------|
-| `hom-cart-id` | Shopify cart ID (e.g., `gid://shopify/Cart/...`) | Cart persistence across sessions |
-| `theme` | `'dark'` or `'light'` | Theme preference |
+| Key | Value | Purpose | Component |
+|-----|-------|---------|-----------|
+| `hom-cart-id` | Shopify cart ID (e.g., `gid://shopify/Cart/...`) | Cart persistence across sessions | [`CartContext`](src/context/CartContext.tsx) |
+| `hom-theme-preference` | `'dark'` or `'light'` | Theme preference | [`useTheme`](src/hooks/useTheme.ts) |
 
 ### sessionStorage Keys
 
-| Key | Value | Purpose |
-|-----|-------|---------|
-| `welcome-shown` | `'true'` (set after first display) | Welcome popup shown once per session |
+| Key | Value | Purpose | Component |
+|-----|-------|---------|-----------|
+| `hom_welcome_shown` | `'1'` (set after first display) | Welcome popup shown once per session | [`WelcomePopup`](src/components/WelcomePopup.tsx) |
+
+> **Note:** Previous documentation referenced keys `theme` and `welcome-shown`. The actual implementation uses `hom-theme-preference` and `hom_welcome_shown` with prefix convention.
 
 ### Cart ID Format
 
@@ -256,7 +258,7 @@ useEffect(() => {
 
 ## Error State Handling
 
-Shopify errors are categorized and handled at the page level using the [`useShopifyError`](src/hooks/useShopifyError.ts) hook:
+Shopify errors are categorized in the [`StorefrontError`](src/lib/shopify/client.ts) class and handled via the [`useErrorHandler`](src/lib/errorHandler.ts) hook (replacing the deprecated `useShopifyError` hook):
 
 | Category | UI Treatment |
 |----------|--------------|
@@ -265,6 +267,8 @@ Shopify errors are categorized and handled at the page level using the [`useShop
 | `upstream_unavailable` | Show retry button with exponential backoff |
 | `query_error` | Show error details for debugging |
 | `network_error` | Show generic network error message |
+
+> **Deprecation:** The [`useShopifyError`](src/hooks/useShopifyError.ts) hook has been removed. Import error handling utilities from `@/lib/errorHandler` instead.
 
 ## Data Flow Summary
 

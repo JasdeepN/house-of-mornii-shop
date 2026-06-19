@@ -88,8 +88,8 @@ src/
 │   └── CartContext.tsx        # Shopping cart state management
 ├── hooks/                     # Custom React hooks
 │   ├── useSEO.ts              # Dynamic meta tag management
-│   ├── useShopifyError.ts     # Shopify error categorization
-│   ├── useTheme.ts            # Dark/light theme toggle
+│   ├── useShopifyError.ts     # DEPRECATED — replaced by '@/lib/errorHandler'
+│   ├── useTheme.ts            # Dark/light theme toggle (key: hom-theme-preference)
 │   └── use-mobile.ts          # Responsive breakpoint hook
 ├── lib/                       # Utility libraries
 │   ├── shopify/               # Shopify integration layer
@@ -170,6 +170,7 @@ All pages are lazy-loaded via `React.lazy()` for code splitting. Route transitio
 | `/about` | [`AboutPage`](src/pages/AboutPage.tsx) | Brand story and philosophy |
 | `/contact` | [`ContactPage`](src/pages/ContactPage.tsx) | Contact information and CTA |
 | `/cart` | [`CartPage`](src/pages/CartPage.tsx) | Cart review and checkout redirect |
+| `/_health` | [`HealthPage`](src/pages/HealthPage.tsx) | Shopify API health check endpoint |
 
 ## Configuration Aliases
 
@@ -191,6 +192,24 @@ import { useCart } from '@/context/CartContext'
 import { shopifyFetch } from '@/lib/shopify/client'
 import { Button } from '@/components/ui/button'
 ```
+
+## App Structure
+
+The root [`App.tsx`](src/App.tsx) wraps the application with:
+- `BrowserRouter` for routing
+- `JsonLd` for structured data (organization schema)
+- `EnvironmentWarning` for credential validation
+- `Header`, `ScrollToHash`, `Footer` as persistent layout
+- `CartFlyout` and `WelcomePopup` as global overlays
+- `Toaster` from Sonner for notifications
+- `AnimatedRoutes` with Framer Motion `AnimatePresence` for route transitions
+
+[`main.tsx`](src/main.tsx) provides the mount point with:
+- `QueryClientProvider` (TanStack Query)
+- `CartProvider` (React Context)
+- `ErrorBoundary` (react-error-boundary)
+- Analytics initialization (GA4, Meta Pixel)
+- Production demo-mode guard that throws if credentials are missing
 
 ## Build Pipeline
 
