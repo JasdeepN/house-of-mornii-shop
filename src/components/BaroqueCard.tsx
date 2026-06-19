@@ -103,7 +103,7 @@ const BaroqueCardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttribut
       <h3
         ref={ref}
         className={cn(
-          "font-serif text-2xl md:text-3xl lg:text-4xl uppercase tracking-[0.15em] text-foreground leading-none",
+          "font-heading text-2xl md:text-3xl lg:text-4xl uppercase tracking-[0.15em] text-accent leading-none",
           className
         )}
         {...props}
