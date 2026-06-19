@@ -1,11 +1,11 @@
 ---
 name: checkpoint
-description: Create a git checkpoint commit of all relevant changes, update or create documentation, and update RAG memory vectors in Qdrant. Use when saving work progress, committing feature changes, syncing codebase state to vector memory, or preparing for a branch merge. Combines git operations, doc maintenance, and rag-memory-search integration.
+description: Create a git checkpoint commit of all relevant changes, update documentation, and write session notes to MemPalace memory. Use when saving work progress, committing feature changes, syncing codebase state to vector memory, or preparing for a branch merge. Combines git operations, doc maintenance, and MemPalace MCP integration.
 ---
 
 # Checkpoint
 
-Create a complete project checkpoint: stage relevant files, commit with an annotated message, update documentation, and push changed knowledge into the RAG memory store (Qdrant).
+Create a complete project checkpoint: stage relevant files, commit with an annotated message, update documentation, and write session notes to MemPalace memory.
 
 ## When to use
 
@@ -22,7 +22,7 @@ Create a complete project checkpoint: stage relevant files, commit with an annot
 
 ## Inputs required
 
-- A brief description of what was accomplished (for the commit message and RAG payload)
+- A brief description of what was accomplished (for the commit message and MemPalace entry)
 - Current branch name (auto-detected via `git branch --show-current`)
 
 ## Workflow
@@ -75,96 +75,74 @@ git add docs/ AGENTS.md README.md
 git commit --amend --no-edit
 ```
 
-### 4. Update RAG memory vectors (Qdrant)
+### 4. Update MemPalace memory
 
-**This is the most important step.** After the codebase changes, the RAG memory store must reflect the new state so future sessions can retrieve accurate context.
+**This is the most important step.** After the codebase changes, the MemPalace memory must reflect the new state so future sessions can retrieve accurate context.
 
-Load and follow the [`rag-memory-search`](../rag-memory-search/SKILL.md) skill for Qdrant operations. Then execute these steps:
+> **Context retrieval is NOT automatic.** The agent must explicitly call MemPalace MCP tools (`mempalace_status`, `mempalace_search`, `mempalace_kg_query`, `mempalace_add_drawer`, `mempalace_diary_write`) to interact with memory. There is no automatic context injection into the system prompt.
 
-#### 4a. Identify knowledge units to store
+#### 4a. Load palace overview
 
-From the changed files, extract meaningful text chunks that an agent would need to retrieve later:
+Start by calling `mempalace_status` to load the palace overview and check current state:
 
-- **New/modified components:** Read the component file, extract props, purpose, and usage notes
+```
+Call mempalace_status → review total_drawers, wings, rooms
+```
+
+#### 4b. Identify knowledge units to store
+
+From the changed files, extract meaningful content for MemPalace drawers:
+
+- **New/modified components:** Read the component file, summarize props, purpose, and usage notes
 - **Architecture changes:** Read `docs/01-architecture.md` for system-level descriptions
 - **Shopify config changes:** Read `src/lib/shopify/client.ts`, `src/lib/shopify/env-schema.ts`
 - **State management changes:** Read `src/context/CartContext.tsx`, relevant hooks
 - **Styling changes:** Read `src/index.scss`, `src/tailwind.css`
 
-For each knowledge unit, create a payload:
+#### 4c. File content into organized rooms
 
-```json
-{
-  "id": "<unique integer or UUID>",
-  "vector": <768-dim embedding>,
-  "payload": {
-    "text": "<concise description of the change or system state>",
-    "source": "<file path or section identifier>",
-    "changed_at": "2026-06-19",
-    "commit": "<short sha if available>",
-    "topic": "component|architecture|shopify|state|styling|testing|deployment"
-  }
-}
+Create or update drawers in named rooms (not "general") for structured retrieval:
+
+```
+# Create a new drawer in a named room
+Call mempalace_add_drawer with wing="house_of_mornii_shop", room="<room-name>", content="<summarized knowledge>"
 ```
 
-#### 4b. Generate embeddings and upsert
+**Room naming convention:** Use hyphenated slugs that describe the topic:
+- `project-overview` — stack, modes, env vars, deployment
+- `architecture` — directory structure, patterns, state management
+- `key-gotchas` — storage keys, conventions, gotchas
+- `shopify-integration` — API details, scopes, auth setup
+- `component-<name>` — individual component documentation
 
-For each knowledge unit, generate an embedding via the llama.cpp text-embedding-server and upsert to Qdrant:
+#### 4d. Add knowledge graph facts (optional but recommended)
 
-```bash
-# Generate embedding
-EMBED=$(curl -s -X POST http://localhost:8081/v1/embeddings \
-  -H "Content-Type: application/json" \
-  -d '{"model": "nomic-embed-text", "input": "<knowledge unit text>"}')
+For structured facts that should be queryable via KG:
 
-VECTOR=$(echo "$EMBED" | jq '.data[0].embedding')
-
-# Upsert to collection (use "checkpoint-memory" or the project's existing collection)
-curl -X PUT http://localhost:6333/collections/checkpoint-memory/points \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"points\": [{
-      \"id\": $(date +%s),
-      \"vector\": $VECTOR,
-      \"payload\": {
-        \"text\": \"<knowledge unit text>\",
-        \"source\": \"<file path>\",
-        \"changed_at\": \"$(date -u +%Y-%m-%d)\",
-        \"commit\": \"$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')\",
-        \"topic\": \"<topic>\"
-      }
-    }]
-  }"
+```
+# Add a fact to the knowledge graph
+Call mempalace_kg_add with subject, predicate, object, valid_from
 ```
 
-#### 4c. Delete stale entries (optional but recommended)
+Example facts to add after significant changes:
+- `House of Mornii Shop → uses → <new dependency>` (if stack changed)
+- `House of Mornii Shop → has → <new feature count>` (if component count changed)
+- `House of Mornii Shop → deployed_to → <platform>` (if deployment target changed)
 
-If a file was deleted or significantly rewritten, search for old entries and delete them:
+#### 4e. Write session diary entry
 
-```bash
-# Search for old entries about the same source
-OLD=$(curl -s -X POST http://localhost:6333/collections/checkpoint-memory/points/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "vector": <query embedding>,
-    "top": 5,
-    "filter": {
-      "must": [{"key": "source", "match": {"value": "<file path>"}}]
-    }
-  }')
+Record what happened in this checkpoint session:
 
-# Delete old points if found (use the scroll/search results to get point IDs)
-curl -X POST http://localhost:6333/collections/checkpoint-memory/points/delete \
-  -H "Content-Type: application/json" \
-  -d '{
-    "filter": {
-      "must": [
-        {"key": "source", "match": {"value": "<file path>"}},
-        {"key": "commit", "match": {"value": "<old commit sha>"}}
-      ]
-    }
-  }'
 ```
+Call mempalace_diary_write with:
+- agent_name: "mempalace"
+- topic: "checkpoint.<brief-topic>"
+- entry: "SESSION:<date> | palace.sync.<project> | ALC.req:checkpoint | <stars> | <summary of what changed, what was stored, key learnings>"
+```
+
+**Entry format:** `SESSION:<date> | palace.sync.<project> | <action description> | ★★★ | <details>`
+
+Importance levels: ★ (minor), ★★ (moderate), ★★★ (significant), ★★★★ (major), ★★★★★ (critical)
 
 ### 5. Push (if on a tracked branch)
 
@@ -189,9 +167,10 @@ Agent runs:
 1. git status → sees AddToCartButton.tsx, AddToCartButton.test.tsx staged
 2. Commits with message "checkpoint: add AddToCartButton component"
 3. Updates docs/02-components.md with new component entry
-4. Generates embedding for "AddToCartButton handles product quantity selection and cart addition with loading states"
-5. Upserts to Qdrant checkpoint-memory collection
-6. Pushes to remote
+4. Calls mempalace_status to check palace state
+5. Creates drawer in room "component-addtocartbutton" with component summary
+6. Writes diary entry topic="checkpoint.component-addtocartbutton"
+7. Pushes to remote
 ```
 
 ### Checkpoint after architecture refactor
@@ -203,9 +182,10 @@ Agent runs:
 1. git status → sees src/lib/shopify/*.ts changed
 2. Commits with detailed summary of changes
 3. Updates docs/03-shopify-integration.md
-4. Generates embeddings for architecture doc + client.ts changes
-5. Upserts to Qdrant, deletes old shopify-client entries if present
-6. Pushes
+4. Calls mempalace_status, then creates/updates drawers in "shopify-integration" room
+5. Adds KG facts if stack/deployment changed
+6. Writes diary entry topic="checkpoint.shopify-refactor"
+7. Pushes
 ```
 
 ## Troubleshooting
@@ -213,7 +193,8 @@ Agent runs:
 | Issue | Solution |
 |-------|----------|
 | `git commit` fails — nothing to commit | Run `git status --porcelain`; if empty, there is nothing to checkpoint |
-| Qdrant connection refused on :6333 | Start Qdrant: `docker run -d --name qdrant -p 6333:6333 qdrant/qdrant` |
-| Embedding server refused on :8081 | Ensure llama.cpp text-embedding-server is running with nomic-embed-text loaded |
-| Vector dimension mismatch | nomic-embed-text outputs 768-dim; ensure collection exists with `size: 768, distance: Cosine` |
+| MemPalace MCP tool call fails | Ensure MemPalace MCP server is configured in `.vscode-server/data/User/globalStorage/zoocodeorganization.zoo-code/settings/mcp_settings.json` and running |
+| Palace has too many drawers in "general" | Create named rooms (e.g., `project-overview`, `architecture`) instead of filing everything in "general" |
+| KG facts not appearing | Verify `mempalace_kg_add` returned success; check with `mempalace_kg_stats` |
+| Diary entry not saved | Check `mempalace_diary_write` response for entry_id; verify wing name matches |
 | Amend overwrites wrong commit | Verify `git log --oneline -3` before amending; the tip should be your checkpoint commit |
