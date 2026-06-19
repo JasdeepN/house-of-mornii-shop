@@ -154,7 +154,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
           <button
             type="button"
             onClick={loadNextPage}
-            className="w-full rounded-sm border border-white/10 px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-white/20 hover:text-foreground"
+            className="w-full rounded-sm border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground dark:hover:border-primary/60"
           >
             LOAD MORE RESULTS
           </button>

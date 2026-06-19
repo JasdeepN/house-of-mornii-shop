@@ -1,0 +1,192 @@
+<common_patterns>
+  <overview>
+    Reusable patterns and component compositions that appear frequently across the application.
+    Reference these patterns before creating new implementations.
+  </overview>
+
+  <pattern name="glass_panel_section">
+    <description>Semi-transparent panel with backdrop blur for content sections</description>
+    <usage>Hero sections, feature highlights, card backgrounds</usage>
+    <implementation>
+      <code language="tsx">
+<div className="glass-panel rounded-xl p-6 md:p-8 golden-glow">
+  {children}
+</div>
+      </code>
+    </implementation>
+    <tokens_used>
+      <token>--glass-panel-bg</token>
+      <token>--glass-blur-md</token>
+      <token>--glass-shadow</token>
+      <token>--golden-glow-intensity</token>
+    </tokens_used>
+  </pattern>
+
+  <pattern name="baroque_card">
+    <description>Ornamental card with golden glow and optional animation</description>
+    <usage>Product cards, collection cards, feature highlights</usage>
+    <implementation>
+      <code language="tsx">
+<BaroqueCard animate hoverable className="max-w-sm">
+  <BaroqueCardHeader withDivider>
+    <h3 className="font-heading text-xl tracking-wide">Title</h3>
+  </BaroqueCardHeader>
+  <BaroqueCardContent>
+    <p className="text-muted-foreground">Description text.</p>
+  </BaroqueCardContent>
+  <BaroqueCardFooter centered>
+    <Button variant="default">Action</Button>
+  </BaroqueCardFooter>
+</BaroqueCard>
+      </code>
+    </implementation>
+    <props>
+      <prop name="animate">Enable entrance animation (default: true)</prop>
+      <prop name="hoverable">Enable hover lift effect (default: false)</prop>
+      <prop name="noGlow">Disable golden glow (default: false)</prop>
+    </props>
+  </pattern>
+
+  <pattern name="section_heading">
+    <description>Consistent section heading with ornamental divider</description>
+    <usage>All page sections, collection headers, feature introductions</usage>
+    <implementation>
+      <code language="tsx">
+<div className="text-center mb-12">
+  <h2 className="font-heading text-3xl md:text-4xl tracking-widest uppercase mb-4">
+    Section Title
+  </h2>
+  <OrnamentalDivider />
+</div>
+      </code>
+    </implementation>
+    <tokens_used>
+      <token>--font-heading</token>
+      <token>text-3xl / text-4xl</token>
+      <token>tracking-widest</token>
+    </tokens_used>
+  </pattern>
+
+  <pattern name="responsive_grid">
+    <description>Responsive product/content grid with adaptive columns</description>
+    <usage>Product listings, collection showcases, feature grids</usage>
+    <implementation>
+      <code language="tsx">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+  {items.map(item => (
+    <Component key={item.id} data={item} />
+  ))}
+</div>
+      </code>
+    </implementation>
+    <breakpoints>
+      <breakpoint mobile="1 column (<640px)">grid-cols-1</breakpoint>
+      <breakpoint tablet="2 columns (sm: 640px+)">sm:grid-cols-2</breakpoint>
+      <breakpoint desktop="3-4 columns (lg/xl: 1024px/1280px+)">lg:grid-cols-3 xl:grid-cols-4</breakpoint>
+    </breakpoints>
+  </pattern>
+
+  <pattern name="cta_button">
+    <description>Call-to-action button following established button system</description>
+    <usage>Primary actions, navigation links, form submissions</usage>
+    <implementation>
+      <code language="tsx">
+<Button variant="default" size="lg" className="tracking-widest uppercase font-heading">
+  Action Label
+</Button>
+      </code>
+    </implementation>
+    <variants>
+      <variant name="default">Primary action (gold accent)</variant>
+      <variant name="outline">Secondary action (border only)</variant>
+      <variant name="secondary">Tertiary action (muted background)</variant>
+      <variant name="ghost">Minimal action (hover only)</variant>
+    </variants>
+  </pattern>
+
+  <pattern name="page_section">
+    <description>Full-width section with centered container</description>
+    <usage>Page sections, feature blocks, about content</usage>
+    <implementation>
+      <code language="tsx">
+<section className="py-20 md:py-24">
+  <div className="container mx-auto px-4">
+    <div className="max-w-4xl mx-auto">
+      {children}
+    </div>
+  </div>
+</section>
+      </code>
+    </implementation>
+    <spacing>
+      <value>Desktop: py-20 (80px vertical)</value>
+      <value>Large sections: py-24 (96px vertical)</value>
+      <value>Container: max-w-4xl centered</value>
+    </spacing>
+  </pattern>
+
+  <pattern name="framer_motion_entrance">
+    <description>Standard entrance animation using shared constants</description>
+    <usage>Component reveal on scroll, page transitions</usage>
+    <implementation>
+      <code language="tsx">
+import { motion } from 'framer-motion'
+import { fadeSlideUp, staggerContainer } from '@/lib/animations'
+
+<motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+  <motion.div variants={fadeSlideUp}>Content 1</motion.div>
+  <motion.div variants={fadeSlideUp}>Content 2</motion.div>
+</motion.div>
+      </code>
+    </implementation>
+    <constants>
+      <constant name="fadeSlideUp">Fade-up with blur clearing, 900ms duration</constant>
+      <constant name="staggerContainer">150ms stagger between children</constant>
+      <constant name="luxuryEase">[0.16, 1, 0.3, 1] - fast start, smooth deceleration</constant>
+    </constants>
+  </pattern>
+
+  <pattern name="breadcrumb_navigation">
+    <description>Page breadcrumb with optional centering</description>
+    <usage>Collection pages, product pages, nested navigation</usage>
+    <implementation>
+      <code language="tsx">
+<PageBreadcrumb
+  items={[
+    { label: 'Home', to: '/' },
+    { label: 'Collections', to: '/collections' },
+    { label: 'Everyday' }
+  ]}
+  centered
+/>
+      </code>
+    </implementation>
+  </pattern>
+
+  <pattern name="form_input">
+    <description>Accessible form input with label and validation states</description>
+    <usage>Newsletter signup, contact forms, search bars</usage>
+    <implementation>
+      <code language="tsx">
+<div className="space-y-2">
+  <label htmlFor="email" className="text-sm font-medium text-foreground">
+    Email Address
+  </label>
+  <Input
+    id="email"
+    type="email"
+    placeholder="your@email.com"
+    className="bg-background border-border focus-visible:ring-ring"
+  />
+</div>
+      </code>
+    </implementation>
+    <tokens_used>
+      <token>--input</token>
+      <token>--border</token>
+      <token>--ring</token>
+      <token>--background</token>
+      <token>--foreground</token>
+    </tokens_used>
+  </pattern>
+</common_patterns>

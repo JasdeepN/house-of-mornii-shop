@@ -137,7 +137,7 @@ $bg-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' wid
   h4,
   h5,
   h6 {
-    font-family: 'Bodoni Moda', serif;
+    font-family: 'Cinzel', serif;
   }
 }
 
@@ -148,8 +148,31 @@ body[data-theme="light"] {
   background-color: oklch(0.94 0.01 80);
   color: oklch(0.22 0.02 78); /* dark brown-gold — WCAG AAA on cream bg */
 
-  --foreground: oklch(0.22 0.02 78);
-  --card-foreground: oklch(0.25 0.02 78);
+  // ── Tailwind semantic color variables (light mode) ──
+  --background: oklch(0.96 0.005 85);
+  --foreground: oklch(0.15 0.02 78);
+  --card: oklch(0.97 0.005 85);
+  --card-foreground: oklch(0.15 0.02 78);
+  --popover: oklch(0.97 0.005 85);
+  --popover-foreground: oklch(0.15 0.02 78);
+  --primary: oklch(0.55 0.12 78);
+  --primary-foreground: oklch(0.98 0.005 85);
+  --secondary: oklch(0.90 0.008 85);
+  --secondary-foreground: oklch(0.25 0.02 78);
+  --muted: oklch(0.92 0.008 85);
+  --muted-foreground: oklch(0.42 0.02 78);
+  --accent: oklch(0.60 0.11 78);
+  --accent-foreground: oklch(0.12 0.02 210);
+  --destructive: oklch(0.55 0.20 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.85 0.01 85);
+  --input: oklch(0.97 0.005 85);
+  --ring: oklch(0.55 0.12 78);
+
+  --gold: oklch(0.60 0.11 78);
+  --gold-bright: oklch(0.68 0.13 80);
+  --teal-deep: oklch(0.45 0.08 210);
+  --slate-dark: oklch(0.20 0.02 210);
 
   // ── Ambient light-mode glass gradient (multi-stop OKLCH) ──
   --glass-panel-bg: linear-gradient(
@@ -207,7 +230,7 @@ body[data-theme="light"] {
 }
 
 .font-script {
-  font-family: 'Luxurious Script', cursive;
+  font-family: 'Great Vibes', cursive;
 }
 
 /* Gold text glow for hero/internal content — enhances readability on glass panels */

@@ -1,0 +1,153 @@
+<best_practices>
+  <general_principles>
+    <principle priority="high">
+      <name>Reuse Before Creating</name>
+      <description>Always check existing styles, components, and tokens before writing new CSS or creating new components. The design system is intentionally comprehensive.</description>
+      <rationale>Duplication creates maintenance burden and visual inconsistency. A single source of truth ensures the design language evolves cohesively.</rationale>
+      <example>
+        <scenario>User requests a gold-accented button</scenario>
+        <good>Use existing <Button variant="default"> with accent color via Tailwind token</good>
+        <bad>Create a new GoldButton component with hardcoded oklch(0.60 0.11 78)</bad>
+      </example>
+    </principle>
+
+    <principle priority="high">
+      <name>Token-First Styling</name>
+      <description>All colors, spacing, and radii must use CSS variables or Tailwind tokens. Never hardcode OKLCH values in components.</description>
+      <rationale>CSS variables enable theme switching (dark/light) and centralized design decisions.</rationale>
+      <example>
+        <scenario>Styling a card header</scenario>
+        <good>className="text-foreground bg-card border-border"</good>
+        <bad>className="text-[oklch(0.95_0.01_210)] bg-[oklch(0.22_0.03_210)]"</bad>
+      </example>
+    </principle>
+
+    <principle priority="high">
+      <name>Strict Visual Consistency</name>
+      <description>All pages and components must match visually. Typography, spacing, colors, and animations must follow the established hierarchy.</description>
+      <rationale>Inconsistent UI erodes trust and creates a fragmented user experience.</rationale>
+      <example>
+        <scenario>Creating a new section heading</scenario>
+        <good>Use <h2> with font-heading text-3xl tracking-widest uppercase</good>
+        <bad>Apply a custom h3 style with different font-family and letter-spacing</bad>
+      </example>
+    </principle>
+
+    <principle priority="medium">
+      <name>Composition Over Inheritance</name>
+      <description>Build complex UI by composing existing components rather than creating deeply customized variants.</description>
+      <rationale>Composition produces simpler, more testable components with clearer interfaces.</rationale>
+    </principle>
+
+    <principle priority="medium">
+      <name>Mobile-First Responsive</name>
+      <description>Design for mobile first, then enhance for tablet and desktop using Tailwind's responsive prefixes (sm:, md:, lg:).</description>
+      <rationale>Mobile-first ensures core experience is solid and progressive enhancement adds richness.</rationale>
+    </principle>
+  </general_principles>
+
+  <code_conventions>
+    <convention category="naming">
+      <rule>Use kebab-case for CSS classes, camelCase for React props, and PascalCase for component names</rule>
+      <example>
+        <good>className="product-card--featured", function ProductCard({ productName })</good>
+        <bad>className="productCard_featured", function product_card({Product_Name})</bad>
+      </example>
+    </convention>
+
+    <convention category="bem-modifiers">
+      <rule>Use BEM-style modifiers for component variants: component--variant</rule>
+      <example>
+        <good>glass-panel--flat, baroque-card--elevated</good>
+        <bad>.glassPanelFlat, .baroque_card_elevated</bad>
+      </example>
+    </convention>
+
+    <convention category="typescript">
+      <rule>All components must have explicit TypeScript interfaces for props</rule>
+      <template>
+interface ComponentNameProps {
+  children?: ReactNode
+  className?: string
+  /** JSDoc description for each prop */
+  isFeature?: boolean
+}
+      </template>
+    </convention>
+
+    <convention category="forward-ref">
+      <rule>Use React.forwardRef for all reusable components that may need DOM ref access</rule>
+      <example>
+const Component = React.forwardRef<HTMLDivElement, ComponentProps>(
+  ({ className, children, ...props }, ref) => {
+    return <div ref={ref} className={cn(className)} {...props} />
+  }
+)
+Component.displayName = 'Component'
+      </example>
+    </convention>
+  </code_conventions>
+
+  <typography_rules>
+    <rule>H1 (48px): Brand name and hero titles only</rule>
+    <rule>H2 (36px): Section headers</rule>
+    <rule>H3 (28px): Collection names, subsection titles</rule>
+    <rule>Body (18px): Paragraph text with relaxed line-height (1.6)</rule>
+    <rule>Buttons (16px): Cormorant SemiBold, uppercase, 0.15em letter-spacing</rule>
+    <rule>All headings use font-heading (Playfair Display / Bodoni Moda / Cinzel)</rule>
+    <rule>Body text uses font-body (Inter for UI, Cormorant Garamond for content)</rule>
+  </typography_rules>
+
+  <spacing_rules>
+    <rule>Use Tailwind spacing scale via var(--size-*): p-4, m-6, gap-8</rule>
+    <rule>Section vertical spacing: 120px desktop (py-20), 80px mobile</rule>
+    <rule>Card gaps: 32px desktop (gap-8), 16px mobile (gap-4)</rule>
+    <rule>Container max-width: 1400px with 2rem padding on sides</rule>
+  </spacing_rules>
+
+  <common_pitfalls>
+    <pitfall>
+      <description>Hardcoding colors instead of using CSS variables</description>
+      <why_problematic>Breaks theme switching and creates visual inconsistency when values drift</why_problematic>
+      <correct_approach>Use Tailwind classes mapped to CSS variables: text-foreground, bg-accent, border-border</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Creating new components for one-off styling needs</description>
+      <why_problematic>Increases bundle size and maintenance burden without reuse benefit</why_problematic>
+      <correct_approach>Use Tailwind class combinations or className prop extension on existing components</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Inconsistent animation durations across components</description>
+      <why_problematic>Creates jarring user experience and breaks the luxury feel</why_problematic>
+      <correct_approach>Use shared constants from src/lib/animations.ts: fadeSlideUp, staggerContainer, pageTransition</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Forgetting light mode compatibility</description>
+      <why_problematic>Users with light theme see broken or unreadable UI</why_problematic>
+      <correct_approach>Test all changes in both data-appearance="dark" and data-theme="light" contexts</correct_approach>
+    </pitfall>
+  </common_pitfalls>
+
+  <quality_checklist>
+    <category name="before_starting">
+      <item>Survey existing components, tokens, and CSS variables for reuse opportunities</item>
+      <item>Confirm the request does not duplicate existing functionality</item>
+      <item>Identify which pages/sections will be affected</item>
+    </category>
+    <category name="during_implementation">
+      <item>Use only established tokens (colors, spacing, typography)</item>
+      <item>Apply BEM naming for any new CSS modifiers</item>
+      <item>Write TypeScript interfaces for all props</item>
+      <item>Ensure both dark and light mode compatibility</item>
+    </category>
+    <category name="before_completion">
+      <item>Verify visual consistency with existing pages</item>
+      <item>Test responsive behavior at all breakpoints</item>
+      <item>Check for hardcoded values that should use tokens</item>
+      <item>Confirm accessibility (focus states, ARIA attributes)</item>
+    </category>
+  </quality_checklist>
+</best_practices>

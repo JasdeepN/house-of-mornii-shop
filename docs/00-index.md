@@ -56,6 +56,16 @@ graph LR
 2. **[06 - Testing](./06-testing.md)** - CI pipeline, test configuration
 3. **[.env.example](../.env.example)** - Complete environment variable reference
 
+## AI Agent Tools (`.roo/`)
+
+| Path | Purpose |
+|------|---------|
+| [`.roo/skills/checkpoint/SKILL.md`](../.roo/skills/checkpoint/SKILL.md) | Automated checkpointing: git commit + doc update + RAG memory vector sync |
+| [`.roo/skills/rag-memory-search/SKILL.md`](../.roo/skills/rag-memory-search/SKILL.md) | Qdrant semantic search with nomic-embed-text embeddings |
+| [`.roo/rules-ui-design/` (7 files)](../.roo/rules-ui-design/) | UI Designer mode rules: workflow, best practices, common patterns, decision guidance, examples, error handling, communication |
+| [`.roo/rules-*/AGENTS.md`](../.roo/rules-architect/AGENTS.md) | Mode-specific agent rules (architect, ask, code, debug) |
+| [`.roomodes`](../.roomodes) | Custom mode definitions and configurations |
+
 ## Related Documents (Outside This Folder)
 
 | File | Purpose |

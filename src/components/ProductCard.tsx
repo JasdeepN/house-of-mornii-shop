@@ -82,8 +82,7 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
               />
             ) : (
               <div
-                className="w-full h-full flex items-center justify-center"
-                style={{ background: 'oklch(0.20 0.03 210)' }}
+                className="w-full h-full flex items-center justify-center bg-card"
               >
                 <span className="text-muted-foreground text-sm tracking-widest uppercase">
                   Coming Soon
