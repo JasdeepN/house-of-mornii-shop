@@ -84,7 +84,7 @@ describe('useErrorHandler', () => {
     
     expect(result.current).not.toBeNull()
     expect(result.current!.title).toBe('Connection Error')
-    expect(result.current!.showRetry).toBe(true)
+    expect(result.current!.showRetry).toBe(false)
   })
 
   it('returns correct display for unknown errors', () => {

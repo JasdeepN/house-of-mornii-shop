@@ -15,20 +15,22 @@ vi.mock('@/lib/analytics', () => ({
   trackViewItemList: (...args: unknown[]) => trackViewItemList(...args),
 }))
 
-vi.mock('@/lib/shopify', () => ({
-  useProducts: (...args: unknown[]) => mockUseProducts(...args),
-  useCollections: (...args: unknown[]) => mockUseCollections(...args),
-  useCollection: (...args: unknown[]) => mockUseCollection(...args),
-  shopifyFetch: vi.fn(),
-  IS_CONFIGURED: false,
-  STOREFRONT_MODE: 'demo',
-  StorefrontError: class StorefrontError extends Error {
-    category = 'misconfigured'
-  },
-  getDemoProducts: vi.fn(() => []),
-  PRODUCTS_QUERY: 'PRODUCTS_QUERY',
-  PRODUCTS_QUERY_TOKENLESS: 'PRODUCTS_QUERY_TOKENLESS',
-}))
+vi.mock('@/lib/shopify', async () => {
+  const actual = await vi.importActual<'@/lib/shopify'>('@/lib/shopify')
+  return {
+    ...(actual as Record<string, unknown>),
+    useProducts: (...args: unknown[]) => mockUseProducts(...args),
+    useCollections: (...args: unknown[]) => mockUseCollections(...args),
+    useCollection: (...args: unknown[]) => mockUseCollection(...args),
+    shopifyFetch: vi.fn(),
+    IS_CONFIGURED: false,
+    STOREFRONT_MODE: 'demo',
+    StorefrontError: class StorefrontError extends Error {
+      category = 'misconfigured'
+    },
+    getDemoProducts: vi.fn(() => []),
+  }
+})
 
 function createProducts(handles: string[]) {
   return {

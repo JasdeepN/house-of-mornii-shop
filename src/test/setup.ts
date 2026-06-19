@@ -14,6 +14,36 @@ if (typeof IntersectionObserver === 'undefined') {
   } as unknown as typeof globalThis.IntersectionObserver
 }
 
+// Polyfill ResizeObserver for jsdom (required by radix-ui ScrollArea)
+if (typeof ResizeObserver === 'undefined') {
+  global.ResizeObserver = class ResizeObserver {
+    constructor(_callback: ResizeObserverCallback) {}
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver
+}
+
+// Polyfill window.matchMedia for jsdom (required by some UI libraries)
+if (typeof window.matchMedia === 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: function matchMedia(query: string) {
+      return {
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {}, // deprecated
+        removeListener: () => {}, // deprecated
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }
+    },
+  })
+}
+
 // Stub import.meta.env defaults for tests
 // Individual tests can override with vi.stubEnv()
 if (!import.meta.env.VITE_SHOPIFY_STORE_DOMAIN) {

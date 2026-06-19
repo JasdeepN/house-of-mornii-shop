@@ -6,11 +6,15 @@ import { AddToCartButton } from './AddToCartButton'
 const addToCart = vi.fn(() => Promise.resolve())
 const trackAddToCart = vi.fn()
 
-vi.mock('@/context/CartContext', () => ({
-  useCart: () => ({
-    addToCart,
-  }),
-}))
+vi.mock('@/context/CartContext', async () => {
+  const actual = await vi.importActual<'@/context/CartContext'>('@/context/CartContext')
+  return {
+    ...(actual as Record<string, unknown>),
+    useCart: () => ({
+      addToCart,
+    }),
+  }
+})
 
 vi.mock('@/lib/analytics', () => ({
   trackAddToCart: (...args: unknown[]) => trackAddToCart(...args),

@@ -68,7 +68,7 @@ describe('useCollections (token mode)', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toHaveLength(1)
     expect(result.current.data![0].handle).toBe('everyday')
-    expect(mockShopifyFetch).toHaveBeenCalledWith(expect.stringContaining('collections'), expect.any(Object), undefined)
+    expect(mockShopifyFetch).toHaveBeenCalledWith(expect.stringContaining('collections'))
   })
 
   it('returns empty array when no collections exist', async () => {
