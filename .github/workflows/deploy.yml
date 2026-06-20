@@ -44,6 +44,7 @@ jobs:
         env:
           VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
           VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
+          VITE_SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN }}
           VITE_SITE_NAME: ${{ vars.VITE_SITE_NAME || 'House of Mornii' }}
           VITE_SITE_TITLE: ${{ vars.VITE_SITE_TITLE || 'House of Mornii - Regal Costume Jewelry' }}
           VITE_SITE_DESCRIPTION: ${{ vars.VITE_SITE_DESCRIPTION || 'Regal costume jewellery embodying timeless luxury and modern artistry. Heritage-inspired pieces crafted to honor tradition while celebrating contemporary elegance.' }}

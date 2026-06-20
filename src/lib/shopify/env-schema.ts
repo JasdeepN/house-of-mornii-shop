@@ -8,6 +8,7 @@ const StorefrontModeSchema = z.enum(['demo', 'tokenless', 'token'])
 const EnvSchema = z.object({
   VITE_SHOPIFY_STORE_DOMAIN: z.string().optional(),
   VITE_SHOPIFY_STOREFRONT_TOKEN: z.string().optional(),
+  VITE_SHOPIFY_ADMIN_ACCESS_TOKEN: z.string().optional(),
 })
 
 export function validateEnv(): {

@@ -1,13 +1,120 @@
-// Thin GraphQL client for Shopify Storefront API
+// Thin GraphQL client for Shopify Storefront API and Admin API
 // No SDK dependency — just fetch against a single POST endpoint
 
 import { logger, type LogContext } from '@/lib/logger'
 
 const domain = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN
-const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
+const storefrontToken = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
+const adminAccessToken = import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN
 const API_VERSION = '2026-01'
 
 const PLACEHOLDER_DOMAINS = new Set(['your-store.myshopify.com', 'CHANGE_ME'])
+
+// ─── Admin API helpers ────────────────────────────────────────────────────────
+
+/** True when Admin API credentials are present. */
+export const HAS_ADMIN_CREDENTIALS =
+  !!domain && !PLACEHOLDER_DOMAINS.has(domain) && !!adminAccessToken
+
+/** Admin API endpoint URL built from domain and version. */
+export function getAdminApiEndpoint(): string {
+  return `https://${domain}/admin/api/${API_VERSION}/graphql.json`
+}
+
+interface AdminFetchOptions {
+  query: string
+  variables?: Record<string, unknown>
+  context?: LogContext
+}
+
+/**
+ * Execute a GraphQL query/mutation against the Shopify Admin API.
+ * Uses `X-Shopify-Access-Token` header for authentication.
+ */
+export async function adminFetch<T = unknown>(options: AdminFetchOptions): Promise<T> {
+  const { query, variables = {}, context } = options
+
+  if (!HAS_ADMIN_CREDENTIALS) {
+    throw new Error(
+      'Admin API credentials not configured. Set VITE_SHOPIFY_ADMIN_ACCESS_TOKEN.',
+    )
+  }
+
+  const endpoint = getAdminApiEndpoint()
+
+  let response: Response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': adminAccessToken as string,
+      },
+      body: JSON.stringify({ query, variables }),
+    })
+  } catch (error) {
+    const networkError = new StorefrontError(
+      'Network request to Shopify Admin API failed',
+      'network_error',
+      undefined,
+      context,
+    )
+    logger.error('Shopify Admin API network error', {
+      ...context,
+      action: 'adminFetch',
+      endpoint,
+    })
+    throw networkError
+  }
+
+  if (!response.ok) {
+    let category: StorefrontErrorCategory
+    if (response.status === 404) category = 'not_found'
+    else if (response.status === 401 || response.status === 403) category = 'misconfigured'
+    else category = 'upstream_unavailable'
+
+    const error = new StorefrontError(
+      `Shopify Admin API error: ${response.status} ${response.statusText}`,
+      category,
+      response.status,
+      context,
+    )
+    logger.error('Shopify Admin API HTTP error', {
+      ...context,
+      action: 'adminFetch',
+      category,
+      statusCode: response.status,
+    })
+    throw error
+  }
+
+  const json: { data: T; errors?: { message: string; extensions?: Record<string, unknown> }[] } =
+    await response.json()
+
+  if (json.errors?.length) {
+    const messages = json.errors.map((e) => e.message).join(', ')
+    const code = json.errors[0]?.extensions?.code as string | undefined
+    const category = code === 'NOT_FOUND' ? 'not_found' : 'query_error'
+
+    const error = new StorefrontError(
+      `Shopify Admin API GraphQL errors: ${messages}`,
+      category,
+      undefined,
+      context,
+    )
+    logger.error('Shopify Admin API GraphQL error', {
+      ...context,
+      action: 'adminFetch',
+      category,
+      graphqlErrors: messages,
+    })
+    throw error
+  }
+
+  return json.data
+}
+
+// ─── Storefront API helpers (unchanged) ────────────────────────────────────────
 
 /**
  * Explicit storefront auth modes:
@@ -21,7 +128,7 @@ export type StorefrontMode = 'demo' | 'tokenless' | 'token'
 
 function resolveStorefrontMode(): StorefrontMode {
   const hasDomain = !!domain && !PLACEHOLDER_DOMAINS.has(domain)
-  const hasToken = !!token
+  const hasToken = !!storefrontToken
   if (!hasDomain) return 'demo'
   if (!hasToken) return 'tokenless'
   return 'token'
@@ -47,6 +154,12 @@ if (STOREFRONT_MODE === 'tokenless' && import.meta.env.DEV) {
   console.warn(
     '[House of Mornii] Running in tokenless Storefront mode: only essential fields are available.\n' +
       'Set VITE_SHOPIFY_STOREFRONT_TOKEN to unlock tags, metafields, and customer APIs.',
+  )
+}
+
+if (HAS_ADMIN_CREDENTIALS && import.meta.env.DEV) {
+  console.log(
+    '[House of Mornii] Shopify Admin API configured — using for products/collections.',
   )
 }
 
@@ -113,7 +226,7 @@ export async function shopifyFetch<T = unknown>(
   }
 
   if (STOREFRONT_MODE === 'token') {
-    headers['X-Shopify-Storefront-Access-Token'] = token as string
+    headers['X-Shopify-Storefront-Access-Token'] = storefrontToken as string
   }
 
   let response: Response
