@@ -1,0 +1,192 @@
+<complete_examples>
+  <example name="adding_new_section_to_page">
+    <scenario>
+      Add a new "About the Brand" section to the HomePage that follows existing design patterns.
+    </scenario>
+
+    <user_request>
+      I want to add an about section to the home page with a heading, description text, and a CTA button.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Survey existing patterns</description>
+        <approach>
+          Check src/pages/HomePage.tsx for existing section structure.
+          Review docs/05-styling-system.md for typography and spacing rules.
+          Identify the section_heading pattern from 3_common_patterns.xml.
+        </approach>
+        <expected_outcome>Confirm use of section_heading, page_section, and cta_button patterns.</expected_outcome>
+      </step>
+
+      <step number="2">
+        <description>Implement using existing patterns</description>
+        <approach>
+          Compose <section> with page_section classes.
+          Use section_heading pattern for the title with OrnamentalDivider.
+          Use text-foreground for body, text-muted-foreground for secondary text.
+          Use <Button variant="default" size="lg"> for CTA.
+        </approach>
+        <code language="tsx">
+// In src/pages/HomePage.tsx, add before existing sections:
+<section className="py-20 md:py-24">
+  <div className="container mx-auto px-4">
+    <div className="text-center max-w-3xl mx-auto mb-12">
+      <h2 className="font-heading text-3xl md:text-4xl tracking-widest uppercase mb-4">
+        The Art of Timeless Elegance
+      </h2>
+      <OrnamentalDivider className="mx-auto" />
+    </div>
+    <div className="max-w-2xl mx-auto text-center">
+      <p className="text-lg leading-relaxed text-foreground/80 mb-8">
+        Each Mornii piece is crafted to celebrate life's most meaningful moments,
+        blending heritage craftsmanship with contemporary design.
+      </p>
+      <Button variant="default" size="lg" className="tracking-widest uppercase font-heading">
+        Discover Our Story
+      </Button>
+    </div>
+  </div>
+</section>
+        </code>
+        <analysis>No new components created. All tokens, spacing, and typography follow established patterns.</analysis>
+      </step>
+    </workflow>
+
+    <completion>
+      The new section uses existing page_section, section_heading, and cta_button patterns.
+      All colors use CSS variables (text-foreground, text-muted-foreground).
+      Typography follows the established scale (H2 at 36px/48px).
+      Spacing uses Tailwind scale (py-20, mb-12, mb-8).
+    </completion>
+  </example>
+
+  <example name="creating_new_component_from_composition">
+    <scenario>
+      Create a new TestimonialCard component that combines glass panel, ornamental border, and star rating.
+    </scenario>
+
+    <user_request>
+      I need a testimonial card for the home page with a quote, author name, and star rating.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Analyze reuse opportunities</description>
+        <approach>
+          Check if existing BaroqueCard can handle this via props.
+          Determine that testimonial-specific layout (quote block, author row, stars) requires new structure.
+          Confirm it will be reused (home page + potentially collection pages).
+        </approach>
+        <expected_outcome>New TestimonialCard component is justified.</expected_outcome>
+      </step>
+
+      <step number="2">
+        <description>Create component using existing building blocks</description>
+        <approach>
+          Extend BaroqueCard for ornamental border and golden glow.
+          Use existing typography tokens for text styling.
+          Compose UI components for star rating display.
+        </approach>
+        <code language="tsx">
+// src/components/TestimonialCard.tsx
+import * as React from 'react'
+import { BaroqueCard, BaroqueCardContent } from '@/components/BaroqueCard'
+import { cn } from '@/lib/utils'
+
+interface TestimonialCardProps {
+  quote: string
+  author: string
+  rating?: number
+  className?: string
+}
+
+const TestimonialCard = React.forwardRef<HTMLDivElement, TestimonialCardProps>(
+  ({ quote, author, rating = 5, className }, ref) => {
+    return (
+      <BaroqueCard
+        ref={ref}
+        animate={false}
+        noGlow
+        className={cn('max-w-lg', className)}
+      >
+        <BaroqueCardContent className="gap-6">
+          <blockquote className="text-foreground/90 leading-relaxed italic">
+            "{quote}"
+          </blockquote>
+          <div className="flex items-center justify-between pt-2 border-t border-border/40">
+            <span className="text-sm font-medium text-foreground">{author}</span>
+            <div className="flex gap-1">
+              {Array.from({ length: rating }).map((_, i) => (
+                <span key={i} className="text-accent" aria-hidden="true">&#9733;</span>
+              ))}
+            </div>
+          </div>
+        </BaroqueCardContent>
+      </BaroqueCard>
+    )
+  }
+)
+TestimonialCard.displayName = 'TestimonialCard'
+
+export { TestimonialCard }
+        </code>
+        <analysis>
+          Uses BaroqueCard as base (existing component).
+          No new CSS created - relies on existing glass-panel, ornamental-border styles.
+          Colors use tokens (text-foreground, text-accent, border-border).
+          Properly typed with TypeScript interface.
+          Uses React.forwardRef for extensibility.
+        </analysis>
+      </step>
+    </workflow>
+
+    <completion>
+      TestimonialCard is created by composing BaroqueCard + BaroqueCardContent.
+      No new CSS or tokens introduced. Follows all established conventions.
+    </completion>
+  </example>
+
+  <example name="fixing_visual_inconsistency">
+    <scenario>
+      A new page uses hardcoded colors that don't match the design system, causing visual inconsistency.
+    </scenario>
+
+    <user_request>
+      The new landing page looks different from the rest of the site - colors and fonts don't match.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Identify inconsistencies</description>
+        <approach>
+          Scan the page for hardcoded OKLCH values, custom font families, and non-standard spacing.
+          Compare against src/tailwind.css tokens and docs/05-styling-system.md typography rules.
+        </approach>
+        <expected_outcome>List of specific inconsistencies to fix.</expected_outcome>
+      </step>
+
+      <step number="2">
+        <description>Replace hardcoded values with tokens</description>
+        <approach>
+          Replace oklch(0.95 0.01 210) with text-foreground
+          Replace oklch(0.60 0.11 78) with text-accent or text-gold
+          Replace custom font-family with font-heading or font-body
+          Replace hardcoded padding with Tailwind spacing scale
+        </approach>
+        <code language="diff">
+- <h1 style="color: oklch(0.95 0.01 210); font-family: 'Cinzel';">Welcome</h1>
++ <h1 className="font-heading text-foreground">Welcome</h1>
+
+- <p style="color: oklch(0.60 0.11 78); padding: 24px;">Text</p>
++ <p className="text-accent p-6">Text</p>
+        </code>
+      </step>
+    </workflow>
+
+    <completion>
+      All hardcoded values replaced with design system tokens.
+      Visual consistency restored across the application.
+    </completion>
+  </example>
+</complete_examples>

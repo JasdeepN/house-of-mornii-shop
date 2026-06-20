@@ -1,0 +1,131 @@
+import { useCollections } from '@/lib/shopify'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { OrnamentalDivider } from '@/components/OrnamentalBorder'
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
+import { useSEO } from '@/hooks/useSEO'
+import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
+import {
+  BaroqueCard,
+  BaroqueCardHeader,
+  BaroqueCardTitle,
+  BaroqueCardDescription,
+  BaroqueCardContent,
+} from '@/components/BaroqueCard'
+
+export function CollectionsPage() {
+  const { data: collections, isLoading, error } = useCollections()
+
+  useSEO({
+    title: 'Collections',
+    description: 'Explore our curated collections of regal costume jewellery — everyday elegance, festive radiance, and bridal grandeur.',
+  })
+
+  return (
+    <div className="min-h-screen pt-24 pb-16">
+      <div className="container mx-auto px-6 lg:px-20">
+        <PageBreadcrumb
+          items={[{ label: 'HOME', to: '/' }, { label: 'COLLECTIONS' }]}
+          className="mb-10"
+        />
+
+        {/* Hero title */}
+        <div className="text-center mb-6">
+          <h1 className="text-4xl lg:text-5xl xl:text-6xl tracking-[0.15em] flex flex-wrap items-center justify-center gap-x-4">
+            Collections
+          </h1>
+        </div>
+
+        {/* Divider */}
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ delay: 0.7, duration: 0.8, ease: luxuryEase }}
+        >
+          <OrnamentalDivider className="mb-12" />
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.p
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: 0.5 }}
+          className="text-center text-lg lg:text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto mb-16"
+        >
+          Explore our curated collections of regal costume jewellery.
+        </motion.p>
+
+        {isLoading && (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground tracking-widest animate-pulse">
+              Loading collections...
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">
+              Unable to load collections. Please try again later.
+            </p>
+          </div>
+        )}
+
+        {collections && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {collections.map((collection, index) => (
+              <Link
+                key={collection.id}
+                to={`/collections/${collection.handle}`}
+                className="block h-full"
+                data-testid="collection-card"
+              >
+                <BaroqueCard
+                  className="h-full cursor-pointer"
+                  animate
+                  noGlow
+                  hoverable
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <BaroqueCardHeader withDivider>
+                    <BaroqueCardTitle className="text-xl md:text-2xl">
+                      {collection.title}
+                    </BaroqueCardTitle>
+                    {collection.description && (
+                      <BaroqueCardDescription>
+                        {collection.description}
+                      </BaroqueCardDescription>
+                    )}
+                  </BaroqueCardHeader>
+
+                  <BaroqueCardContent>
+                    {collection.image ? (
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm mx-auto">
+                        <img
+                          src={`${collection.image.url}&width=600`}
+                          alt={collection.image.altText || collection.title}
+                          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="aspect-[4/3] w-full rounded-sm flex items-center justify-center"
+                        style={{ background: 'oklch(0.20 0.03 210)' }}
+                      >
+                        <span className="text-muted-foreground text-sm tracking-widest uppercase">
+                          {collection.title}
+                        </span>
+                      </div>
+                    )}
+                  </BaroqueCardContent>
+                </BaroqueCard>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

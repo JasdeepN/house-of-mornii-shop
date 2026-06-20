@@ -1,0 +1,718 @@
+@mixin ornamental-surface($goldDotOpacity, $tealLineOpacity, $goldLineOpacity, $withAmbient: false) {
+  @if $withAmbient {
+    background-image:
+      repeating-radial-gradient(
+        circle at 0 0,
+        transparent 0,
+        oklch(0.60 0.11 78 / #{$goldDotOpacity}) 2px,
+        transparent 4px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 0px,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 0px,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      radial-gradient(
+        ellipse at 20% 30%,
+        oklch(0.45 0.08 210 / 0.45) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse at 80% 70%,
+        oklch(0.60 0.11 78 / 0.35) 0%,
+        transparent 55%
+      );
+    background-size:
+      80px 80px,
+      120px 120px,
+      120px 120px,
+      800px 600px,
+      800px 600px;
+  } @else {
+    background-image:
+      repeating-radial-gradient(
+        circle at 0 0,
+        transparent 0,
+        oklch(0.60 0.11 78 / #{$goldDotOpacity}) 2px,
+        transparent 4px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 0px,
+        oklch(0.45 0.08 210 / #{$tealLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 0px,
+        oklch(0.60 0.11 78 / #{$goldLineOpacity}) 1px,
+        transparent 1px,
+        transparent 60px
+      ),
+      radial-gradient(
+        ellipse at 30% 40%,
+        oklch(0.25 0.03 210) 0%,
+        oklch(0.18 0.02 210) 100%
+      );
+    background-size:
+      80px 80px,
+      120px 120px,
+      120px 120px,
+      100% 100%;
+  }
+}
+
+/* ===== Background gradient profiles (SVG data URIs for banding-free rendering) ===== */
+
+$bg-dark-gradient: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3CradialGradient id='tealGlow' cx='15%' cy='20%' r='60%25' fx='15%' fy='20%25'%3E%3Cstop offset='0%25' stop-color='%233a5068'/%3E%3Cstop offset='45%25' stop-color='%233a5068' stop-opacity='0.4'/%3E%3Cstop offset='100%25' stop-color='%233a5068' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='goldGlow' cx='80%' cy='80%' r='65%25' fx='80%' fy='80%25'%3E%3Cstop offset='0%25' stop-color='%237a6b44'/%3E%3Cstop offset='35%25' stop-color='%237a6b44' stop-opacity='0.35'/%3E%3Cstop offset='100%25' stop-color='%237a6b44' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='%231e2530'/%3E%3Crect width='1920' height='1080' fill='url(%23tealGlow)' opacity='0.7'/%3E%3Crect width='1920' height='1080' fill='url(%23goldGlow)' opacity='0.7'/%3E%3C/svg%3E");
+
+$bg-light-gradient: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3CradialGradient id='tealGlowL' cx='15%' cy='20%' r='60%25' fx='15%' fy='20%25'%3E%3Cstop offset='0%25' stop-color='%235a7fa0'/%3E%3Cstop offset='45%25' stop-color='%235a7fa0' stop-opacity='0.5'/%3E%3Cstop offset='100%25' stop-color='%235a7fa0' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='goldGlowL' cx='80%' cy='80%' r='65%25' fx='80%' fy='80%25'%3E%3Cstop offset='0%25' stop-color='%23b8a46c'/%3E%3Cstop offset='35%25' stop-color='%23b8a46c' stop-opacity='0.4'/%3E%3Cstop offset='100%25' stop-color='%23b8a46c' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='%23e8e4dc'/%3E%3Crect width='1920' height='1080' fill='url(%23tealGlowL)' opacity='0.65'/%3E%3Crect width='1920' height='1080' fill='url(%23goldGlowL)' opacity='0.65'/%3E%3C/svg%3E");
+
+$bg-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E");
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: oklch(0.18 0.03 210);
+    color: var(--foreground);
+    font-family: 'Cormorant Garamond', serif;
+    position: relative;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  /* Unified SVG gradient background — avoids CSS banding by using a single compositable image */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: $bg-dark-gradient;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.4s ease, background-image 0.4s ease;
+  }
+
+  /* Subtle film-grain noise overlay to mask residual banding edges */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: $bg-noise;
+    background-size: 256px 256px;
+    transition: opacity 0.4s ease;
+  }
+
+  body > #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+/* ===== Theme toggle styles (outside @layer for attribute selectors) ===== */
+
+html[data-theme="light"],
+body[data-theme="light"] {
+  background-color: oklch(0.94 0.01 80);
+  color: oklch(0.22 0.02 78); /* dark brown-gold — WCAG AAA on cream bg */
+
+  // ── Tailwind semantic color variables (light mode) ──
+  --background: oklch(0.96 0.005 85);
+  --foreground: oklch(0.15 0.02 78);
+  --card: oklch(0.97 0.005 85);
+  --card-foreground: oklch(0.15 0.02 78);
+  --popover: oklch(0.97 0.005 85);
+  --popover-foreground: oklch(0.15 0.02 78);
+  --primary: oklch(0.55 0.12 78);
+  --primary-foreground: oklch(0.98 0.005 85);
+  --secondary: oklch(0.90 0.008 85);
+  --secondary-foreground: oklch(0.25 0.02 78);
+  --muted: oklch(0.92 0.008 85);
+  --muted-foreground: oklch(0.42 0.02 78);
+  --accent: oklch(0.60 0.11 78);
+  --accent-foreground: oklch(0.12 0.02 210);
+  --destructive: oklch(0.55 0.20 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.85 0.01 85);
+  --input: oklch(0.97 0.005 85);
+  --ring: oklch(0.55 0.12 78);
+
+  --gold: oklch(0.60 0.11 78);
+  --gold-bright: oklch(0.68 0.13 80);
+  --teal-deep: oklch(0.45 0.08 210);
+  --slate-dark: oklch(0.20 0.02 210);
+
+  // ── Ambient light-mode glass gradient (multi-stop OKLCH) ──
+  --glass-panel-bg: linear-gradient(
+    160deg,
+    oklch(0.96 0.01 80 / 0.55) 0%,
+    oklch(0.93 0.015 210 / 0.35) 35%,
+    oklch(0.92 0.01 80 / 0.45) 65%,
+    oklch(0.94 0.02 78 / 0.25) 100%
+  );
+
+  --glass-blur-md: 24px; /* stronger blur so page gradient shows through */
+  --glass-saturate: 140%;
+  --glass-contrast: 108%;
+  --glass-panel-border: oklch(0.60 0.11 78 / 0.18);
+  --glass-highlight: oklch(1 0 0 / 0.50);
+  --glass-shadow:
+    0 12px 48px -16px oklch(0.28 0.03 210 / 0.14),
+    0 4px 18px oklch(0.28 0.03 210 / 0.08);
+  --glass-shadow-hover:
+    0 18px 56px -14px oklch(0.28 0.03 210 / 0.20),
+    0 8px 24px oklch(0.28 0.03 210 / 0.12),
+    0 0 0 1px oklch(0.60 0.11 78 / 0.24);
+
+  // ── Soft golden glow under-lighting (replaces PNG ornamental border) ──
+  --golden-glow-color: oklch(0.60 0.11 78);
+  --golden-glow-intensity: 0.18;
+  --golden-glow-spread: 16px;
+  --golden-glow-blur: 32px;
+  --golden-glow-hover-intensity: 0.28;
+
+  &::before {
+    opacity: 0.05;
+  }
+
+  &::after {
+    background-image: $bg-light-gradient !important;
+  }
+}
+
+:root {
+  // ── Dark mode color tokens (default) ────────────────────────
+  --foreground: oklch(0.92 0.01 78);
+  --card-foreground: oklch(0.90 0.01 78);
+  --muted-foreground: oklch(0.65 0.02 78);
+  --border: oklch(1 0 0 / 0.08);
+
+  --ornamental-frame-pad-top: clamp(2.75rem, 5vw, 5rem);
+  --ornamental-frame-pad-right: clamp(2.5rem, 4.5vw, 4.5rem);
+  --ornamental-frame-pad-bottom: clamp(4.5rem, 8vw, 7rem);
+  --ornamental-frame-pad-left: clamp(2.5rem, 4.5vw, 4.5rem);
+
+  // ── Golden glow defaults (dark mode) ────────────────────────
+  --golden-glow-intensity: 0.12;
+  --golden-glow-hover-intensity: 0.22;
+}
+
+.font-script {
+  font-family: 'Great Vibes', cursive;
+}
+
+/* Gold text glow for hero/internal content — enhances readability on glass panels */
+.hero-text-glow {
+  text-shadow:
+    0 0 8px oklch(0.60 0.11 78 / 0.25),
+    0 0 20px oklch(0.60 0.11 78 / 0.12);
+}
+
+/* ── Soft golden under-lighting glow for cards/panels ──────────────── */
+.golden-glow {
+  position: relative;
+
+  /* Under-panel warm glow (below element) */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow:
+      0 16px 32px oklch(0.60 0.11 78 / 0.09),
+      0 0 48px oklch(0.60 0.11 78 / 0.05);
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--golden-glow-intensity, 1);
+    transition: opacity 0.35s var(--glass-ease);
+  }
+
+  /* Hover intensifies the glow */
+  &:hover::after {
+    box-shadow:
+      0 16px 40px oklch(0.60 0.11 78 / 0.14),
+      0 0 64px oklch(0.60 0.11 78 / 0.08);
+    opacity: var(--golden-glow-hover-intensity, 1);
+  }
+}
+
+/* ── Reduced motion: disable glow animation ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .golden-glow:hover::after {
+    transition: none !important;
+  }
+}
+
+/* ===== Brand lockup colors — dark mode defaults ===== */
+.brand-title { color: oklch(0.88 0.02 210); }
+.brand-name { color: oklch(0.60 0.11 78); }
+
+/* ===== Hero section text colors — dark mode defaults (on dark glass) ===== */
+.text-hero-tagline { color: oklch(0.90 0.04 78); }
+.text-hero-description { color: oklch(0.88 0.02 210); }
+.text-hero-subtle-link { color: oklch(0.75 0.05 78); }
+.text-hero-scroll-text { color: oklch(0.72 0.05 78); }
+.hero-scroll-indicator {
+  background: oklch(0.10 0.02 210 / 0.60);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+.hero-scroll-arrow { color: oklch(0.65 0.10 78); }
+.hero-line-decorative { background: linear-gradient(to right, oklch(0.60 0.08 78), transparent); }
+
+/* ===== Hero section text colors — light mode overrides (on bright glass) ===== */
+html[data-theme="light"],
+body[data-theme="light"] {
+  .text-hero-tagline { color: oklch(0.35 0.10 78); } /* dark gold for legibility on cream bg */
+  .text-hero-description { color: oklch(0.24 0.02 78); } /* near-black brown-gold — WCAG AAA on cream */
+  .text-hero-subtle-link { color: oklch(0.32 0.06 78); }
+  .text-hero-scroll-text { color: oklch(0.40 0.06 78); }
+  .hero-scroll-indicator {
+    background: oklch(0.90 0.01 80 / 0.70);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid oklch(0.60 0.11 78 / 0.20);
+  }
+  .hero-scroll-arrow { color: oklch(0.45 0.10 78); }
+  .hero-line-decorative { background: linear-gradient(to right, oklch(0.55 0.10 78), transparent); }
+
+  /* Brand lockup light mode overrides */
+  .brand-title { color: oklch(0.28 0.04 210) !important; } /* dark slate for legibility on cream bg */
+  .brand-name { color: oklch(0.45 0.11 78) !important; } /* darker gold for contrast */
+}
+
+.ornate-border {
+  position: relative;
+  padding: 2rem;
+}
+
+.ornate-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid;
+  border-image: linear-gradient(
+      135deg,
+      oklch(0.60 0.11 78) 0%,
+      oklch(0.45 0.08 210) 50%,
+      oklch(0.60 0.11 78) 100%
+    )
+    1;
+  pointer-events: none;
+}
+
+.ornamental-surface {
+  @include ornamental-surface(0.08, 0.05, 0.03);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Pill Button — smoky glass with peacock hover jelly effect          */
+/* ------------------------------------------------------------------ */
+
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: oklch(0.80 0.02 210);
+  background: oklch(0.22 0.03 210 / 0.60);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid oklch(1 0 0 / 0.14);
+  box-shadow: 0 2px 8px oklch(0 0 0 / 0.20);
+  transform: scale(1);
+  // colour + shadow animate fast; scale uses spring for the jelly bounce
+  transition:
+    transform    0.40s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background   0.25s ease,
+    border-color 0.25s ease,
+    color        0.25s ease,
+    box-shadow   0.25s ease;
+
+  &:hover {
+    color: oklch(0.88 0.10 195);
+    background: oklch(0.45 0.12 195 / 0.18);
+    border-color: oklch(0.55 0.14 195 / 0.55);
+    box-shadow:
+      0 4px 18px oklch(0.45 0.12 195 / 0.20),
+      0 0 0 1px oklch(0.55 0.14 195 / 0.16);
+    transform: scale(1.06);
+  }
+
+  &:active {
+    transform: scale(0.97);
+    transition-duration: 0.10s;
+  }
+}
+
+// Active / selected state — gold tint, no hover-grow
+.pill-btn--active {
+  color: oklch(0.75 0.12 78);
+  background: oklch(0.60 0.11 78 / 0.18);
+  border-color: oklch(0.60 0.11 78 / 0.45);
+  box-shadow:
+    0 4px 16px oklch(0.60 0.11 78 / 0.15),
+    0 0 0 1px oklch(0.60 0.11 78 / 0.18);
+
+  &:hover {
+    // keep gold look, only micro-scale
+    color: oklch(0.80 0.13 78);
+    background: oklch(0.60 0.11 78 / 0.24);
+    border-color: oklch(0.60 0.11 78 / 0.60);
+    box-shadow:
+      0 6px 20px oklch(0.60 0.11 78 / 0.22),
+      0 0 0 1px oklch(0.60 0.11 78 / 0.25);
+    transform: scale(1.04);
+  }
+}
+
+// CTA / primary action — rich gold glass, strong spring bounce
+.pill-btn--cta {
+  color: oklch(0.15 0.02 210);
+  background: oklch(0.60 0.11 78);
+  border-color: oklch(0.68 0.13 80 / 0.80);
+  box-shadow:
+    0 4px 20px oklch(0.60 0.11 78 / 0.30),
+    inset 0 1px 0 oklch(1 0 0 / 0.20);
+
+  &:hover {
+    color: oklch(0.10 0.02 210);
+    background: oklch(0.65 0.13 80);
+    border-color: oklch(0.72 0.14 80);
+    box-shadow:
+      0 8px 28px oklch(0.60 0.11 78 / 0.40),
+      inset 0 1px 0 oklch(1 0 0 / 0.25);
+    transform: scale(1.06);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-btn,
+  .pill-btn--active {
+    transition:
+      background   0.15s ease,
+      border-color 0.15s ease,
+      color        0.15s ease;
+
+    &:hover { transform: none; }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Glass Panel variant — flat surface (no radius/shadow) for headers   */
+/* ------------------------------------------------------------------ */
+
+.glass-panel--flat {
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 5rem; /* h-20 equivalent */
+}
+
+/* Full-width variant — removes container padding for edge-to-edge bars */
+.glass-panel--full {
+  max-width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  width: auto;
+}
+
+/* Combined header modifier — full-width flat bar with top rounded corners only on mobile */
+@media (min-width: 768px) {
+  .glass-panel--header {
+    border-radius: 0 0 0 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Glass Panel — frosted glass effect adapted from glass-theme        */
+/* ------------------------------------------------------------------ */
+
+.glass-panel {
+  background: var(--glass-panel-bg);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  border: 1px solid var(--glass-panel-border);
+  border-radius: 1.25rem;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  perspective: var(--card-perspective);
+  transition:
+    transform 0.35s var(--glass-ease),
+    box-shadow 0.35s var(--glass-ease),
+    border-color 0.35s var(--glass-ease);
+
+  /* Radial highlight sheen overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at 18% 15%,
+      var(--glass-highlight),
+      oklch(1 0 0 / 0) 60%
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    opacity: 0.55;
+    z-index: 5;
+  }
+}
+
+/* Hover lift effect — only for interactive cards */
+.glass-panel--hover:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--glass-shadow-hover);
+  border-color: oklch(0.60 0.11 78 / 0.22);
+}
+
+/* Subtle variant — lighter blur for nested or secondary surfaces */
+.glass-panel--subtle {
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.25);
+
+  &::before {
+    opacity: 0.3;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel,
+  .glass-panel--hover:hover {
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}
+
+.ornamental-frame-content {
+  padding-top: var(--ornamental-frame-pad-top);
+  padding-right: var(--ornamental-frame-pad-right);
+  padding-bottom: var(--ornamental-frame-pad-bottom);
+  padding-left: var(--ornamental-frame-pad-left);
+}
+
+.ornamental-frame-surface {
+  inset: var(--ornamental-frame-surface-inset);
+}
+
+/* ------------------------------------------------------------------ */
+/*  French Gold Baroque Frame — multi-layered CSS "swept" gilt frame   */
+/* ------------------------------------------------------------------ */
+
+.french-gold-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  border-radius: inherit;
+  transition: filter 0.5s ease;
+
+  // ── Multi-tiered beveled ridges (cross-section: lip→bevel→groove→band→groove→tier→lip→edge) ──
+  box-shadow:
+    // Inset glow — canvas-depth where frame meets content
+    inset 0 0 18px 2px oklch(0 0 0 / 0.35),
+    inset 0 0 4px 1px oklch(0 0 0 / 0.15),
+    // Inner bright lip (closest to content)
+    0 0 0 2px var(--frame-gold-bright),
+    // First bevel tier — main gold body
+    0 0 0 6px var(--frame-gold-base),
+    // Dark crevice — carved separation
+    0 0 0 7px var(--frame-shadow-deep),
+    // Middle ornate band — slightly cooler gold
+    0 0 0 12px var(--frame-gold-mid),
+    // Second crevice — warm shadow
+    0 0 0 13px var(--frame-shadow-mid),
+    // Wide outer ornate tier — main gold
+    0 0 0 20px var(--frame-gold-base),
+    // Outer bright catching lip
+    0 0 0 22px var(--frame-gold-highlight),
+    // Dark outer edge
+    0 0 0 23px var(--frame-shadow-deep),
+    // Ambient gold glow bleeding outward
+    0 0 14px 24px oklch(0.74 0.12 85 / 0.12),
+    // Wall drop shadows
+    0 8px 32px oklch(0 0 0 / 0.40),
+    0 2px 8px oklch(0 0 0 / 0.25);
+
+  // ── Metallic sheen + corner rosettes ──
+  &::before {
+    content: '';
+    position: absolute;
+    // Extend over the frame shadow area
+    inset: -24px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+    background:
+      // Corner rosette highlights — bright catch-light at each corner
+      radial-gradient(ellipse 70px 70px at 4% 4%,   oklch(0.92 0.14 88 / 0.50) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 60px at 96% 4%,   oklch(0.90 0.13 86 / 0.40) 0%, transparent 70%),
+      radial-gradient(ellipse 65px 65px at 96% 96%,  oklch(0.88 0.12 85 / 0.45) 0%, transparent 70%),
+      radial-gradient(ellipse 55px 55px at 4% 96%,   oklch(0.86 0.11 84 / 0.35) 0%, transparent 70%),
+      // Diagonal metallic sheen — simulates directional light
+      linear-gradient(
+        135deg,
+        oklch(1 0 0 / 0.22) 0%,
+        transparent 16%,
+        oklch(0.85 0.16 88 / 0.10) 40%,
+        transparent 55%,
+        oklch(1 0 0 / 0.08) 80%,
+        transparent 100%
+      );
+  }
+
+  // ── Hammered metal noise texture ──
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -24px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.10;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+}
+
+// ── Hover: brighten the frame as if light intensifies ──
+.glass-panel:hover > .french-gold-frame {
+  filter: brightness(1.10) contrast(1.02);
+}
+
+// ── Responsive: thinner frame on small viewports ──
+@media (max-width: 640px) {
+  .french-gold-frame {
+    box-shadow:
+      inset 0 0 12px 1px oklch(0 0 0 / 0.30),
+      inset 0 0 3px 1px oklch(0 0 0 / 0.12),
+      0 0 0 1.5px var(--frame-gold-bright),
+      0 0 0 4px var(--frame-gold-base),
+      0 0 0 5px var(--frame-shadow-deep),
+      0 0 0 8px var(--frame-gold-mid),
+      0 0 0 9px var(--frame-shadow-mid),
+      0 0 0 14px var(--frame-gold-base),
+      0 0 0 15px var(--frame-gold-highlight),
+      0 0 0 16px var(--frame-shadow-deep),
+      0 0 10px 17px oklch(0.74 0.12 85 / 0.10),
+      0 6px 24px oklch(0 0 0 / 0.35),
+      0 2px 6px oklch(0 0 0 / 0.20);
+
+    &::before,
+    &::after {
+      inset: -17px;
+    }
+
+    &::before {
+      background:
+        radial-gradient(ellipse 45px 45px at 5% 5%,   oklch(0.92 0.14 88 / 0.40) 0%, transparent 70%),
+        radial-gradient(ellipse 40px 40px at 95% 5%,   oklch(0.90 0.13 86 / 0.30) 0%, transparent 70%),
+        radial-gradient(ellipse 42px 42px at 95% 95%,  oklch(0.88 0.12 85 / 0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 38px 38px at 5% 95%,   oklch(0.86 0.11 84 / 0.28) 0%, transparent 70%),
+        linear-gradient(
+          135deg,
+          oklch(1 0 0 / 0.18) 0%,
+          transparent 16%,
+          oklch(0.85 0.16 88 / 0.08) 40%,
+          transparent 55%,
+          oklch(1 0 0 / 0.06) 80%,
+          transparent 100%
+        );
+    }
+  }
+}
+
+// ── Reduced motion ──
+@media (prefers-reduced-motion: reduce) {
+  .french-gold-frame {
+    transition: none !important;
+  }
+  .glass-panel:hover > .french-gold-frame {
+    filter: none;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.60 0.11 78 / 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 3s infinite;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.20 0.02 210);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.60 0.11 78);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.68 0.13 80);
+}

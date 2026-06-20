@@ -1,162 +1,162 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { OrnamentalBorder, OrnamentalDivider } from '@/components/OrnamentalBorder'
-import { Sparkle, Crown } from '@phosphor-icons/react'
+import { CaretDown, Sparkle } from '@phosphor-icons/react'
+import { OrnamentalBorder } from '@/components/OrnamentalBorder'
+import { BrandLockup } from '@/components/BrandLockup'
 
-const moodCategories = [
-  { label: 'EVERYDAY', subtitle: 'POLISHED' },
-  { label: 'FESTIVE', subtitle: 'GLOW' },
-  { label: 'BRIDAL', subtitle: 'HEIRLOOM' },
-]
+const SCROLL_HIDE_THRESHOLD = 80 // px below which indicator is visible
+
+const wordVariants = {
+  hidden: { opacity: 0, y: 40, filter: 'blur(8px)' },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { delay: 0.2 + i * 0.18, duration: 0.9, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+  }),
+}
 
 export function HeroSection() {
-  const scrollToCollections = () => {
-    const element = document.querySelector('#collections')
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true)
+
+  useEffect(() => {
+    let ticking = false
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setShowScrollIndicator(window.scrollY < SCROLL_HIDE_THRESHOLD)
+          ticking = false
+        })
+        ticking = true
+      }
     }
-  }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
-    <section className="relative min-h-screen pt-20 overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{
-          backgroundImage: `radial-gradient(circle at 70% 50%, oklch(0.25 0.08 210) 0%, oklch(0.15 0.02 210) 50%)`,
-        }}
-      />
+    <section className="relative min-h-screen flex flex-col items-center overflow-hidden pt-28 pb-12">
 
-      <div
-        className="absolute top-1/4 right-0 w-2/3 h-2/3 opacity-20 bg-cover bg-center pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(ellipse at center, oklch(0.45 0.08 210) 0%, transparent 70%)`,
-          filter: 'blur(80px)',
-        }}
-      />
+      {/* Content card — same glass style as all other cards */}
+      <div className="relative z-10 w-full max-w-2xl px-6">
+        <OrnamentalBorder
+          contentClassName="p-8 md:p-12 lg:p-14"
+          hoverable
+        >
+          <div className="flex flex-col items-center text-center gap-8">
 
-      <div className="container mx-auto px-6 lg:px-20 py-20 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-160px)]">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <OrnamentalBorder>
-              <div className="text-center space-y-6">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                  className="text-sm tracking-[0.3em] text-muted-foreground"
+            {/* Brand lockup */}
+            <motion.div
+              custom={0}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <BrandLockup size="xl" />
+            </motion.div>
+
+            {/* Tagline with flanking lines */}
+            <motion.div
+              custom={1}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex items-center gap-4 w-full max-w-sm"
+            >
+              <div className="flex-1 h-px hero-line-decorative" />
+              <p
+                className="text-[10px] tracking-[0.4em] uppercase whitespace-nowrap font-medium text-hero-tagline hero-text-glow"
+              >
+                Regal · Radiant · Modern
+              </p>
+              <div className="flex-1 h-px hero-line-decorative" />
+            </motion.div>
+
+            {/* Description */}
+            <motion.p
+              custom={2}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+              className="text-base lg:text-lg leading-relaxed max-w-xl text-hero-description hero-text-glow"
+            >
+              Heritage-inspired costume jewellery crafted to elevate everyday elegance,
+              festive radiance, and bridal grandeur.
+            </motion.p>
+
+            {/* CTA */}
+            <motion.div
+              custom={3}
+              variants={wordVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col items-center gap-4 pt-2"
+            >
+              <Link to="/collections">
+                <Button
+                  size="lg"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-[0.2em] text-sm px-10 py-6 group"
                 >
-                  REGAL · RADIANT · MODERN
-                </motion.div>
+                  <Sparkle size={16} weight="fill" className="mr-2 group-hover:animate-pulse" />
+                  EXPLORE COLLECTIONS
+                </Button>
+              </Link>
+              <Link
+                to="/contact"
+                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent text-hero-subtle-link hero-text-glow"
+              >
+                or book a styling session
+              </Link>
+            </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                >
-                  <h1 className="text-4xl lg:text-5xl font-bold tracking-wider mb-2">
-                    HOUSE <span className="text-accent">OF</span>
-                  </h1>
-                  <div className="font-script text-6xl lg:text-7xl text-accent">Mornii</div>
-                </motion.div>
-
-                <OrnamentalDivider />
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8, duration: 0.8 }}
-                  className="text-base lg:text-lg leading-relaxed max-w-md mx-auto"
-                >
-                  Statement costume jewellery inspired by heritage opulence—crafted to elevate
-                  everyday moments, festive evenings, and bridal grandeur.
-                </motion.p>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1, duration: 0.8 }}
-                  className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
-                >
-                  <Button
-                    size="lg"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest group"
-                    onClick={scrollToCollections}
-                  >
-                    <Sparkle size={20} weight="fill" className="mr-2 group-hover:animate-pulse" />
-                    EXPLORE COLLECTIONS
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
-                    onClick={scrollToCollections}
-                  >
-                    VIEW COUTURE LOOK
-                  </Button>
-                </motion.div>
-              </div>
-            </OrnamentalBorder>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="space-y-6"
-          >
-            <OrnamentalBorder>
-              <div className="text-center space-y-6">
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <Crown size={28} weight="fill" className="text-accent" />
-                  <h2 className="text-2xl lg:text-3xl tracking-[0.2em]">SHOP BY MOOD</h2>
-                </div>
-
-                <div className="space-y-4">
-                  {moodCategories.map((category, index) => (
-                    <motion.button
-                      key={category.label}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 1.2 + index * 0.1, duration: 0.6 }}
-                      onClick={scrollToCollections}
-                      className="w-full py-4 px-6 border border-border hover:border-accent bg-secondary/50 hover:bg-accent/10 transition-all duration-300 group rounded-xl"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg tracking-[0.2em] font-semibold">
-                          {category.label}
-                        </span>
-                        <span className="text-sm tracking-[0.15em] text-muted-foreground group-hover:text-accent transition-colors">
-                          {category.subtitle}
-                        </span>
-                      </div>
-                    </motion.button>
-                  ))}
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.6, duration: 0.8 }}
-                    className="pt-4 border-t border-border"
-                  >
-                    <button
-                      onClick={scrollToCollections}
-                      className="text-accent tracking-[0.15em] text-sm hover:underline"
-                    >
-                      CURATED SETS
-                      <br />
-                      <span className="text-xs text-muted-foreground">SIGNATURE</span>
-                    </button>
-                  </motion.div>
-                </div>
-              </div>
-            </OrnamentalBorder>
-          </motion.div>
-        </div>
+          </div>
+        </OrnamentalBorder>
       </div>
+
+      {/* Scroll indicator — fixed position, fades on scroll down */}
+      <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Scroll to collections"
+        onClick={() => {
+          const el = document.getElementById('collections')
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' })
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            const el = document.getElementById('collections')
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' })
+            }
+          }
+        }}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-40 px-8 py-3 rounded-full cursor-pointer hero-scroll-indicator bg-transparent border-none outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{
+          opacity: showScrollIndicator ? 1 : 0,
+          y: showScrollIndicator ? 0 : 12
+        }}
+        whileHover={{ scale: 1.05 }}
+        transition={{ duration: 0.35 }}
+      >
+        <span
+          className="text-[9px] tracking-[0.4em] uppercase text-hero-scroll-text"
+        >
+          scroll
+        </span>
+        {showScrollIndicator && (
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+          >
+            <CaretDown size={16} className="hero-scroll-arrow" />
+          </motion.div>
+        )}
+      </motion.div>
     </section>
   )
 }

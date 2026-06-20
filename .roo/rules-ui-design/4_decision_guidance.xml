@@ -1,0 +1,76 @@
+<decision_guidance>
+  <principles>
+    <principle>Reuse existing styles, tokens, and components before creating anything new</principle>
+    <principle>The smallest change that satisfies the request is always preferred</principle>
+    <principle>Avoid duplicated rules across files; maintain single source of truth</principle>
+    <principle>Ask a clarifying question only when critical ambiguity remains</principle>
+    <principle>Maintain strict visual consistency across all pages and components</principle>
+  </principles>
+
+  <reuse_decision_tree>
+    <decision point="Need a new color?">
+      <check>Does src/tailwind.css already define the needed color?</check>
+      <yes>Use the existing CSS variable via Tailwind token</yes>
+      <no>Only then add a new CSS variable to :root or [data-theme="light"]</no>
+    </decision>
+
+    <decision point="Need spacing?">
+      <check>Does Tailwind spacing scale (var(--size-*)) cover the need?</check>
+      <yes>Use p-4, m-6, gap-8, etc.</yes>
+      <no>Only then add a new spacing token to theme.json</no>
+    </decision>
+
+    <decision point="Need a component?">
+      <check>Can existing components be composed to achieve the result?</check>
+      <yes>Compose BaroqueCard + OrnamentalBorder + Button, etc.</yes>
+      <no>Check if only Tailwind class combinations are needed</yes>
+      <yes>Use className prop extension on existing components</yes>
+      <no>Create a new component (must be reused in 2+ locations)</no>
+    </decision>
+
+    <decision point="Need an animation?">
+      <check>Does src/lib/animations.ts have a matching constant?</check>
+      <yes>Use fadeSlideUp, staggerContainer, or pageTransition</yes>
+      <no>Create a new constant following the established pattern (duration, ease, keyframes)</no>
+    </decision>
+  </reuse_decision_tree>
+
+  <consistency_rules>
+    <rule>All headings must use font-heading with established size scale</rule>
+    <rule>All interactive elements must have focus-visible states using --ring token</rule>
+    <rule>All glass panels must use the .glass-panel class, never custom CSS</rule>
+    <rule>All golden glow effects must use .golden-glow class or noGlow prop</rule>
+    <rule>All animations must use constants from src/lib/animations.ts</rule>
+    <rule>All components must work in both dark and light modes</rule>
+    <rule>No hardcoded OKLCH values in component code</rule>
+    <rule>BEM naming for CSS modifiers: component--variant</rule>
+  </consistency_rules>
+
+  <when_to_create_new_component>
+    <criteria>
+      <criterion>The pattern will be reused across 2+ locations</criterion>
+      <criterion>No existing component can achieve the result via props/composition</criterion>
+      <criterion>The pattern has distinct behavior requiring its own API</criterion>
+    </criteria>
+
+    <anti_criteria>
+      <anti_criterion>Only used in one location (use inline classes instead)</anti_criterion>
+      <anti_criterion>Different styling of an existing component (use className prop)</anti_criterion>
+      <anti_criterion>One-off page-specific layout (use section pattern composition)</anti_criterion>
+    </anti_criteria>
+  </when_to_create_new_component>
+
+  <validation_requirements>
+    <requirement>After any UI change, verify visual consistency with existing pages</requirement>
+    <requirement>Test both dark and light mode rendering</requirement>
+    <requirement>Check responsive behavior at mobile, tablet, and desktop breakpoints</requirement>
+    <requirement>Scan for hardcoded values that should use tokens</requirement>
+    <requirement>Ensure no visual regression in unaffected components</requirement>
+  </validation_requirements>
+
+  <boundaries>
+    <rule>This mode handles UI design, component creation, styling, and visual consistency</rule>
+    <rule>Do NOT handle backend logic, API integration, state management, or business logic</rule>
+    <rule>Hand off non-UI concerns to appropriate modes (e.g., jest-test-engineer for testing)</rule>
+  </boundaries>
+</decision_guidance>

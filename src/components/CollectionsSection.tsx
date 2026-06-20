@@ -1,31 +1,42 @@
 import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/card'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { JewelryImage } from '@/components/JewelryImage'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { 
+  BaroqueCard, 
+  BaroqueCardHeader, 
+  BaroqueCardTitle, 
+  BaroqueCardDescription,
+  BaroqueCardContent
+} from '@/components/BaroqueCard'
+import { fadeSlideUp, viewportOnce } from '@/lib/animations'
 
+// To use real photos: import them here and set the `image` field, e.g.:
+// import everydayImg from '@/assets/images/collection-everyday.jpg'
+// Then set image: everydayImg on the relevant collection object.
 const collections = [
   {
     id: 'everyday' as const,
     title: 'EVERYDAY',
     subtitle: 'Polished essentials',
     description: 'Refined, versatile pieces that elevate your daily elegance with timeless sophistication.',
-    gradient: 'from-teal-deep/60 to-transparent',
+    image: null as string | null,
   },
   {
     id: 'festive' as const,
     title: 'FESTIVE',
     subtitle: 'Celebration shine',
     description: 'Radiant statement pieces designed to captivate and dazzle at every special occasion.',
-    gradient: 'from-accent/40 to-transparent',
+    image: null as string | null,
   },
   {
     id: 'bridal' as const,
     title: 'BRIDAL',
     subtitle: 'Bridal grandeur',
     description: 'Exquisite heirloom-quality jewellery that transforms your most treasured moments into lasting memories.',
-    gradient: 'from-gold/50 to-transparent',
+    image: null as string | null,
   },
 ]
 
@@ -34,60 +45,75 @@ export function CollectionsSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section id="collections" className="py-20 lg:py-32" ref={ref}>
+    <section id="collections" className="py-6 lg:py-8 scroll-mt-24" ref={ref}>
       <div className="container mx-auto px-6 lg:px-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-8"
         >
           <h2 className="text-4xl lg:text-5xl mb-4 tracking-[0.15em]">Collections</h2>
           <OrnamentalDivider />
-          <p className="text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Parisfall's eyeshadow palettes and eyeshadow sticks, embodying timeless luxury and modern artistry. 
+          <p className="text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed mt-6">
+            Discover our curated jewellery collections, embodying timeless luxury and modern artistry.
             Each piece is thoughtfully crafted to honor heritage while celebrating contemporary elegance.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {collections.map((collection, index) => (
-            <motion.div
-              key={collection.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.2 + index * 0.15, duration: 0.8 }}
-            >
-              <Card className="group relative overflow-hidden border-2 border-border hover:border-accent transition-all duration-500 bg-card cursor-pointer h-full">
-                <div className="relative aspect-[3/4] overflow-hidden">
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-b ${collection.gradient} opacity-80 group-hover:opacity-60 transition-opacity duration-500 z-10`}
-                  />
-                  
-                  <JewelryImage collection={collection.id} className="w-full h-full" />
+            <Link key={collection.id} to={`/collections/${collection.id}`} className="h-full block">
+               <BaroqueCard
+                  className="h-full cursor-pointer"
+                  animate
+                  noGlow
+                  hoverable
+                  style={{ animationDelay: `${index * 150}ms` }}
+               >
+                  <BaroqueCardHeader withDivider={true}>
+                    <BaroqueCardTitle className="text-xl md:text-2xl">{collection.title}</BaroqueCardTitle>
+                    <BaroqueCardDescription>{collection.subtitle}</BaroqueCardDescription>
+                  </BaroqueCardHeader>
 
-                  <div className="absolute inset-0 flex items-center justify-center z-20">
-                    <div className="w-48 h-48 rounded-full border-2 border-accent/30 group-hover:border-accent/60 transition-all duration-500 group-hover:scale-110" />
-                  </div>
-                </div>
-
-                <div className="p-6 lg:p-8 border-t-2 border-border group-hover:border-accent transition-colors duration-500">
-                  <h3 className="text-2xl lg:text-3xl mb-2 tracking-[0.2em] text-center group-hover:text-accent transition-colors">
-                    {collection.title}
-                  </h3>
-                  <p className="text-sm tracking-[0.15em] text-accent text-center mb-4">
-                    {collection.subtitle}
-                  </p>
-                  <p className="text-sm leading-relaxed text-center text-muted-foreground group-hover:text-foreground transition-colors">
-                    {collection.description}
-                  </p>
-                </div>
-
-                <div className="absolute top-4 left-4 right-4 bottom-4 border border-accent/0 group-hover:border-accent/30 transition-all duration-500 pointer-events-none rounded-lg" />
-              </Card>
-            </motion.div>
+                  <BaroqueCardContent className="flex flex-col gap-4">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm mx-auto">
+                      {collection.image ? (
+                        <img
+                          src={collection.image}
+                          alt={collection.title}
+                          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <JewelryImage collection={collection.id} className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" />
+                      )}
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {collection.description}
+                    </p>
+                  </BaroqueCardContent>
+               </BaroqueCard>
+            </Link>
           ))}
         </div>
+
+        {/* View All link */}
+        <motion.div
+          variants={fadeSlideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="text-center mt-10"
+        >
+          <Link
+            to="/collections"
+            className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4"
+            style={{ color: 'oklch(0.75 0.05 78)' }}
+          >
+            VIEW ALL COLLECTIONS →
+          </Link>
+        </motion.div>
       </div>
     </section>
   )

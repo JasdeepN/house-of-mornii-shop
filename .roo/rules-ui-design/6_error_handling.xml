@@ -1,0 +1,120 @@
+<error_handling>
+  <overview>
+    Common error scenarios in UI design work and how to handle them gracefully.
+  </overview>
+
+  <error_scenario name="token_not_found">
+    <description>A component references a CSS variable or Tailwind token that does not exist.</description>
+    <symptoms>
+      <symptom>Undefined color or spacing in the browser</symptom>
+      <symptom>Console warning about unknown Tailwind class</symptom>
+      <symptom>Fallback to default browser styling</symptom>
+    </symptoms>
+    <resolution>
+      <step>Check src/tailwind.css for the complete list of defined CSS variables</step>
+      <step>Verify the token exists in the :root or [data-theme="light"] block</step>
+      <step>If missing, add it following the established naming convention (--token-name)</step>
+      <step>Ensure both dark and light mode definitions are present</step>
+    </resolution>
+  </error_scenario>
+
+  <error_scenario name="dark_mode_breakage">
+    <description>A component renders correctly in dark mode but breaks in light mode or vice versa.</description>
+    <symptoms>
+      <symptom>Text invisible against background in one theme</symptom>
+      <symptom>Border or shadow not visible in one theme</symptom>
+      <symptom>Wrong color contrast ratio</symptom>
+    </symptoms>
+    <resolution>
+      <step>Test the component in both data-appearance="dark" and data-theme="light"</step>
+      <step>Ensure all colors use semantic tokens that adapt between themes</step>
+      <step>Never use hardcoded oklch values that only work in one theme</step>
+      <step>Verify src/tailwind.css defines the token for both themes</step>
+    </resolution>
+  </error_scenario>
+
+  <error_scenario name="responsive_breakdown">
+    <description>A layout breaks or looks incorrect at certain screen sizes.</description>
+    <symptoms>
+      <symptom>Content overflow on mobile</symptom>
+      <symptom>Excessive whitespace on tablet</symptom>
+      <symptom>Grid items too narrow or too wide</symptom>
+    </symptoms>
+    <resolution>
+      <step>Test at all breakpoints: mobile (<640px), sm (640px+), md (768px+), lg (1024px+), xl (1280px+)</step>
+      <step>Use Tailwind responsive prefixes correctly: sm:, md:, lg:, xl:</step>
+      <step>Apply mobile-first approach (base styles for mobile, prefixes for larger screens)</step>
+      <step>Use container queries or max-width constraints where appropriate</step>
+    </resolution>
+  </error_scenario>
+
+  <error_scenario name="animation_performance">
+    <description>Animations cause jank, flickering, or excessive GPU usage.</description>
+    <symptoms>
+      <symptom>Dropped frames during animation</symptom>
+      <symptom>LAYOUT or PAINT triggers instead of COMPOSITE only</symptom>
+      <symptom>Animation not respecting prefers-reduced-motion</symptom>
+    </symptoms>
+    <resolution>
+      <step>Animate only transform and opacity for best performance</step>
+      <step>Avoid animating width, height, top, left, or other layout-triggering properties</step>
+      <step>Use will-change sparingly and only when needed</step>
+      <step>Ensure Framer Motion reduced motion mode is enabled globally</step>
+    </resolution>
+  </error_scenario>
+
+  <error_scenario name="accessibility_failure">
+    <description>A component fails accessibility checks.</description>
+    <symptoms>
+      <symptom>No focus visible on interactive elements</symptom>
+      <symptom>Insufficient color contrast ratio</symptom>
+      <symptom>Missing ARIA labels or roles</symptom>
+      <symptom>Screen reader not announcing state changes</symptom>
+    </symptoms>
+    <resolution>
+      <step>Add focus-visible styles using --ring token for all interactive elements</step>
+      <step>Verify contrast ratios meet WCAG AA (4.5:1 for text, 3:1 for large text)</step>
+      <step>Add aria-label, aria-describedby, or role attributes as needed</step>
+      <step>Use semantic HTML elements (button, nav, main, section) appropriately</step>
+    </resolution>
+  </error_scenario>
+
+  <error_scenario name="css_conflict">
+    <description>New styles conflict with existing Tailwind or SCSS styles.</description>
+    <symptoms>
+      <symptom>Unexpected style applied despite correct classes</symptom>
+      <symptom>Style override chain broken</symptom>
+      <symptom>BEM modifier not applying</symptom>
+    </symptoms>
+    <resolution>
+      <step>Check Tailwind CSS layer ordering (@tailwind base, components, utilities)</step>
+      <step>Verify no duplicate class names with different values in src/index.scss</step>
+      <step>Increase specificity only when necessary (avoid !important)</step>
+      <step>Use cn() from @/lib/utils to merge Tailwind classes safely</step>
+    </resolution>
+  </error_scenario>
+
+  <error_scenario name="prop_drilling">
+    <description>Component props become unwieldy due to deep nesting.</description>
+    <symptoms>
+      <symptom>Component interface has 10+ props</symptom>
+      <symptom>Intermediate components only pass props through</symptom>
+      <symptom>Difficult to track which props affect which UI parts</symptom>
+    </symptoms>
+    <resolution>
+      <step>Extract sub-components with their own interfaces</step>
+      <step>Use the children pattern for composition</step>
+      <step>Consider React Context for deeply shared state (theme, cart)</step>
+      <step>Use className prop for styling overrides instead of boolean flags</step>
+    </resolution>
+  </error_scenario>
+
+  <recovery_procedure>
+    <step>Reproduce the issue in both dark and light modes</step>
+    <step>Isolate the component causing the issue</step>
+    <step>Compare against established patterns in 3_common_patterns.xml</step>
+    <step>Apply the appropriate resolution from the scenarios above</step>
+    <step>Verify the fix works in both themes and all breakpoints</step>
+    <step>Update 3_common_patterns.xml if a new reusable pattern emerged from the fix</step>
+  </recovery_procedure>
+</error_handling>

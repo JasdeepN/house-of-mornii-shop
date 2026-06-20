@@ -1,67 +1,41 @@
-import { ReactNode } from 'react'
+import { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
-import baroqueBorder from '@/assets/images/Borders.png'
-import dividerOrnament from '@/assets/ornaments/divider-ornament.svg'
 
 interface OrnamentalBorderProps {
   children: ReactNode
   className?: string
+  backgroundClassName?: string
+  backgroundStyle?: CSSProperties
+  /** Override the inner content wrapper padding. Defaults to 'p-6 md:p-8 lg:p-10' */
+  contentClassName?: string
+  /** Enable hover lift effect on the glass panel. Default: false */
+  hoverable?: boolean
+  /** Hide the golden glow under-lighting effect. Default: false */
+  noGlow?: boolean
 }
 
-export function OrnamentalBorder({ children, className }: OrnamentalBorderProps) {
+export function OrnamentalBorder({
+  children,
+  className,
+  backgroundClassName,
+  backgroundStyle,
+  contentClassName = 'p-6 md:p-8 lg:p-10',
+  hoverable = false,
+  noGlow = false,
+}: OrnamentalBorderProps) {
   return (
-    <div className={cn('relative', className)}>
-      <img 
-        src={baroqueBorder}
-        alt=""
-        className="absolute inset-0 w-full h-full pointer-events-none z-20"
-        style={{
-          objectFit: 'fill',
-        }}
-      />
-      <div className="relative z-10 p-12 md:p-16 lg:p-20">
-        <div 
-          className="absolute inset-0 opacity-95"
-          style={{
-            background: `
-              repeating-radial-gradient(
-                circle at 0 0,
-                transparent 0,
-                oklch(0.60 0.11 78 / 0.08) 2px,
-                transparent 4px,
-                transparent 40px
-              ),
-              repeating-linear-gradient(
-                45deg,
-                oklch(0.45 0.08 210 / 0.05) 0px,
-                oklch(0.45 0.08 210 / 0.05) 1px,
-                transparent 1px,
-                transparent 60px
-              ),
-              repeating-linear-gradient(
-                -45deg,
-                oklch(0.60 0.11 78 / 0.03) 0px,
-                oklch(0.60 0.11 78 / 0.03) 1px,
-                transparent 1px,
-                transparent 60px
-              ),
-              radial-gradient(
-                ellipse at 30% 40%,
-                oklch(0.25 0.03 210) 0%,
-                oklch(0.18 0.02 210) 100%
-              )
-            `,
-            backgroundSize: `
-              80px 80px,
-              120px 120px,
-              120px 120px,
-              100% 100%
-            `,
-          }}
-        />
-        <div className="relative z-10">
-          {children}
-        </div>
+    <div
+      className={cn(
+        'glass-panel',
+        !noGlow && 'golden-glow',
+        hoverable && 'glass-panel--hover',
+        backgroundClassName,
+        className,
+      )}
+      style={backgroundStyle}
+    >
+      <div className={cn('relative z-10', contentClassName)}>
+        {children}
       </div>
     </div>
   )
@@ -70,11 +44,7 @@ export function OrnamentalBorder({ children, className }: OrnamentalBorderProps)
 export function OrnamentalDivider({ className }: { className?: string }) {
   return (
     <div className={cn('flex items-center justify-center my-8', className)}>
-      <img 
-        src={dividerOrnament}
-        alt=""
-        className="w-64 h-12 object-contain"
-      />
+      <div className="w-64 h-[1px] bg-border" />
     </div>
   )
 }
