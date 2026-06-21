@@ -22,12 +22,32 @@ const PLACEHOLDER_DOMAINS = new Set(['your-store.myshopify.com', 'CHANGE_ME'])
 export type StorefrontMode = 'demo' | 'token'
 
 function resolveStorefrontMode(): StorefrontMode {
-  const hasDomain = !!domain && !PLACEHOLDER_DOMAINS.has(domain)
   const hasToken = !!storefrontToken
-  if (!hasDomain) return 'demo'
+  
+  // Check for placeholder values first (before checking if empty)
+  if (domain && PLACEHOLDER_DOMAINS.has(domain)) {
+    throw new Error(
+      `[House of Mornii] VITE_SHOPIFY_STORE_DOMAIN is still set to placeholder value: ${domain}\n` +
+        'Update .env.local with your actual Shopify store domain (e.g., my-store.myshopify.com).',
+    )
+  }
+  
+  // Check if domain is missing entirely
+  if (!domain) {
+    throw new Error(
+      '[House of Mornii] VITE_SHOPIFY_STORE_DOMAIN is not set.\n' +
+        'Copy .env.example → .env.local and add your Shopify store domain.',
+    )
+  }
+  
   // Tokenless mode removed — require storefront token per Shopify best practices.
   // See: https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api
-  if (!hasToken) return 'demo'
+  if (!hasToken) {
+    throw new Error(
+      '[House of Mornii] VITE_SHOPIFY_STOREFRONT_TOKEN is not set.\n' +
+        'Copy .env.example → .env.local and add your Shopify Storefront API access token.',
+    )
+  }
   return 'token'
 }
 
@@ -35,16 +55,9 @@ export const STOREFRONT_MODE: StorefrontMode = resolveStorefrontMode()
 
 /**
  * True when valid live Shopify credentials are present (token mode).
- * When false the app falls back to demo data automatically.
+ * Always true in production — the app throws on startup if credentials are missing.
  */
 export const IS_CONFIGURED = STOREFRONT_MODE !== 'demo'
-
-if (STOREFRONT_MODE === 'demo' && import.meta.env.DEV) {
-  console.warn(
-    '[House of Mornii] Shopify credentials not configured — running in demo mode.\n' +
-      'Copy .env.example → .env.local and add your store domain + token.',
-  )
-}
 
 /**
  * Categories of Storefront errors for page-level error handling.

@@ -9,36 +9,36 @@ describe('STOREFRONT_MODE and IS_CONFIGURED', () => {
     vi.unstubAllEnvs()
   })
 
-  it('returns demo mode and IS_CONFIGURED=false when env vars are empty', async () => {
+  it('throws when env vars are empty (no demo mode)', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', '')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', '')
-    const { IS_CONFIGURED, STOREFRONT_MODE } = await import('./client')
-    expect(IS_CONFIGURED).toBe(false)
-    expect(STOREFRONT_MODE).toBe('demo')
+    await expect(import('./client')).rejects.toThrow(
+      'VITE_SHOPIFY_STORE_DOMAIN is not set',
+    )
   })
 
-  it('returns demo mode when domain is CHANGE_ME placeholder', async () => {
+  it('throws when domain is CHANGE_ME placeholder', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'CHANGE_ME')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'some-token')
-    const { IS_CONFIGURED, STOREFRONT_MODE } = await import('./client')
-    expect(IS_CONFIGURED).toBe(false)
-    expect(STOREFRONT_MODE).toBe('demo')
+    await expect(import('./client')).rejects.toThrow(
+      'still set to placeholder value: CHANGE_ME',
+    )
   })
 
-  it('returns demo mode when domain is the example placeholder', async () => {
+  it('throws when domain is the example placeholder', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'your-store.myshopify.com')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'some-token')
-    const { IS_CONFIGURED, STOREFRONT_MODE } = await import('./client')
-    expect(IS_CONFIGURED).toBe(false)
-    expect(STOREFRONT_MODE).toBe('demo')
+    await expect(import('./client')).rejects.toThrow(
+      'still set to placeholder value: your-store.myshopify.com',
+    )
   })
 
-  it('returns demo mode when domain is set but token is absent (tokenless removed)', async () => {
+  it('throws when domain is set but token is absent', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', '')
-    const { IS_CONFIGURED, STOREFRONT_MODE } = await import('./client')
-    expect(IS_CONFIGURED).toBe(false)
-    expect(STOREFRONT_MODE).toBe('demo')
+    await expect(import('./client')).rejects.toThrow(
+      'VITE_SHOPIFY_STOREFRONT_TOKEN is not set',
+    )
   })
 
   it('returns token mode when both domain and token are present', async () => {
@@ -60,11 +60,10 @@ describe('shopifyFetch', () => {
     vi.restoreAllMocks()
   })
 
-  it('throws when not configured (demo mode)', async () => {
+  it('throws at module load time when credentials missing (no demo mode)', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', '')
-    const { shopifyFetch } = await import('./client')
-    await expect(shopifyFetch('{ shop { name } }')).rejects.toThrow(
-      'Shopify is not configured',
+    await expect(import('./client')).rejects.toThrow(
+      'VITE_SHOPIFY_STORE_DOMAIN is not set',
     )
   })
 
