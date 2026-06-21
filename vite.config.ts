@@ -5,8 +5,12 @@ import { resolve } from 'path'
 
 const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
-// Production build guard: fail loudly if demo mode is detected
-if (process.env.NODE_ENV === 'production') {
+// Production build guard: fail loudly if demo mode is detected.
+// Dev builds (DEPLOY_ENV=dev) skip the strict credential check so they can
+// use placeholder/demo credentials without aborting the CI pipeline.
+const isDevDeploy = process.env.DEPLOY_ENV === 'dev'
+
+if (process.env.NODE_ENV === 'production' && !isDevDeploy) {
   const domain = process.env.VITE_SHOPIFY_STORE_DOMAIN
   const token = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN
 
