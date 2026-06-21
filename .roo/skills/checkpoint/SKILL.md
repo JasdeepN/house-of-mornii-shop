@@ -20,10 +20,22 @@ Create a complete project checkpoint: stage relevant files, commit with an annot
 - The working tree has uncommitted work the user explicitly wants to keep separate
 - You are in a detached HEAD state without a clear branch target (ask first)
 
+## SAFETY GATES (MUST FOLLOW BEFORE ANY STEP)
+
+These gates prevent breaking the agentic flow. Violating them can corrupt parallel sessions, trigger premature CI/CD, or leave the repo in an inconsistent state.
+
+| Gate | Rule | Consequence if violated |
+|------|------|------------------------|
+| **No auto-push** | Never run `git push` without explicit user confirmation. Ask: "Push to remote? (y/n)" | Premature CI/CD triggers, conflicts with parallel agents, breaks rebasing workflows |
+| **No auto-amend** | Never use `git commit --amend` unless the user explicitly says "amend" or "rewrite". Amending rewrites history and can corrupt parallel agent working copies. | History divergence, force-push conflicts, broken agent sessions |
+| **MCP fallback** | If any MemPalace MCP call fails (timeout, connection error, tool error), skip the entire memory sync step. Log the failure but do NOT block the commit. | Agent hangs indefinitely on slow/unavailable MCP server |
+| **Large change confirmation** | If `git status --porcelain` reports more than 10 changed files, list them and ask: "Checkpointing N files. Continue? (y/n)" | Accidental mass-commit of unrelated work |
+
 ## Inputs required
 
 - A brief description of what was accomplished (for the commit message and MemPalace entry)
 - Current branch name (auto-detected via `git branch --show-current`)
+- **User confirmation for push/amend** — these are opt-in, not automatic
 
 ## Workflow
 
@@ -70,20 +82,42 @@ If any of these areas changed, ensure docs reflect the update:
 For each updated doc:
 1. Read the existing file
 2. Add or update the relevant section with a date-stamped entry
-3. Stage and amend into the same commit (do NOT create a second commit)
+3. Stage the docs
+
+**Amend decision:** Only use `git commit --amend` if the user explicitly requests it. Otherwise, stage docs separately and let the user decide whether to amend or create a new commit.
 
 ```bash
+# Stage documentation changes (always safe)
 git add docs/ AGENTS.md README.md
-git commit --amend --no-edit
+
+# ONLY if user explicitly says "amend":
+# git commit --amend --no-edit
+
+# Otherwise, leave staged for user to decide:
+# - Commit separately: git commit -m "docs: update documentation"
+# - Or amend the existing commit manually
 ```
 
-### 4. Update MemPalace memory
+### 4. Update MemPalace memory (OPTIONAL — skip if MCP unavailable)
 
-**This is the most important step.** After the codebase changes, the MemPalace memory must reflect the new state so future sessions can retrieve accurate context.
+After the codebase changes, update MemPalace memory so future sessions can retrieve accurate context. **This step is non-blocking.** If any MCP call fails, skip the entire step and continue to step 5.
 
 > **Context retrieval is NOT automatic.** The agent must explicitly call MemPalace MCP tools (`mempalace_status`, `mempalace_search`, `mempalace_kg_query`, `mempalace_add_drawer`, `mempalace_diary_write`) to interact with memory. There is no automatic context injection into the system prompt.
 
-#### 4a. Load palace overview
+#### 4a. Test MCP connectivity first
+
+Before attempting any memory operations, verify the MCP server responds:
+
+```
+Call mempalace_status → if it returns within 5 seconds, proceed; otherwise skip entire step 4
+```
+
+If `mempalace_status` fails or times out:
+1. Log: "MemPalace MCP unavailable — skipping memory sync"
+2. **Do NOT attempt any further MemPalace calls**
+3. Proceed directly to step 5
+
+#### 4b. Load palace overview (only if MCP is reachable)
 
 Start by calling `mempalace_status` to load the palace overview and check current state:
 
@@ -91,9 +125,7 @@ Start by calling `mempalace_status` to load the palace overview and check curren
 Call mempalace_status → review total_drawers, wings, rooms
 ```
 
-#### 4b. Identify knowledge units to store
-
-From the changed files, extract meaningful content for MemPalace drawers:
+#### 4c. Identify knowledge units to store (only if MCP is reachable)
 
 - **New/modified components:** Read the component file, summarize props, purpose, and usage notes
 - **Architecture changes:** Read `docs/01-architecture.md` for system-level descriptions
@@ -101,9 +133,7 @@ From the changed files, extract meaningful content for MemPalace drawers:
 - **State management changes:** Read `src/context/CartContext.tsx`, relevant hooks
 - **Styling changes:** Read `src/index.scss`, `src/tailwind.css`
 
-#### 4c. File content into organized rooms
-
-Create or update drawers in named rooms (not "general") for structured retrieval:
+#### 4d. File content into organized rooms (only if MCP is reachable)
 
 ```
 # Create a new drawer in a named room
@@ -117,9 +147,7 @@ Call mempalace_add_drawer with wing="house_of_mornii_shop", room="<room-name>", 
 - `shopify-integration` — API details, scopes, auth setup
 - `component-<name>` — individual component documentation
 
-#### 4d. Add knowledge graph facts (optional but recommended)
-
-For structured facts that should be queryable via KG:
+#### 4e. Add knowledge graph facts (optional but recommended, only if MCP is reachable)
 
 ```
 # Add a fact to the knowledge graph
@@ -131,9 +159,7 @@ Example facts to add after significant changes:
 - `House of Mornii Shop → has → <new feature count>` (if component count changed)
 - `House of Mornii Shop → deployed_to → <platform>` (if deployment target changed)
 
-#### 4e. Write session diary entry
-
-Record what happened in this checkpoint session:
+#### 4f. Write session diary entry (only if MCP is reachable)
 
 ```
 Call mempalace_diary_write with:
@@ -146,13 +172,19 @@ Call mempalace_diary_write with:
 
 Importance levels: ★ (minor), ★★ (moderate), ★★★ (significant), ★★★★ (major), ★★★★★ (critical)
 
-### 5. Push (if on a tracked branch)
+### 5. Push (ONLY with explicit user confirmation)
+
+**NEVER auto-push.** Always ask the user first: "Push to remote? (y/n)"
+
+If the user confirms AND the branch is tracking a remote:
 
 ```bash
 git push origin $(git branch --show-current)
 ```
 
 If the branch is not tracking a remote, skip push and note it to the user.
+
+If the user declines, report: "Push skipped per your request."
 
 ## Reference
 
@@ -168,11 +200,12 @@ User: "I just finished AddToCartButton, checkpoint everything"
 Agent runs:
 1. git status → sees AddToCartButton.tsx, AddToCartButton.test.tsx staged
 2. Commits with message "checkpoint: add AddToCartButton component"
-3. Updates docs/02-components.md with new component entry
-4. Calls mempalace_status to check palace state
-5. Creates drawer in room "component-addtocartbutton" with component summary
+3. Updates docs/02-components.md with new component entry (staged but NOT amended)
+4. Asks user: "Amend docs into this commit? (y/n)" → user says y
+5. Calls mempalace_status → succeeds, creates drawer in room "component-addtocartbutton"
 6. Writes diary entry topic="checkpoint.component-addtocartbutton"
-7. Pushes to remote
+7. Asks user: "Push to remote? (y/n)" → user says y
+8. Pushes if confirmed
 ```
 
 ### Checkpoint after architecture refactor
@@ -183,11 +216,23 @@ User: "Refactored the Shopify client module, checkpoint"
 Agent runs:
 1. git status → sees src/lib/shopify/*.ts changed
 2. Commits with detailed summary of changes
-3. Updates docs/03-shopify-integration.md
-4. Calls mempalace_status, then creates/updates drawers in "shopify-integration" room
-5. Adds KG facts if stack/deployment changed
-6. Writes diary entry topic="checkpoint.shopify-refactor"
-7. Pushes
+3. Updates docs/03-shopify-integration.md (staged)
+4. Asks user: "Amend docs into this commit? (y/n)" → user says n
+5. Calls mempalace_status → MCP unavailable, skips memory sync entirely
+6. Asks user: "Push to remote? (y/n)" → user says n
+7. Reports: "Checkpoint complete. Push skipped per your request."
+```
+
+### Checkpoint with large number of changes
+
+```
+User: "I restructured the entire src/ directory, checkpoint"
+
+Agent runs:
+1. git status → sees 47 changed files
+2. SAFETY GATE: Lists changed file categories and asks: "Checkpointing 47 files. Continue? (y/n)"
+3. User confirms
+4. Proceeds with normal checkpoint flow
 ```
 
 ## Troubleshooting

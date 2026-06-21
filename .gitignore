@@ -38,3 +38,8 @@ pids
 # Playwright
 playwright-report/
 test-results/
+
+# Local CI/CD configuration
+.local-ci/.secrets
+.local-ci/.env.build
+.local-ci/.env.production
