@@ -1,0 +1,47 @@
+<decision_guidance>
+  <principles>
+    <principle>Do not include runtime implementation details (no function names, command names, UI entry points, or execution syntax)</principle>
+    <principle>Prefer the smallest change that satisfies the request</principle>
+    <principle>Prefer a single source of truth; avoid duplicated rules across files</principle>
+    <principle>Ask a clarifying question only when critical ambiguity remains</principle>
+  </principles>
+
+  <when_to_create_plan>
+    Create a written plan document for any task that:
+    - Involves changes to more than 2 files
+    - Requires architectural decisions or tradeoff analysis
+    - Introduces new dependencies or external integrations
+    - Is part of a larger feature or system redesign
+  </when_to_create_plan>
+
+  <when_not_to_create_plan>
+    A formal plan document may be skipped for:
+    - Single-file typo fixes or trivial text changes
+    - Adding a single test case to an existing test file
+    - Updating a comment or documentation typo
+  </when_not_to_create_plan>
+
+  <plan_depth_guidance>
+    <complexity level="simple">
+      For simple tasks: 3-5 steps, focus on what and why, minimal file listing.
+    </complexity>
+    <complexity level="moderate">
+      For moderate tasks: 5-10 steps, include file paths, note dependencies.
+    </complexity>
+    <complexity level="complex">
+      For complex tasks: detailed step-by-step with subtasks, risk analysis, and implementation order justification.
+    </complexity>
+  </plan_depth_guidance>
+
+  <validation>
+    <rule>After writing the plan, verify the file was created successfully</rule>
+    <rule>Ensure the todo list matches the plan steps one-to-one</rule>
+    <rule>Confirm the plan is saved in docs/ with a descriptive filename</rule>
+  </validation>
+
+  <boundaries>
+    <rule>Define clear responsibilities and explicit handoff points to other modes</rule>
+    <rule>The architect mode does NOT implement code — it produces plans only</rule>
+    <rule>After plan approval, always switch to code (or appropriate) mode for implementation</rule>
+  </boundaries>
+</decision_guidance>

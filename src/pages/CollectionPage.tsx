@@ -7,10 +7,8 @@ import {
   useCollection,
   shopifyFetch,
   IS_CONFIGURED,
-  STOREFRONT_MODE,
   getDemoCollection,
   COLLECTION_BY_HANDLE_QUERY,
-  COLLECTION_BY_HANDLE_QUERY_TOKENLESS,
 } from '@/lib/shopify'
 import { useErrorHandler } from '@/lib/errorHandler'
 import type { ShopifyProduct } from '@/lib/shopify'
@@ -86,7 +84,7 @@ export function CollectionPage() {
               pageInfo: { hasNextPage: boolean; endCursor: string | null }
             }
           }
-        }>(STOREFRONT_MODE === 'token' ? COLLECTION_BY_HANDLE_QUERY : COLLECTION_BY_HANDLE_QUERY_TOKENLESS, {
+        }>(COLLECTION_BY_HANDLE_QUERY, {
           handle,
           first: 12,
           sortKey,

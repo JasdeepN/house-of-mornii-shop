@@ -1,5 +1,6 @@
 export { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE, StorefrontError, validateQueryMode } from './client'
 export type { StorefrontMode, StorefrontErrorCategory } from './client'
+export { adminProxyFetch, HAS_ADMIN_PROXY } from './admin-proxy'
 export { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } from './hooks'
 export {
   getDemoCollections,
@@ -10,11 +11,8 @@ export {
 export {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
-  COLLECTION_BY_HANDLE_QUERY_TOKENLESS,
   PRODUCT_BY_HANDLE_QUERY,
-  PRODUCT_BY_HANDLE_QUERY_TOKENLESS,
   PRODUCTS_QUERY,
-  PRODUCTS_QUERY_TOKENLESS,
   CART_CREATE_MUTATION,
   CART_QUERY,
   CART_LINES_ADD_MUTATION,

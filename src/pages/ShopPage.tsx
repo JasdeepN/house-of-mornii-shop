@@ -9,10 +9,8 @@ import {
   useCollection,
   shopifyFetch,
   IS_CONFIGURED,
-  STOREFRONT_MODE,
   getDemoProducts,
   PRODUCTS_QUERY,
-  PRODUCTS_QUERY_TOKENLESS,
 } from '@/lib/shopify'
 import { isServiceError as checkIsServiceError, useErrorHandler } from '@/lib/errorHandler'
 import type { ShopifyProduct } from '@/lib/shopify'
@@ -117,7 +115,7 @@ export function ShopPage() {
             edges: { node: ShopifyProduct; cursor: string }[]
             pageInfo: { hasNextPage: boolean; endCursor: string | null }
           }
-        }>(STOREFRONT_MODE === 'token' ? PRODUCTS_QUERY : PRODUCTS_QUERY_TOKENLESS, { first: 12, sortKey, reverse, after: cursor })
+        }>(PRODUCTS_QUERY, { first: 12, sortKey, reverse, after: cursor })
         const newProducts = data.products.edges.map((e) => e.node)
         setLoadedMore((prev) => [...prev, ...newProducts])
         setHasMorePages(data.products.pageInfo.hasNextPage)

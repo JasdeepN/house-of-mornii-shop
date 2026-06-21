@@ -35,14 +35,16 @@ Identify which files are **relevant** (source code, docs, config, scripts). Excl
 
 ### 2. Stage and commit
 
-Execute the helper script or run equivalent commands manually:
+**Run these commands directly — do not read the script as reference.** Execute each command in order:
 
 ```bash
-# Stage relevant changes
+# Stage tracked modifications (deleted/modified files)
 git add -u
-git add .roo/ docs/ src/ public/ *.md package.json package-lock.json vite.config.ts tsconfig.json
 
-# Create annotated commit
+# Stage project files (new untracked + modified)
+git add .roo/ docs/ src/ public/ *.md package.json package-lock.json vite.config.ts tsconfig.json 2>/dev/null || true
+
+# Create annotated commit — replace <brief description> with actual summary
 git commit -m "checkpoint: <brief description>" -m "<summary of what changed and why>"
 ```
 
@@ -152,9 +154,9 @@ git push origin $(git branch --show-current)
 
 If the branch is not tracking a remote, skip push and note it to the user.
 
-## Files
+## Reference
 
-- [`scripts/git-checkpoint.sh`](scripts/git-checkpoint.sh) — Execute this script to automate steps 1–2 (stage + commit). Read it to understand what it does.
+- [`scripts/git-checkpoint.sh`](scripts/git-checkpoint.sh) — Read-only reference showing the equivalent automation. Do NOT execute this script; run the git commands directly from step 2 above.
 
 ## Examples
 

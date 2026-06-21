@@ -33,12 +33,12 @@ describe('STOREFRONT_MODE and IS_CONFIGURED', () => {
     expect(STOREFRONT_MODE).toBe('demo')
   })
 
-  it('returns tokenless mode when domain is set but token is absent', async () => {
+  it('returns demo mode when domain is set but token is absent (tokenless removed)', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', '')
     const { IS_CONFIGURED, STOREFRONT_MODE } = await import('./client')
-    expect(IS_CONFIGURED).toBe(true)
-    expect(STOREFRONT_MODE).toBe('tokenless')
+    expect(IS_CONFIGURED).toBe(false)
+    expect(STOREFRONT_MODE).toBe('demo')
   })
 
   it('returns token mode when both domain and token are present', async () => {
@@ -72,101 +72,193 @@ describe('shopifyFetch', () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token-123')
 
-    const mockResponse = {
-      ok: true,
-      json: () => Promise.resolve({ data: { shop: { name: 'Test' } } }),
-    }
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockResponse as unknown as Response,
-    )
+    // Mock the SDK client's request method
+    const mockRequest = vi.fn().mockResolvedValue({
+      data: { shop: { name: 'Test' } },
+    })
+    vi.doMock('./sdk-client', () => ({
+      storefrontClient: { request: mockRequest },
+      IS_SDK_CONFIGURED: true,
+    }))
 
     const { shopifyFetch } = await import('./client')
     const result = await shopifyFetch('{ shop { name } }')
 
-    expect(fetchSpy).toHaveBeenCalledOnce()
-    const [url, options] = fetchSpy.mock.calls[0]
-    expect(url).toContain('test-store.myshopify.com')
-    expect(url).toContain('/api/')
-    expect(url).toContain('/graphql.json')
-    expect((options as RequestInit).method).toBe('POST')
-    expect((options as RequestInit).headers).toMatchObject({
-      'X-Shopify-Storefront-Access-Token': 'test-token-123',
-    })
     expect(result).toEqual({ shop: { name: 'Test' } })
   })
 
-  it('makes a POST request without a token in tokenless mode', async () => {
+  it('throws "Unexpected storefront mode" when SDK is undefined in token mode', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
-    vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', '')
+    vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token-123')
 
-    const mockResponse = {
-      ok: true,
-      json: () => Promise.resolve({ data: { shop: { name: 'Test' } } }),
-    }
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockResponse as unknown as Response,
-    )
+    vi.doMock('./sdk-client', () => ({
+      storefrontClient: undefined,
+      IS_SDK_CONFIGURED: false,
+    }))
 
     const { shopifyFetch } = await import('./client')
-    await shopifyFetch('{ shop { name } }')
-
-    const [, options] = fetchSpy.mock.calls[0]
-    expect((options as RequestInit).headers).not.toHaveProperty(
-      'X-Shopify-Storefront-Access-Token',
+    await expect(shopifyFetch('{ shop { name } }')).rejects.toThrow(
+      'Unexpected storefront mode',
     )
   })
 
-  it('throws a StorefrontError with misconfigured category on 401', async () => {
+  it('throws StorefrontError with not_found on GraphQL errors containing "not found" (SDK)', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token-123')
 
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: false,
-      status: 401,
-      statusText: 'Unauthorized',
-    } as Response)
+    const mockRequest = vi.fn().mockResolvedValue({
+      errors: {
+        graphQLErrors: [{ message: 'Field not found' }],
+      },
+    })
+    vi.doMock('./sdk-client', () => ({
+      storefrontClient: { request: mockRequest },
+      IS_SDK_CONFIGURED: true,
+    }))
 
     const { shopifyFetch, StorefrontError } = await import('./client')
-    const err = await shopifyFetch('{ shop { name } }').catch((e) => e)
+    const err: any = await shopifyFetch('{ badQuery }').catch((e: any) => e)
     expect(err).toBeInstanceOf(StorefrontError)
-    expect(err.category).toBe('misconfigured')
-    expect(err.statusCode).toBe(401)
+    // "Field not found" contains "not found" so category is 'not_found'
+    expect(err.category).toBe('not_found')
+    expect(err.message).toContain('Field not found')
   })
 
-  it('throws a StorefrontError with upstream_unavailable category on 503', async () => {
+  it('throws StorefrontError with query_error on GraphQL errors without "not found" (SDK)', async () => {
     vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
     vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token-123')
 
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: false,
-      status: 503,
-      statusText: 'Service Unavailable',
-    } as Response)
+    const mockRequest = vi.fn().mockResolvedValue({
+      errors: {
+        graphQLErrors: [{ message: 'Internal server error' }],
+      },
+    })
+    vi.doMock('./sdk-client', () => ({
+      storefrontClient: { request: mockRequest },
+      IS_SDK_CONFIGURED: true,
+    }))
 
     const { shopifyFetch, StorefrontError } = await import('./client')
-    const err = await shopifyFetch('{ shop { name } }').catch((e) => e)
+    const err: any = await shopifyFetch('{ badQuery }').catch((e: any) => e)
     expect(err).toBeInstanceOf(StorefrontError)
-    expect(err.category).toBe('upstream_unavailable')
+    expect(err.category).toBe('query_error')
+    expect(err.message).toContain('Internal server error')
   })
-
-  it('throws a StorefrontError with query_error category on GraphQL errors', async () => {
-    vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
-    vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token-123')
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
+  
+  describe('adminProxyFetch', () => {
+    beforeEach(() => {
+      vi.resetModules()
+      vi.restoreAllMocks()
+    })
+  
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+  
+    it('throws on non-200 response', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      } as Response)
+  
+      const { adminProxyFetch } = await import('./admin-proxy')
+      await expect(
+        adminProxyFetch({ query: '{ shop { name } }' })
+      ).rejects.toThrow('Admin API proxy error: 500 Internal Server Error')
+    })
+  
+    it('throws on GraphQL errors from proxy', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
           data: null,
           errors: [{ message: 'Field not found' }],
         }),
-    } as unknown as Response)
+      } as Response)
+  
+      const { adminProxyFetch } = await import('./admin-proxy')
+      await expect(
+        adminProxyFetch({ query: '{ badQuery }' })
+      ).rejects.toThrow('Admin API GraphQL errors: Field not found')
+    })
+  
+    it('returns data on successful response', async () => {
+      const expectedData = { shop: { name: 'Test Store' } }
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: expectedData }),
+      } as Response)
+  
+      const { adminProxyFetch } = await import('./admin-proxy')
+      const result = await adminProxyFetch({ query: '{ shop { name } }' })
+      expect(result).toEqual(expectedData)
+    })
+  })
+  
+  describe('withRetry', () => {
+    it('returns immediately on success', async () => {
+      const { withRetry } = await import('./retry')
+      const result = await withRetry(async () => 'success')
+      expect(result).toBe('success')
+    })
+  
+    it('retries on TypeError and eventually succeeds', async () => {
+      const { withRetry } = await import('./retry')
+      let attempts = 0
+      const fn = async () => {
+        attempts++
+        if (attempts < 3) throw new TypeError('Network error')
+        return 'recovered'
+      }
+      const result = await withRetry(fn, { maxAttempts: 3 })
+      expect(result).toBe('recovered')
+      expect(attempts).toBe(3)
+    })
+  
+    it('throws after maxAttempts exhausted', async () => {
+      const { withRetry } = await import('./retry')
+      let attempts = 0
+      const fn = async () => {
+        attempts++
+        throw new TypeError('Persistent error')
+      }
+      await expect(withRetry(fn, { maxAttempts: 2 })).rejects.toThrow('Persistent error')
+      expect(attempts).toBe(2)
+    })
+  
+    it('does not retry on non-retryable Error', async () => {
+      const { withRetry } = await import('./retry')
+      let attempts = 0
+      const fn = async () => {
+        attempts++
+        const err = new Error('Query error') as Error & { statusCode?: number }
+        err.statusCode = 400
+        throw err
+      }
+      await expect(withRetry(fn, { maxAttempts: 3 })).rejects.toThrow('Query error')
+      expect(attempts).toBe(1)
+    })
+  })
+  it('retries on network error (TypeError)', async () => {
+    vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
+    vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token-123')
 
-    const { shopifyFetch, StorefrontError } = await import('./client')
-    const err = await shopifyFetch('{ badQuery }').catch((e) => e)
-    expect(err).toBeInstanceOf(StorefrontError)
-    expect(err.category).toBe('query_error')
-    expect(err.message).toContain('Field not found')
+    let callCount = 0
+    const mockRequest = vi.fn().mockImplementation(async () => {
+      callCount++
+      if (callCount < 2) throw new TypeError('Network error')
+      return { data: { shop: { name: 'Retried' } } }
+    })
+    vi.doMock('./sdk-client', () => ({
+      storefrontClient: { request: mockRequest },
+      IS_SDK_CONFIGURED: true,
+    }))
+
+    const { shopifyFetch } = await import('./client')
+    const result = await shopifyFetch('{ shop { name } }')
+    expect(result).toEqual({ shop: { name: 'Retried' } })
+    expect(callCount).toBe(2)
   })
 })
 

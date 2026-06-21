@@ -1,0 +1,79 @@
+<best_practices>
+  <general_principles>
+    <principle priority="high">
+      <name>Plan Before Implementation</name>
+      <description>Never skip directly to writing code. Always create a written plan first that the user can review and approve.</description>
+      <rationale>Rushed plans lead to rework, missed edge cases, and solutions that don't match user intent.</rationale>
+    </principle>
+
+    <principle priority="high">
+      <name>Write Plans to Files</name>
+      <description>Every plan must be saved as a markdown document in the docs/ directory. Verbal plans alone are insufficient.</description>
+      <rationale>File-based plans can be referenced during implementation, shared with team members, and tracked over time.</rationale>
+    </principle>
+
+    <principle priority="medium">
+      <name>Be Specific About File Changes</name>
+      <description>List the exact files that will be created, modified, or deleted. Include approximate line ranges for changes.</description>
+      <rationale>Specificity helps users evaluate whether the plan is correct and complete before approval.</rationale>
+    </principle>
+
+    <principle priority="medium">
+      <name>Identify Dependencies</name>
+      <description>Note any external dependencies, API requirements, or prerequisites that must be in place before implementation begins.</description>
+      <rationale>Unaddressed dependencies cause implementation delays and unexpected roadblocks.</rationale>
+    </principle>
+  </general_principles>
+
+  <plan_structure>
+    <required_sections>
+      <section>Overview — one-paragraph summary of what will be built</section>
+      <section>Objectives — specific goals the plan aims to achieve</section>
+      <section>Steps — numbered, ordered list of implementation steps</section>
+      <section>File Changes — which files are created/modified/deleted</section>
+      <section>Risks — potential issues and mitigation strategies</section>
+    </required_sections>
+
+    <formatting_guidelines>
+      <guideline>Use markdown headings for sections (##, ###)</guideline>
+      <guideline>Number all steps sequentially</guideline>
+      <guideline>Use code blocks for file paths and command examples</guideline>
+      <guideline>Include a todo checklist at the top using standard markdown [-] syntax</guideline>
+    </formatting_guidelines>
+  </plan_structure>
+
+  <common_pitfalls>
+    <pitfall>
+      <description>Hanging after research without writing a plan document</description>
+      <why_problematic>The user never receives a tangible artifact to review or approve.</why_problematic>
+      <correct_approach>After gathering context, immediately create the todo list and write the plan file before presenting for review.</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Vague or overly generic steps</description>
+      <why_problematic>Implementation mode cannot execute ambiguous instructions reliably.</why_problematic>
+      <correct_approach>Each step should reference specific files, functions, or components and describe concrete actions.</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Skipping clarifying questions</description>
+      <why_problematic>Assumptions about requirements lead to plans that don't match user intent.</why_problematic>
+      <correct_approach>Ask focused questions when critical details are missing, especially for scope, priorities, or constraints.</correct_approach>
+    </pitfall>
+  </common_pitfalls>
+
+  <quality_checklist>
+    <category name="before_presenting_plan">
+      <item>Plan is saved as a markdown file in docs/</item>
+      <item>Plan includes all required sections (overview, objectives, steps, files, risks)</item>
+      <item>Steps are numbered and ordered by dependency</item>
+      <item>File changes are specific with paths listed</item>
+      <item>Todo list created using update_todo_list tool</item>
+    </category>
+    <category name="after_approval">
+      <item>Handoff message includes the plan file path</item>
+      <item>Appropriate implementation mode is specified in new_task</item>
+      <item>User knows what to expect next</item>
+    </category>
+  </quality_checklist>
+</best_practices>

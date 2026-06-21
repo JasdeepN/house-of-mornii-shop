@@ -46,5 +46,13 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
+    // Proxy Admin API calls to Cloudflare Worker during local development
+    proxy: {
+      '/api/shopify': {
+        target: 'http://localhost:8787', // Cloudflare dev server (wrangler dev)
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/shopify/, ''),
+      },
+    },
   },
 });

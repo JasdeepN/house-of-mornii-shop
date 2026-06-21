@@ -1,21 +1,19 @@
 // React Query hooks for Shopify data fetching
-// Uses Admin API for products/collections when available, falls back to Storefront API.
-// Cart operations always use Storefront API (not available in Admin API).
+// Uses Storefront API for all operations (Admin API proxied through Cloudflare Worker).
+// Cart operations always use Storefront API.
 // Falls back to demo data when no credentials are configured.
 
 import { useQuery } from '@tanstack/react-query'
-import { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE, HAS_ADMIN_CREDENTIALS, adminFetch } from './client'
+import { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE } from './client'
+import { adminProxyFetch } from './admin-proxy'
 import {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
-  COLLECTION_BY_HANDLE_QUERY_TOKENLESS,
   PRODUCT_BY_HANDLE_QUERY,
-  PRODUCT_BY_HANDLE_QUERY_TOKENLESS,
   PRODUCTS_QUERY,
-  PRODUCTS_QUERY_TOKENLESS,
 } from './queries'
 
-// Admin API query variants (share same field structure for products/collections)
+// Admin API query variants (proxied through Cloudflare Worker for security)
 const ADMIN_COLLECTIONS_QUERY = `
   query Collections {
     collections(first: 20) {
@@ -163,9 +161,9 @@ export function useCollections() {
     queryFn: async () => {
       if (!IS_CONFIGURED) return getDemoCollections()
       
-      // Use Admin API when available (simpler auth with single token)
-      if (HAS_ADMIN_CREDENTIALS) {
-        const data = await adminFetch<{ collections: { edges: { node: ShopifyCollection }[] } }>({
+      // Use Admin API proxy when available (Admin token held server-side in Worker)
+      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+        const data = await adminProxyFetch<{ collections: { edges: { node: ShopifyCollection }[] } }>({
           query: ADMIN_COLLECTIONS_QUERY,
         })
         return data.collections.edges.map((e) => e.node)
@@ -224,17 +222,18 @@ export function useCollection(handle: string, first = 12, sortKey?: string, reve
         return demoCollection
       }
 
-      // Use Admin API when available (simpler auth with single token)
-      if (HAS_ADMIN_CREDENTIALS) {
-        const data = await adminFetch<CollectionByHandleResponse>({
+      // Use Admin API proxy when available (Admin token held server-side in Worker)
+      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+        const data = await adminProxyFetch<CollectionByHandleResponse>({
           query: ADMIN_COLLECTION_BY_HANDLE_QUERY,
           variables: { handle, first, sortKey: collectionSortKey, reverse, after: after || undefined },
         })
         return data.collection
       }
 
+      // Token mode only — tokenless removed per Shopify best practices
       const data = await shopifyFetch<CollectionByHandleResponse>(
-        STOREFRONT_MODE === 'token' ? COLLECTION_BY_HANDLE_QUERY : COLLECTION_BY_HANDLE_QUERY_TOKENLESS,
+        COLLECTION_BY_HANDLE_QUERY,
         { handle, first, sortKey: collectionSortKey, reverse, after: after || undefined },
       )
       return data.collection
@@ -274,17 +273,18 @@ export function useProduct(handle: string) {
         }
       }
 
-      // Use Admin API when available (simpler auth with single token)
-      if (HAS_ADMIN_CREDENTIALS) {
-        const data = await adminFetch<ProductByHandleResponse>({
+      // Use Admin API proxy when available (Admin token held server-side in Worker)
+      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+        const data = await adminProxyFetch<ProductByHandleResponse>({
           query: ADMIN_PRODUCT_BY_HANDLE_QUERY,
           variables: { handle },
         })
         return data.product
       }
 
+      // Token mode only — tokenless removed per Shopify best practices
       const data = await shopifyFetch<ProductByHandleResponse>(
-        STOREFRONT_MODE === 'token' ? PRODUCT_BY_HANDLE_QUERY : PRODUCT_BY_HANDLE_QUERY_TOKENLESS,
+        PRODUCT_BY_HANDLE_QUERY,
         { handle },
       )
       return data.product
@@ -348,9 +348,9 @@ export function useProducts(
         }
       }
 
-      // Use Admin API when available (simpler auth with single token)
-      if (HAS_ADMIN_CREDENTIALS) {
-        const data = await adminFetch<ProductsResponse>({
+      // Use Admin API proxy when available (Admin token held server-side in Worker)
+      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+        const data = await adminProxyFetch<ProductsResponse>({
           query: ADMIN_PRODUCTS_QUERY,
           variables: {
             first,
@@ -363,8 +363,9 @@ export function useProducts(
         return data.products
       }
 
+      // Token mode only — tokenless removed per Shopify best practices
       const data = await shopifyFetch<ProductsResponse>(
-        STOREFRONT_MODE === 'token' ? PRODUCTS_QUERY : PRODUCTS_QUERY_TOKENLESS,
+        PRODUCTS_QUERY,
         {
           first,
           sortKey,

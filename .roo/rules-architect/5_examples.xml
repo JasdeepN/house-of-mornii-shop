@@ -1,0 +1,141 @@
+<complete_examples>
+  <example name="feature_planning">
+    <scenario>
+      User requests: "I want to add a newsletter signup section to the homepage."
+    </scenario>
+
+    <workflow>
+      <step number="1">
+        <description>Gather context</description>
+        <actions>
+          <action>Read docs/02-components.md for component architecture</action>
+          <action>Check src/components/NewsletterSignup.tsx for existing implementation</action>
+          <action>Review docs/04-state-management.md for state patterns</action>
+        </actions>
+      </step>
+
+      <step number="2">
+        <description>Ask clarifying questions</description>
+        <guidance>
+          Ask the user about placement, styling requirements, and data source.
+        </guidance>
+        <example_question>
+          Where should the newsletter section appear on the homepage?
+          Options:
+          1) Below the hero section
+          2) In the footer area
+          3) As a modal popup
+          4) Use existing NewsletterSignup component
+        </example_question>
+      </step>
+
+      <step number="3">
+        <description>Create todo list</description>
+        <actions>
+          <action>Use update_todo_list with actionable steps</action>
+        </actions>
+        <expected_output>
+          - [ ] Review existing NewsletterSignup component structure
+          - [ ] Design section placement and layout
+          - [ ] Define integration points with state management
+          - [ ] Write plan document to docs/
+          - [ ] Present plan for user review
+        </expected_output>
+      </step>
+
+      <step number="4">
+        <description>Write plan document</description>
+        <actions>
+          <action>Create docs/newsletter-homepage-plan.md</action>
+          <action>Include overview, objectives, steps, file changes, risks</action>
+        </actions>
+        <expected_artifact>
+          File: docs/newsletter-homepage-plan.md
+          Content structure:
+          ## Overview
+          Add newsletter signup section below hero on homepage.
+
+          ## Objectives
+          - Reuse existing NewsletterSignup component
+          - Match existing styling patterns
+          - No new dependencies
+
+          ## Steps
+          1. Import NewsletterSignup in HomePage.tsx
+          2. Add section element after HeroSection
+          3. Apply glass-panel styling class
+          4. Test responsive layout
+
+          ## File Changes
+          - src/pages/HomePage.tsx — add import and section
+          - No new files created
+
+          ## Risks
+          - Minimal: reuses existing component
+        </expected_artifact>
+      </step>
+
+      <step number="5">
+        <description>Present for review</description>
+        <actions>
+          <action>Summarize plan concisely</action>
+          <action>Show file path: docs/newsletter-homepage-plan.md</action>
+          <action>Ask for approval to proceed</action>
+        </actions>
+      </step>
+    </workflow>
+
+    <completion>
+      Plan saved to docs/newsletter-homepage-plan.md. Ready to switch to code mode for implementation upon approval.
+    </completion>
+  </example>
+
+  <example name="refactoring_plan">
+    <scenario>
+      User requests: "I need to refactor the cart system to support gift wrapping options."
+    </scenario>
+
+    <workflow>
+      <step number="1">
+        <description>Analyze current implementation</description>
+        <actions>
+          <action>Read src/lib/cart.ts for cart logic</action>
+          <action>Read src/context/CartContext.tsx for state management</action>
+          <action>Check src/components/CartFlyout.tsx and CartPage.tsx for UI references</action>
+        </actions>
+      </step>
+
+      <step number="2">
+        <description>Create todo list</description>
+        <expected_output>
+          - [ ] Analyze current cart data structures
+          - [ ] Design gift wrapping type additions
+          - [ ] Plan UI changes for cart flyout and page
+          - [ ] Write plan document to docs/
+          - [ ] Present plan for user review
+        </expected_output>
+      </step>
+
+      <step number="3">
+        <description>Write comprehensive plan</description>
+        <actions>
+          <action>Create docs/cart-gift-wrapping-plan.md</action>
+          <action>Include type definitions, state changes, UI updates</action>
+        </actions>
+      </step>
+
+      <step number="4">
+        <description>Handoff preparation</description>
+        <actions>
+          <action>After approval, use new_task to switch to code mode</action>
+          <action>Include plan path in delegation message</action>
+        </actions>
+      </step>
+    </workflow>
+
+    <key_takeaways>
+      <takeaway>Complex refactors need detailed type-level planning</takeaway>
+      <takeaway>List ALL affected files to help user evaluate scope</takeaway>
+    </key_takeaways>
+  </example>
+</complete_examples>
