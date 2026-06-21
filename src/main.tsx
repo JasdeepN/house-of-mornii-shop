@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import App from './App.tsx'
 import { ErrorFallback } from './ErrorFallback.tsx'
-import { CartProvider } from './context/CartContext'
 import { STOREFRONT_MODE } from './lib/shopify/client'
 import { initGA4, initMetaPixel } from './lib/analytics'
 
@@ -40,9 +39,7 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <App />
-      </CartProvider>
+      <App />
     </QueryClientProvider>
   </ErrorBoundary>
 )

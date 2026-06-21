@@ -101,3 +101,85 @@ export function formatMoney(money: ShopifyMoney): string {
     currency: money.currencyCode,
   }).format(parseFloat(money.amount))
 }
+
+// ─── Customer Account API types ────────────────────────────────────────────────
+
+export interface ShopifyCustomer {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  phone: string | null
+  acceptsMarketing: boolean
+  addresses: { edges: { node: ShopifyMailingAddress }[] }
+  orders: {
+    edges: { node: ShopifyOrder }[]
+    pageInfo: { hasNextPage: boolean; endCursor: string | null }
+  }
+}
+
+export interface ShopifyMailingAddress {
+  id: string
+  firstName: string
+  lastName: string
+  address1: string
+  city: string
+  province: string
+  country: string
+  zip: string
+  phone: string
+}
+
+export interface ShopifyOrder {
+  id: string
+  name: string
+  orderNumber: number
+  processedAt: string
+  totalPrice: ShopifyMoney
+  financialStatus: string
+  fulfillmentStatus: string | null
+  lineItems: { edges: { node: ShopifyOrderLineItem }[] }
+}
+
+export interface ShopifyOrderLineItem {
+  title: string
+  quantity: number
+  originalPrice: ShopifyMoney
+  image: ShopifyImage | null
+}
+
+export interface ShopifyCustomerAccessToken {
+  accessToken: string
+  expiresAt: string
+  recoveryToken?: string
+}
+
+export interface ShopifyAuthenticationURL {
+  url: string | null
+}
+
+export interface ShopifyCustomerUserError {
+  field: string | null
+  message: string
+  code: string | null
+}
+
+// Input types for mutations
+export interface CustomerAccessTokenCreateInput {
+  email: string
+  password: string
+}
+
+export interface CustomerCreateInput {
+  email: string
+  password: string
+  firstName?: string
+  lastName?: string
+}
+
+export interface CustomerUpdateInput {
+  firstName?: string
+  lastName?: string
+  phone?: string
+  acceptsMarketing?: boolean
+}

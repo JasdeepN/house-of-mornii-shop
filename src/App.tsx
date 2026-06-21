@@ -11,6 +11,8 @@ import { Toaster } from 'sonner'
 import { trackPageView } from '@/lib/analytics'
 import { JsonLd, organizationSchema } from '@/components/JsonLd'
 import { WelcomePopup } from '@/components/WelcomePopup'
+import { CartProvider } from '@/context/CartContext'
+import { CustomerAuthProvider } from '@/context/CustomerAuthContext'
 
 // Route-level code splitting — each page loads on demand
 const HomePage = lazy(() => import('@/pages/HomePage').then((m) => ({ default: m.HomePage })))
@@ -22,6 +24,9 @@ const AboutPage = lazy(() => import('@/pages/AboutPage').then((m) => ({ default:
 const ContactPage = lazy(() => import('@/pages/ContactPage').then((m) => ({ default: m.ContactPage })))
 const CartPage = lazy(() => import('@/pages/CartPage').then((m) => ({ default: m.CartPage })))
 const HealthPage = lazy(() => import('@/pages/HealthPage').then((m) => ({ default: m.HealthPage })))
+const AccountPage = lazy(() => import('@/pages/AccountPage').then((m) => ({ default: m.AccountPage })))
+const OrdersPage = lazy(() => import('@/pages/OrdersPage').then((m) => ({ default: m.OrdersPage })))
+const OrderDetailPage = lazy(() => import('@/pages/OrderDetailPage').then((m) => ({ default: m.OrderDetailPage })))
 
 function RouteLoader() {
   return (
@@ -60,6 +65,9 @@ function AnimatedRoutes() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/account/orders" element={<OrdersPage />} />
+            <Route path="/account/orders/:orderNumber" element={<OrderDetailPage />} />
             <Route path="/_health" element={<HealthPage />} />
           </Routes>
         </Suspense>
@@ -71,30 +79,34 @@ function AnimatedRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <JsonLd data={organizationSchema()} />
-      <EnvironmentWarning />
-      <div>
-        <div className="relative" style={{ zIndex: 2 }}>
-          <Header />
-          <ScrollToHash />
-          <main className="pt-24">
-            <AnimatedRoutes />
-          </main>
-          <Footer />
-        </div>
-        <CartFlyout />
-        <WelcomePopup />
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: 'oklch(0.22 0.03 210)',
-              border: '1px solid oklch(1 0 0 / 0.1)',
-              color: 'oklch(0.90 0.01 210)',
-            },
-          }}
-        />
-      </div>
+      <CustomerAuthProvider>
+        <CartProvider>
+          <JsonLd data={organizationSchema()} />
+          <EnvironmentWarning />
+          <div>
+            <div className="relative" style={{ zIndex: 2 }}>
+              <Header />
+              <ScrollToHash />
+              <main className="pt-24">
+                <AnimatedRoutes />
+              </main>
+              <Footer />
+            </div>
+            <CartFlyout />
+            <WelcomePopup />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: 'oklch(0.22 0.03 210)',
+                  border: '1px solid oklch(1 0 0 / 0.1)',
+                  color: 'oklch(0.90 0.01 210)',
+                },
+              }}
+            />
+          </div>
+        </CartProvider>
+      </CustomerAuthProvider>
     </BrowserRouter>
   )
 }

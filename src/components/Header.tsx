@@ -8,6 +8,11 @@ import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
 import { SearchBar } from '@/components/SearchBar'
 import { useTheme } from '@/hooks/useTheme'
+import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { CustomerMenu } from '@/components/CustomerMenu'
+import { LoginModal } from '@/components/LoginModal'
+import { RegisterModal } from '@/components/RegisterModal'
+import { PasswordRecoveryModal } from '@/components/PasswordRecoveryModal'
 
 const navLinks = [
   { label: 'SHOP', href: '/shop' },
@@ -22,6 +27,12 @@ export function Header() {
   const navigate = useNavigate()
   const { itemCount, openCart } = useCart()
   const { theme, toggleTheme } = useTheme()
+  const { isAuthenticated } = useCustomerAuth()
+  
+  // Auth modal states
+  const [showLogin, setShowLogin] = useState(false)
+  const [showRegister, setShowRegister] = useState(false)
+  const [showRecovery, setShowRecovery] = useState(false)
   
   // Debounce navigation to prevent rapid state updates
   const navigateDebounced = useCallback(
@@ -141,35 +152,56 @@ export function Header() {
               </nav>
 
                <div className="flex items-center gap-3">
-                {/* Theme toggle — desktop */}
-                <button
-                  onClick={toggleTheme}
-                  className="p-2 hover:text-accent transition-colors hidden lg:inline-flex"
-                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                >
-                  {theme === 'dark' ? <Sun size={20} weight="bold" /> : <Moon size={20} weight="bold" />}
-                </button>
-                <SearchBar />
-                <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
-                  <Handbag size={22} weight="bold" />
-                  {itemCount > 0 && (
-                    <span
-                      className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
-                      style={{ background: 'oklch(0.60 0.11 78)', color: 'oklch(0.15 0.02 210)' }}
-                    >
-                      {itemCount > 9 ? '9+' : itemCount}
-                    </span>
-                  )}
-                </button>
-                <Link to="/contact">
-                  <Button
-                    variant="outline"
-                    className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
-                  >
-                    BOOK A STYLING
-                  </Button>
-                </Link>
-              </div>
+                 {/* Customer auth menu */}
+                 <CustomerMenu onLoginClick={() => setShowLogin(true)} />
+                 
+                 {/* Theme toggle — desktop */}
+                 <button
+                   onClick={toggleTheme}
+                   className="p-2 hover:text-accent transition-colors hidden lg:inline-flex"
+                   aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                 >
+                   {theme === 'dark' ? <Sun size={20} weight="bold" /> : <Moon size={20} weight="bold" />}
+                 </button>
+                 <SearchBar />
+                 <button onClick={openCart} className="relative p-2 hover:text-accent transition-colors">
+                   <Handbag size={22} weight="bold" />
+                   {itemCount > 0 && (
+                     <span
+                       className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
+                       style={{ background: 'oklch(0.60 0.11 78)', color: 'oklch(0.15 0.02 210)' }}
+                     >
+                       {itemCount > 9 ? '9+' : itemCount}
+                     </span>
+                   )}
+                 </button>
+                 <Link to="/contact">
+                   <Button
+                     variant="outline"
+                     className="border-accent text-foreground hover:bg-accent/10 font-semibold tracking-widest"
+                   >
+                     BOOK A STYLING
+                   </Button>
+                 </Link>
+               </div>
+
+               {/* Auth modals */}
+               <LoginModal
+                 open={showLogin}
+                 onOpenChange={setShowLogin}
+                 onNavigateToRegister={() => { setShowLogin(false); setShowRegister(true) }}
+                 onNavigateToRecovery={() => { setShowLogin(false); setShowRecovery(true) }}
+               />
+               <RegisterModal
+                 open={showRegister}
+                 onOpenChange={setShowRegister}
+                 onNavigateToLogin={() => { setShowRegister(false); setShowLogin(true) }}
+               />
+               <PasswordRecoveryModal
+                 open={showRecovery}
+                 onOpenChange={setShowRecovery}
+                 onNavigateToLogin={() => { setShowRecovery(false); setShowLogin(true) }}
+               />
             </>
           )}
         </div>

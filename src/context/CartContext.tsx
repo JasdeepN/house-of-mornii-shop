@@ -14,10 +14,12 @@ import {
   CART_LINES_ADD_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_LINES_REMOVE_MUTATION,
+  CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION,
 } from '@/lib/shopify/queries'
 import { getDemoProduct, getDemoProducts } from '@/lib/shopify/demo-data'
 import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify/types'
 import { toast } from 'sonner'
+import { useCustomerAuth } from './CustomerAuthContext'
 
 const CART_ID_KEY = 'hom-cart-id'
 
@@ -111,6 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<ShopifyCart | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isCartOpen, setCartOpen] = useState(false)
+  const { isAuthenticated, accessToken } = useCustomerAuth()
 
   const openCart = useCallback(() => setCartOpen(true), [])
 
@@ -144,6 +147,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Reset to empty cart state on localStorage error
     }
   }, [])
+
+  // Cart merge: when customer authenticates, merge anonymous cart into their account cart
+  useEffect(() => {
+    if (!IS_CONFIGURED || !isAuthenticated || !accessToken) return
+
+    const savedCartId = localStorage.getItem(CART_ID_KEY)
+    if (!savedCartId) return
+
+    setIsLoading(true)
+    shopifyFetch<{
+      cartMergeWithBuyerIdentity: {
+        cart: ShopifyCart
+        mergedCart: ShopifyCart
+        userErrors: { message: string }[]
+      }
+    }>(CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION, {
+      cartId: savedCartId,
+      customerAccessToken: accessToken,
+    })
+      .then((data) => {
+        const merged = data.cartMergeWithBuyerIdentity.mergedCart ?? data.cartMergeWithBuyerIdentity.cart
+        if (merged) {
+          setCart(merged)
+        }
+        // Clear the anonymous cart ID — it's now merged into the customer's account
+        localStorage.removeItem(CART_ID_KEY)
+      })
+      .catch((error) => {
+        console.error('Failed to merge cart:', error)
+        // Don't show error toast for merge failures — non-critical
+      })
+      .finally(() => setIsLoading(false))
+  }, [isAuthenticated, accessToken, IS_CONFIGURED])
 
   // ── Add to Cart ──────────────────────────────────────────────────────────
 
