@@ -22,6 +22,9 @@ jobs:
 
       - name: Run tests
         run: npx vitest run
+        env:
+          VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
+          VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
 
       - name: Build
         run: npm run build
