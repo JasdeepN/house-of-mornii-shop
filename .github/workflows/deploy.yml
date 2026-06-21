@@ -36,4 +36,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
             pages deploy dist
-            --project-name=house-of-mornii-${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+            --project-name=house-of-mornii
