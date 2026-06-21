@@ -2,8 +2,8 @@ name: E2E Smoke Tests
 
 on:
   # Nightly against the production domain
-  schedule:
-    - cron: '0 4 * * *'
+  # schedule:
+  #   - cron: '0 4 * * *'
   # Manual trigger for on-demand runs
   workflow_dispatch:
     inputs:
