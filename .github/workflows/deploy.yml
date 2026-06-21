@@ -75,10 +75,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: |
-            pages deploy dist \
-              --project-name=house-of-mornii-dev \
-              --branch=${{ github.ref_name }}
+          command: npx wrangler pages deploy dist --project-name=house-of-mornii-dev --branch=${{ github.ref_name }}
 
       - name: Output deployment URL
         run: |
@@ -134,10 +131,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: |
-            pages deploy dist \
-              --project-name=house-of-mornii \
-              --branch=main
+          command: npx wrangler pages deploy dist --project-name=house-of-mornii --branch=main
 
       - name: Output deployment URL
         run: |
