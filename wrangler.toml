@@ -1,0 +1,35 @@
+# wrangler.toml — Shopify Automation Worker
+#
+# Deploys workers/shopify-proxy.ts as a Cloudflare Worker with three
+# responsibilities:
+#   1. POST /api/shopify/admin    — read-only Admin API proxy (mutation-blocked)
+#   2. POST /api/shopify/webhook  — HMAC-verified Shopify webhook receiver
+#   3. scheduled()                — daily Cron Trigger that backs up
+#                                    products/collections/orders to R2
+#
+# Secrets (NEVER put these here — set via `wrangler secret put <NAME>`):
+#   SHOPIFY_ADMIN_ACCESS_TOKEN  — Admin API access token (server-side only)
+#   SHOPIFY_WEBHOOK_SECRET      — Shared secret used to verify webhook HMACs
+#
+# To provision secrets once, out-of-band:
+#   npx wrangler secret put SHOPIFY_ADMIN_ACCESS_TOKEN
+#   npx wrangler secret put SHOPIFY_WEBHOOK_SECRET
+
+name = "shopify-automation-worker"
+main = "workers/shopify-proxy.ts"
+compatibility_date = "2025-01-01"
+
+[triggers]
+crons = ["0 3 * * *"]
+
+[[r2_buckets]]
+binding = "SHOPIFY_BACKUPS"
+bucket_name = "shopify-backups"
+
+[[kv_namespaces]]
+binding = "BACKUP_INDEX"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+SHOPIFY_STORE_DOMAIN = "your-store.myshopify.com"
+ALLOWED_ORIGIN = "https://houseofmornii.com"

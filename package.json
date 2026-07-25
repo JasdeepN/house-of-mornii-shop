@@ -14,7 +14,8 @@
         "test:run": "vitest run",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui",
-        "test:e2e:report": "playwright show-report"
+        "test:e2e:report": "playwright show-report",
+        "test:backup-export": "tsx scripts/test-backup-export.ts"
     },
     "dependencies": {
         "@heroicons/react": "^2.2.0",
@@ -96,6 +97,7 @@
         "jsdom": "^28.1.0",
         "sass": "^1.97.3",
         "tailwindcss": "^4.1.11",
+        "tsx": "^4.23.1",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.38.0",
         "vite": "^7.2.6",

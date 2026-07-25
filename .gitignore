@@ -45,3 +45,6 @@ test-results/
 .local-ci/.secrets
 .local-ci/.env.build
 .local-ci/.env.production
+
+# Local backup export integration test output (scripts/test-backup-export.ts)
+.test-backups/

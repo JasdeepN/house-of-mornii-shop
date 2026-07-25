@@ -251,3 +251,132 @@ Hard refresh (`Ctrl+Shift+R`). Cloudflare CDN may cache the old version for up t
 ### Playwright tests fail locally but pass in CI
 
 Usually a race condition. Run `npm run test:e2e:ui` for the step-by-step trace. Check screenshot artifacts in the test runner.
+
+---
+
+## 11. Shopify Automation Worker (Cloudflare Worker)
+
+The Worker at [`workers/shopify-proxy.ts`](../workers/shopify-proxy.ts) deploys alongside Pages (see [`wrangler.toml`](../wrangler.toml) and the `Deploy Shopify Automation Worker` step in `.github/workflows/deploy.yml`, gated to `main`). It provides the read-only Admin proxy route, a webhook receiver, and a daily backup Cron job. See [`docs/shopify-api-architecture.md`](shopify-api-architecture.md) for the full route/architecture reference.
+
+### 11.1 First-Time Worker Setup
+
+1. Create the R2 bucket and KV namespace referenced in `wrangler.toml`:
+   ```bash
+   npx wrangler r2 bucket create shopify-backups
+   npx wrangler kv namespace create BACKUP_INDEX
+   ```
+   Copy the returned KV namespace `id` into `wrangler.toml`'s `[[kv_namespaces]]` block (replacing `REPLACE_WITH_KV_NAMESPACE_ID`).
+
+2. Set the Worker's non-secret vars in `wrangler.toml` (`SHOPIFY_STORE_DOMAIN`, `ALLOWED_ORIGIN`) to production values.
+
+3. Provision Worker **secrets** out-of-band — never in `wrangler.toml`, never as a `VITE_`-prefixed var, never in CI logs:
+   ```bash
+   npx wrangler secret put SHOPIFY_ADMIN_ACCESS_TOKEN
+   npx wrangler secret put SHOPIFY_WEBHOOK_SECRET
+   ```
+   - `SHOPIFY_ADMIN_ACCESS_TOKEN`: Shopify Admin → Settings → Apps and sales channels → Develop apps → (your app) → API credentials. Requires at minimum `read_products` and `read_orders` scopes for the backup export to succeed.
+   - `SHOPIFY_WEBHOOK_SECRET`: a secret you generate (e.g. `openssl rand -hex 32`) and reuse when registering webhooks in step 11.3 below.
+
+4. Deploy the Worker manually the first time to verify config:
+   ```bash
+   npx wrangler deploy
+   ```
+
+5. Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` to GitHub Actions secrets if not already present (shared with the Pages deploy step — see section 4).
+
+### 11.2 Backup / Restore Runbook
+
+**How backups run:** Every day at 03:00 UTC, the Worker's `scheduled()` handler pages through `products`, `collections`, and `orders` via the Admin API (cursor pagination, see [`workers/backup-queries.ts`](../workers/backup-queries.ts)) and writes each resource to R2 at:
+
+```
+backups/<YYYY-MM-DD>/products.json
+backups/<YYYY-MM-DD>/collections.json
+backups/<YYYY-MM-DD>/orders.json
+```
+
+After all three resources succeed, the `BACKUP_INDEX` KV namespace's `latest-backup` key is updated with:
+
+```json
+{ "date": "2026-01-15", "keys": [ "backups/2026-01-15/products.json", "..." ], "counts": { "products": 42, "collections": 5, "orders": 130 }, "completedAt": "2026-01-15T03:04:12.000Z" }
+```
+
+**Checking backup health:**
+```bash
+npx wrangler tail                      # live logs — look for "backup.complete" or "backup.failed"
+npx wrangler kv key get latest-backup --namespace-id=<BACKUP_INDEX id>
+npx wrangler r2 object get shopify-backups/backups/<date>/products.json --file=./products.json
+```
+
+**Restoring data:** There is no automated restore tool (explicitly out of scope for this iteration). To manually inspect or restore from a snapshot:
+1. Download the relevant JSON file with `wrangler r2 object get`.
+2. Review the JSON — each resource file is a flat array of the GraphQL `nodes` for that resource.
+3. Use the Shopify Admin UI (bulk CSV import for products/collections) or write a one-off script calling the Admin API mutations directly — never route restore mutations through the read-only `/api/shopify/admin` proxy, since it rejects all mutations by design.
+
+**Failure handling:** If a page fails mid-export, the Worker logs a structured `backup.failed` error (including which resource keys were already written) and does **not** update `latest-backup`, so a stale-but-valid previous snapshot remains authoritative. Check `wrangler tail` or the Cloudflare dashboard's Worker logs after 03:00 UTC if backups appear to be missing.
+
+### 11.4 Local Integration Testing
+
+Before deploying Worker changes to production, verify the backup export queries work against a real store using [`scripts/test-backup-export.ts`](../scripts/test-backup-export.ts). This script calls the Shopify Admin API directly — using the same paginated GraphQL queries from [`workers/backup-queries.ts`](../workers/backup-queries.ts) — so it does **not** require a deployed Worker.
+
+**Prerequisites:**
+- A Shopify test/dev store (do not run this against production unless intentional — it only reads data, but still counts against API rate limits).
+- An Admin API access token with `read_products` and `read_orders` scopes (a custom app token or the same token used for `SHOPIFY_ADMIN_ACCESS_TOKEN` in production works).
+- In `.env.local`, set:
+  ```ini
+  SHOPIFY_ADMIN_ACCESS_TOKEN=your_admin_api_access_token
+  SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
+  ```
+  (These are plain, non-`VITE_`-prefixed vars — the script reads them from `.env.local` or the process environment, never bundled into client code.)
+
+**How to run:**
+```bash
+npm run test:backup-export
+# or
+npx tsx scripts/test-backup-export.ts
+```
+
+**What to expect:**
+- Console output logging each resource (`products`, `collections`, `orders`) as it's fetched, with record counts and per-resource timing.
+- A summary table at the end showing records/durationMs/status per resource, plus total elapsed time.
+- JSON files written to a local `.test-backups/` directory (gitignored, never committed):
+  ```
+  .test-backups/products.json
+  .test-backups/collections.json
+  .test-backups/orders.json
+  ```
+- Exit code `0` on full success, `1` if any resource fails (with the error printed) or if required env vars are missing.
+
+**How to inspect results:**
+```bash
+cat .test-backups/products.json | jq '. | length'        # record count
+cat .test-backups/products.json | jq '.[0]'               # inspect first product's shape
+```
+Confirm the JSON shape matches what `runScheduledBackup` expects to write to R2 (a flat array of GraphQL `nodes` per resource) before deploying Worker changes that touch the backup queries.
+
+### 11.3 Webhook Registration Runbook
+
+Register the two webhook subscriptions Shopify sends to `https://<your-domain>/api/shopify/webhook`, signed with the same `SHOPIFY_WEBHOOK_SECRET` set in step 11.1:
+
+**Via Shopify Admin UI:**
+1. Shopify Admin → Settings → Notifications → Webhooks → Create webhook
+2. Event: `Order creation` → Format: JSON → URL: `https://<your-domain>/api/shopify/webhook`
+3. Repeat for `Inventory level update`
+
+**Via Admin API (equivalent, scriptable):**
+```graphql
+mutation {
+  webhookSubscriptionCreate(
+    topic: ORDERS_CREATE
+    webhookSubscription: { callbackUrl: "https://<your-domain>/api/shopify/webhook", format: JSON }
+  ) {
+    webhookSubscription { id }
+    userErrors { field message }
+  }
+}
+```
+(Repeat with `topic: INVENTORY_LEVELS_UPDATE`.) Run this via a one-off authenticated request — not through the read-only Worker proxy, which blocks mutations.
+
+**Verifying webhook delivery:**
+- Trigger a test event (place a test order, adjust inventory) and check `wrangler tail` for `webhook.orders_create` / `webhook.inventory_levels_update` structured logs.
+- A `401` response with `webhook.hmac_invalid` in the logs means the webhook subscription's secret doesn't match `SHOPIFY_WEBHOOK_SECRET` — re-create the subscription or re-run `wrangler secret put SHOPIFY_WEBHOOK_SECRET` with the correct value.
+- Shopify retries failed webhooks with backoff; the receiver's side effects (structured log + notification stub) are idempotent, so duplicate deliveries are safe.

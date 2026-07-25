@@ -41,3 +41,15 @@ jobs:
             pages deploy dist
             --project-name=house-of-mornii
             --branch=${{ github.ref_name }}
+
+      # Shopify Automation Worker — separate from the Pages frontend deploy
+      # above. Only deploys on pushes to main. Worker secrets
+      # (SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_WEBHOOK_SECRET) are provisioned
+      # out-of-band via `wrangler secret put` and are never referenced here.
+      - name: Deploy Shopify Automation Worker
+        if: github.ref_name == 'main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
