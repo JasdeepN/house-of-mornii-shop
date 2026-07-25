@@ -35,9 +35,11 @@ pids
 
 .spark-workbench-id
 
+
 # Playwright
 playwright-report/
 test-results/
+.playwright-mcp/
 
 # Local CI/CD configuration
 .local-ci/.secrets
