@@ -78,7 +78,6 @@ src/lib/shopify/
 ├── admin-proxy.ts     # Browser client for Admin API via Worker proxy
 ├── hooks.ts           # React Query hooks (useCollections, useProducts, etc.)
 ├── queries.ts         # GraphQL query definitions
-├── demo-data.ts       # Fixture data when credentials absent
 ├── retry.ts           # Retry logic wrapper
 ├── types.ts           # TypeScript type definitions
 └── index.ts           # Barrel exports
@@ -86,9 +85,8 @@ src/lib/shopify/
 
 ### Hook Resolution Order (each hook checks in this order)
 
-1. **Demo mode** (`!IS_CONFIGURED`): Return fixture data from `demo-data.ts`
-2. **Admin API available** (`VITE_SHOPIFY_ADMIN_ACCESS_TOKEN` set): Call `adminProxyFetch()` → Cloudflare Worker → Admin API
-3. **Token mode** (default live path): Call `shopifyFetch()` → SDK → Storefront API
+1. **Admin API available** (`VITE_SHOPIFY_ADMIN_ACCESS_TOKEN` set): Call `adminProxyFetch()` → Cloudflare Worker → Admin API
+2. **Token mode** (default live path): Call `shopifyFetch()` → SDK → Storefront API
 
 ## Environment Variables
 
@@ -108,13 +106,12 @@ src/lib/shopify/
 ### Runtime Mode Detection
 
 ```typescript
-// client.ts — determines mode at module load time
-STOREFRONT_MODE = 'demo' | 'token'
-IS_CONFIGURED = STOREFRONT_MODE !== 'demo'  // true only in 'token' mode
+// client.ts — resolved at module load time; throws if credentials missing/placeholder
+STOREFRONT_MODE = 'token'
+IS_CONFIGURED = true
 ```
 
-- **`demo`**: Missing domain or storefront token → app uses `demo-data.ts` fixtures
-- **`token`**: Both domain and storefront token present → live Storefront API calls
+- **`token`**: Domain and storefront token present (required in every environment) → live Storefront API calls. Missing/placeholder credentials throw at module load rather than falling back.
 
 ## Cloudflare Worker Proxy (Optional, Not Deployed)
 

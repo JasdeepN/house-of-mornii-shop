@@ -22,7 +22,7 @@ React 19 + TypeScript 5.7 + Vite 7 + React Router DOM 7 + TanStack Query + Tailw
 
 ## Shopify Integration (Critical)
 
-Three modes detected via `STOREFRONT_MODE` from `@/lib/shopify/client`: `'demo'`, `'tokenless'`, or `'token'`. Check `IS_CONFIGURED` boolean to know if live credentials exist. All data-fetching hooks in `src/lib/shopify/hooks.ts` fall back to `demo-data.ts` when `IS_CONFIGURED` is false. **Production builds abort with exit(1) if demo mode detected** — never deploy without credentials.
+Only `'token'` mode exists — `STOREFRONT_MODE` from `@/lib/shopify/client` is always `'token'` and `IS_CONFIGURED` is always `true`. There is no demo mode: `client.ts` throws at module load in every environment (local, UAT, production) if `VITE_SHOPIFY_STORE_DOMAIN` or `VITE_SHOPIFY_STOREFRONT_TOKEN` is missing or a placeholder. All environments require real Shopify credentials (a dev/UAT store or the live store).
 
 ## Path Alias
 
@@ -31,8 +31,9 @@ Three modes detected via `STOREFRONT_MODE` from `@/lib/shopify/client`: `'demo'`
 ## Testing
 
 - Vitest + `@testing-library/react` + jsdom. Test files alongside source: `*.test.{ts,tsx}`.
-- `src/test/setup.ts` patches `IntersectionObserver` (required by framer-motion in jsdom) and stubs Shopify env vars to empty strings.
+- `src/test/setup.ts` patches `IntersectionObserver` (required by framer-motion in jsdom) and stubs Shopify env vars to valid dummy credentials (since `client.ts` throws on empty/missing values in all environments, including tests).
 - In tests, `import.meta.env` vars are writable via `@ts-expect-error` — use `vi.stubEnv()` to override.
+- Fixture data for tests lives in `src/test/fixtures/shopify-fixtures.ts` (`getFixtureCollections`, `getFixtureProduct`, etc.) — mock `shopifyFetch` from `@/lib/shopify/client` to return fixture-shaped responses.
 
 ## Key Patterns
 

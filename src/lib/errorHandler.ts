@@ -26,7 +26,7 @@ export type { ErrorMessage }
 /**
  * Check if an error is a service-level failure (upstream_unavailable, misconfigured, network_error)
  */
-export function isServiceError(error?: Error): boolean {
+export function isServiceError(error?: Error | null): boolean {
   if (!error) return false
 
   if (error instanceof StorefrontError) {
@@ -88,7 +88,7 @@ function buildErrorContext(error: Error): LogContext {
  *   return <ErrorUI title={errorDisplay.title} message={errorDisplay.message} />
  * }
  */
-export function useErrorHandler(error?: Error): ErrorDisplay | null {
+export function useErrorHandler(error?: Error | null): ErrorDisplay | null {
   return useMemo(() => {
     if (!error) {
       return null
@@ -119,7 +119,7 @@ export function useErrorHandler(error?: Error): ErrorDisplay | null {
  * Standalone error handler for non-React contexts
  * Returns ErrorDisplay without React hooks
  */
-export function handleSyncError(error?: Error): ErrorDisplay | null {
+export function handleSyncError(error?: Error | null): ErrorDisplay | null {
   if (!error) {
     return null
   }

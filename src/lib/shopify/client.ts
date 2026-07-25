@@ -14,16 +14,15 @@ const PLACEHOLDER_DOMAINS = new Set(['your-store.myshopify.com', 'CHANGE_ME'])
 // ─── Storefront API helpers (unchanged) ────────────────────────────────────────
 
 /**
- * Explicit storefront auth modes:
- * - 'demo'       No live credentials. App uses fixture data only.
- * - 'token'      Domain + public Storefront token present. Full token-gated fields
- *                (tags, metafields, customer APIs) are available.
+ * Storefront auth mode. Only 'token' mode is supported — the app requires live
+ * Shopify credentials in all environments (local, UAT, production). It throws
+ * on startup if credentials are missing or invalid.
  */
-export type StorefrontMode = 'demo' | 'token'
+export type StorefrontMode = 'token'
 
 function resolveStorefrontMode(): StorefrontMode {
   const hasToken = !!storefrontToken
-  
+
   // Check for placeholder values first (before checking if empty)
   if (domain && PLACEHOLDER_DOMAINS.has(domain)) {
     throw new Error(
@@ -31,7 +30,7 @@ function resolveStorefrontMode(): StorefrontMode {
         'Update .env.local with your actual Shopify store domain (e.g., my-store.myshopify.com).',
     )
   }
-  
+
   // Check if domain is missing entirely
   if (!domain) {
     throw new Error(
@@ -39,8 +38,8 @@ function resolveStorefrontMode(): StorefrontMode {
         'Copy .env.example → .env.local and add your Shopify store domain.',
     )
   }
-  
-  // Tokenless mode removed — require storefront token per Shopify best practices.
+
+  // Storefront token is required per Shopify best practices.
   // See: https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api
   if (!hasToken) {
     throw new Error(
@@ -54,10 +53,10 @@ function resolveStorefrontMode(): StorefrontMode {
 export const STOREFRONT_MODE: StorefrontMode = resolveStorefrontMode()
 
 /**
- * True when valid live Shopify credentials are present (token mode).
- * Always true in production — the app throws on startup if credentials are missing.
+ * Always true — the app throws on startup if live Shopify credentials are missing.
+ * Kept as an exported constant for backward compatibility with call sites.
  */
-export const IS_CONFIGURED = STOREFRONT_MODE !== 'demo'
+export const IS_CONFIGURED = true
 
 /**
  * Categories of Storefront errors for page-level error handling.
@@ -105,14 +104,7 @@ export async function shopifyFetch<T = unknown>(
   variables: Record<string, unknown> = {},
   context?: LogContext,
 ): Promise<T> {
-  if (STOREFRONT_MODE === 'demo') {
-    throw new Error(
-      'Shopify is not configured. The app should be using demo data — this call should not happen.',
-    )
-  }
-
-  // Token mode only — SDK handles everything with retry logic
-  if (STOREFRONT_MODE === 'token' && storefrontClient) {
+  if (storefrontClient) {
     return await shopifyFetchWithSdk<T>(query, variables, context)
   }
 
@@ -154,15 +146,9 @@ async function shopifyFetchWithSdk<T = unknown>(
 
 /**
  * Validate that the current query mode matches the storefront mode.
- * In token mode all fields (tags, metafields, customer APIs) are available.
+ * Only 'token' mode exists — all fields (tags, metafields, customer APIs)
+ * are always available. Kept as a no-op for backward compatibility.
  */
-export function validateQueryMode(query: string, mode: StorefrontMode) {
-  // Tokenless mode no longer exists — only 'token' or 'demo' modes remain.
-  // This function is kept for backward compatibility but always passes in token mode.
-  if (mode === 'demo') {
-    logger.warn('validateQueryMode called in demo mode', {
-      action: 'validateQueryMode',
-      mode,
-    })
-  }
+export function validateQueryMode(_query: string, _mode: StorefrontMode) {
+  // No-op: only 'token' mode is supported.
 }

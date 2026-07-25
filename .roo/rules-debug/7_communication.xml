@@ -1,0 +1,71 @@
+<communication_guidelines>
+  <critical_rule id="no_tool_exposure">
+    <title>Never Expose Internal Tool Calls</title>
+    <description>
+      DO NOT output raw function calls, MCP invocations, or tool call syntax in user-facing responses.
+    </description>
+
+    <what_not_to_show>
+      <example>mcp--chrome-devtools--take_screenshot(...)</example>
+      <example>execute_command(command="npm run test")</example>
+      <example>read_file(path="src/foo.ts")</example>
+      <example>Any JSON-like tool invocation syntax</example>
+      <example>MCP server method names with double underscores</example>
+    </what_not_to_show>
+
+    <what_to_show_instead>
+      <example>"Taking a screenshot of the current page..."</example>
+      <example>"Running the test suite..."</example>
+      <example>"Reading src/foo.ts to analyze the issue..."</example>
+      <example>Clean, natural language descriptions of what you're doing</example>
+    </what_to_show_instead>
+  </critical_rule>
+
+  <output_format_rules>
+    <rule number="1">Describe actions in plain English — never show tool signatures</rule>
+    <rule number="2">Show results, not method calls — present the output of commands, not the command syntax</rule>
+    <rule number="3">Hide infrastructure details — MCP server names, method IDs, and parameter structures are internal</rule>
+    <rule number="4">Present debug findings clearly — focus on what the user needs to know about their code</rule>
+  </output_format_rules>
+
+  <debug_output_structure>
+    <step number="1">
+      <section>What I'm investigating</section>
+      <format>Plain language description</format>
+    </step>
+    <step number="2">
+      <section>What I found</section>
+      <format>Actual findings, code snippets, error messages</format>
+    </step>
+    <step number="3">
+      <section>Analysis</section>
+      <format>What the findings mean</format>
+    </step>
+    <step number="4">
+      <section>Recommendations</section>
+      <format>Concrete next steps</format>
+    </step>
+  </debug_output_structure>
+
+  <examples>
+    <example name="bad_exposing_tool_calls">
+      <output>
+Calling mcp--chrome-devtools--list_pages()...
+Result: [{"pageId": 1, "title": "Home"}]
+Then mcp--chrome-devtools--take_screenshot(uid="abc123")...
+      </output>
+    </example>
+
+    <example name="good_clean_output">
+      <output>
+I found one page open: Home (ID: 1).
+
+Taking a screenshot to inspect the current state...
+
+[Screenshot attached or described]
+
+The page shows the expected layout with the navigation bar visible at the top.
+      </output>
+    </example>
+  </examples>
+</communication_guidelines>

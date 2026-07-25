@@ -4,7 +4,7 @@ This file provides coding-specific guidance for AI assistants working with this 
 
 ## Project-Specific Patterns
 
-- **Demo mode fallback**: All data-fetching hooks check `IS_CONFIGURED` and use `demo-data.ts` fixtures when false.
+- **No demo mode**: `IS_CONFIGURED` is always `true`. All environments (local, UAT, production) require real Shopify credentials — `client.ts` throws at module load otherwise. Test fixtures live in `src/test/fixtures/shopify-fixtures.ts`, used only via mocked `shopifyFetch`.
 - **Cart ID key**: `hom-cart-id` in localStorage (not `cart-id` or similar).
 - **Welcome popup key**: `hom_welcome_shown` in sessionStorage (not `welcome-shown` or similar).
 - **Newsletter mode**: Returns `{ mode: 'prototype' | 'endpoint' }` — use this for analytics tracking.
@@ -24,7 +24,6 @@ This file provides coding-specific guidance for AI assistants working with this 
 
 ## Gotchas
 
-- **Production demo mode**: Throws error with `process.exit(1)` — never deploy without credentials.
-- **Tokenless mode**: Only token-safe fields available (no tags, metafields).
-- **Test env**: `import.meta.env` vars stubbed to empty strings in `src/test/setup.ts`.
+- **No demo/tokenless mode**: `client.ts` throws immediately if Shopify credentials are missing/placeholder — this happens in every environment, not just production.
+- **Test env**: `import.meta.env` Shopify vars stubbed to valid dummy credentials (not empty strings) in `src/test/setup.ts`, since the client throws on missing values.
 - **Cmd+K search**: SearchBar opens with Cmd+K (macOS) or Ctrl+K (Windows).

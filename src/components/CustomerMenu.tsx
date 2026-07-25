@@ -1,12 +1,5 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { User, SignOut, Scroll, AddressBook } from '@phosphor-icons/react'
 import { useCustomerAuth } from '@/context/CustomerAuthContext'
@@ -18,6 +11,8 @@ interface CustomerMenuProps {
 export function CustomerMenu({ onLoginClick }: CustomerMenuProps) {
   const { customer, isAuthenticated, logout } = useCustomerAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleLogout = useCallback(async () => {
     setIsLoggingOut(true)
@@ -27,15 +22,31 @@ export function CustomerMenu({ onLoginClick }: CustomerMenuProps) {
       // Even if logout fails, clear local state
     } finally {
       setIsLoggingOut(false)
+      setIsOpen(false)
     }
   }, [logout])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
 
   if (!isAuthenticated || !customer) {
     return (
       <Button
+        type="button"
         variant="ghost"
         size="icon"
-        onClick={onLoginClick}
+        onClick={() => onLoginClick?.()}
         className="p-2 hover:text-accent transition-colors"
         aria-label="Sign in"
       >
@@ -50,50 +61,79 @@ export function CustomerMenu({ onLoginClick }: CustomerMenuProps) {
   const initials = `${firstNameInitial}${lastNameInitial}`.toUpperCase() || emailInitial
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 p-1 hover:opacity-80 transition-opacity">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
-            style={{
-              background: 'oklch(0.60 0.11 78)',
-              color: 'oklch(0.15 0.02 210)',
-            }}
-          >
-            {initials}
-          </div>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 glass-panel border-gold mt-2">
-        <div className="px-3 py-2 text-sm">
-          <p className="font-medium tracking-wide">
-            {customer.firstName && customer.lastName
-              ? `${customer.firstName} ${customer.lastName}`
-              : 'Customer'}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 p-1 hover:opacity-80 transition-opacity outline-none"
+        aria-label="User menu"
+        aria-expanded={isOpen}
+      >
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
+          style={{
+            background: 'oklch(0.60 0.11 78)',
+            color: 'oklch(0.15 0.02 210)',
+          }}
+        >
+          {initials}
         </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/account" className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" /> My Account
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/account/orders" className="cursor-pointer">
-            <Scroll className="mr-2 h-4 w-4" /> Orders
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/account/addresses" className="cursor-pointer">
-            <AddressBook className="mr-2 h-4 w-4" /> Addresses
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
-          <SignOut className="mr-2 h-4 w-4" /> Sign Out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute right-0 mt-2 w-56 rounded-lg shadow-2xl border z-[100] overflow-hidden"
+          style={{
+            background: 'oklch(0.18 0.03 210 / 0.95)',
+            backdropFilter: 'blur(16px) saturate(170%) contrast(115%)',
+            borderColor: 'oklch(0.60 0.11 78 / 0.25)',
+            color: 'oklch(0.92 0.01 78)',
+          }}
+        >
+          <div className="px-3 py-2 text-sm border-b" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
+            <p className="font-medium tracking-wide">
+              {customer.firstName && customer.lastName
+                ? `${customer.firstName} ${customer.lastName}`
+                : 'Customer'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+          </div>
+
+          <div className="py-1">
+            <Link
+              to="/account"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <User className="h-4 w-4" /> My Account
+            </Link>
+            <Link
+              to="/account/orders"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <Scroll className="h-4 w-4" /> Orders
+            </Link>
+            <Link
+              to="/account/addresses"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <AddressBook className="h-4 w-4" /> Addresses
+            </Link>
+          </div>
+
+          <div className="border-t py-1" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
+            >
+              <SignOut className="h-4 w-4" /> Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

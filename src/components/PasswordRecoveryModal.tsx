@@ -51,7 +51,7 @@ export function PasswordRecoveryModal({
         setEmail('')
       }
     }}>
-      <DialogContent className="sm:max-w-md glass-panel border-gold">
+      <DialogContent className="sm:max-w-md glass-panel border-gold z-[60]">
         <DialogHeader>
           <DialogTitle className="text-center text-lg tracking-widest">
             {isSubmitted ? 'CHECK YOUR EMAIL' : 'RESET PASSWORD'}

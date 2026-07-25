@@ -46,9 +46,9 @@ export function AccountPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-16">
-      <PageBreadcrumb items={[{ label: 'Account', to: '/account' }]} />
-      
       <div className="container mx-auto px-6 lg:px-20">
+        <PageBreadcrumb items={[{ label: 'Account', to: '/account' }]} className="mb-10" />
+
         <h1 className="text-2xl tracking-widest mb-2">
           HELLO, {firstName.toUpperCase()}
         </h1>

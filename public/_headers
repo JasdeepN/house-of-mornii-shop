@@ -15,4 +15,13 @@
   # Content Security Policy
   # Note: script-src includes GA4 and Meta Pixel domains for optional analytics.
   # Remove those domains if analytics are disabled.
+  #
+  # H2 (known gap): style-src retains 'unsafe-inline' because Framer Motion and
+  # several components apply inline style={{}} at runtime, and Tailwind/shadcn
+  # utility styling relies on runtime-injected <style> in dev. Removing
+  # 'unsafe-inline' here would break animations/layout across the app. This is
+  # a tracked compensating-control gap (paired with H1's DOMPurify sanitization
+  # of any HTML rendered via dangerouslySetInnerHTML) rather than a fix — do not
+  # remove 'unsafe-inline' without first migrating Framer Motion usages to CSS
+  # classes/variables and verifying no inline styles remain.
   Content-Security-Policy: default-src 'self'; script-src 'self' https://www.googletagmanager.com https://connect.facebook.net https://www.google-analytics.com https://js.facebook.net https://snap.licdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; connect-src 'self' https://*.myshopify.com https://www.google-analytics.com https://api.facebook.com https://www.googletagmanager.com https://pixel.facebook.com https://px.ads.linkedin.com; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'

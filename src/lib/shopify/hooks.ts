@@ -1,11 +1,10 @@
 // React Query hooks for Shopify data fetching
 // Uses Storefront API for all operations (Admin API proxied through Cloudflare Worker).
 // Cart operations always use Storefront API.
-// Falls back to demo data when no credentials are configured.
 
 import { useQuery } from '@tanstack/react-query'
-import { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE } from './client'
-import { adminProxyFetch } from './admin-proxy'
+import { shopifyFetch } from './client'
+import { adminProxyFetch, ADMIN_PROXY_ENABLED } from './admin-proxy'
 import {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
@@ -139,12 +138,6 @@ const ADMIN_PRODUCT_BY_HANDLE_QUERY = `
     }
   }
 `
-import {
-  getDemoCollections,
-  getDemoCollection,
-  getDemoProduct,
-  getDemoProducts,
-} from './demo-data'
 import type { ShopifyCollection, ShopifyProduct } from './types'
 
 // ─── Collections ─────────────────────────────────────────────────────────────
@@ -159,10 +152,8 @@ export function useCollections() {
   return useQuery({
     queryKey: ['collections'],
     queryFn: async () => {
-      if (!IS_CONFIGURED) return getDemoCollections()
-      
       // Use Admin API proxy when available (Admin token held server-side in Worker)
-      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+      if (ADMIN_PROXY_ENABLED) {
         const data = await adminProxyFetch<{ collections: { edges: { node: ShopifyCollection }[] } }>({
           query: ADMIN_COLLECTIONS_QUERY,
         })
@@ -196,34 +187,8 @@ export function useCollection(handle: string, first = 12, sortKey?: string, reve
   return useQuery({
     queryKey: ['collection', handle, first, collectionSortKey, reverse, after],
     queryFn: async () => {
-      if (!IS_CONFIGURED) {
-        const col = getDemoCollection(handle)
-        if (!col) return null
-        const demoCollection = {
-          ...col,
-          products: {
-            ...col.products,
-            edges: [...col.products.edges],
-          },
-        }
-        // Respect sortKey for demo data
-        if (collectionSortKey === 'PRICE') {
-          demoCollection.products.edges.sort(
-            (a, b) =>
-              parseFloat(a.node.priceRange.minVariantPrice.amount) -
-              parseFloat(b.node.priceRange.minVariantPrice.amount),
-          )
-        } else if (collectionSortKey === 'TITLE') {
-          demoCollection.products.edges.sort((a, b) =>
-            a.node.title.localeCompare(b.node.title),
-          )
-        }
-        if (reverse) demoCollection.products.edges.reverse()
-        return demoCollection
-      }
-
       // Use Admin API proxy when available (Admin token held server-side in Worker)
-      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+      if (ADMIN_PROXY_ENABLED) {
         const data = await adminProxyFetch<CollectionByHandleResponse>({
           query: ADMIN_COLLECTION_BY_HANDLE_QUERY,
           variables: { handle, first, sortKey: collectionSortKey, reverse, after: after || undefined },
@@ -257,24 +222,8 @@ export function useProduct(handle: string) {
   return useQuery({
     queryKey: ['product', handle],
     queryFn: async () => {
-      if (!IS_CONFIGURED) {
-        const p = getDemoProduct(handle)
-        if (!p) return null
-        // Attach first matching collection for related-products lookup
-        const cols = getDemoCollections()
-        const match = cols.find((c) =>
-          c.products.edges.some((e) => e.node.handle === handle),
-        )
-        return {
-          ...p,
-          collections: match
-            ? { edges: [{ node: { handle: match.handle, title: match.title } }] }
-            : undefined,
-        }
-      }
-
       // Use Admin API proxy when available (Admin token held server-side in Worker)
-      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+      if (ADMIN_PROXY_ENABLED) {
         const data = await adminProxyFetch<ProductByHandleResponse>({
           query: ADMIN_PRODUCT_BY_HANDLE_QUERY,
           variables: { handle },
@@ -313,43 +262,8 @@ export function useProducts(
   return useQuery({
     queryKey: ['products', sortKey, reverse, query, first, after],
     queryFn: async () => {
-      if (!IS_CONFIGURED) {
-        let items = getDemoProducts()
-        // Basic sorting
-        if (sortKey === 'PRICE') {
-          items = [...items].sort(
-            (a, b) =>
-              parseFloat(a.priceRange.minVariantPrice.amount) -
-              parseFloat(b.priceRange.minVariantPrice.amount),
-          )
-        } else if (sortKey === 'TITLE') {
-          items = [...items].sort((a, b) => a.title.localeCompare(b.title))
-        }
-        if (reverse) items = [...items].reverse()
-        if (query) {
-          const q = query.toLowerCase()
-          items = items.filter(
-            (p) =>
-              p.title.toLowerCase().includes(q) ||
-              p.tags?.some((t) => t.toLowerCase().includes(q)),
-          )
-        }
-        // Simulate cursor-based pagination for demo data
-        let startIdx = 0
-        if (after) {
-          const afterId = atob(after)
-          const idx = items.findIndex((p) => p.id === afterId)
-          if (idx >= 0) startIdx = idx + 1
-        }
-        const page = items.slice(startIdx, startIdx + first)
-        return {
-          edges: page.map((p) => ({ node: p, cursor: btoa(p.id) })),
-          pageInfo: { hasNextPage: startIdx + first < items.length, endCursor: page.length > 0 ? btoa(page[page.length - 1].id) : null },
-        }
-      }
-
       // Use Admin API proxy when available (Admin token held server-side in Worker)
-      if (import.meta.env.VITE_SHOPIFY_ADMIN_ACCESS_TOKEN) {
+      if (ADMIN_PROXY_ENABLED) {
         const data = await adminProxyFetch<ProductsResponse>({
           query: ADMIN_PRODUCTS_QUERY,
           variables: {

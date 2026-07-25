@@ -6,8 +6,8 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { IS_CONFIGURED } from '@/lib/shopify/client'
 import { shopifyFetch } from '@/lib/shopify/client'
+import { logger } from '@/lib/logger'
 import {
   CART_CREATE_MUTATION,
   CART_QUERY,
@@ -16,8 +16,7 @@ import {
   CART_LINES_REMOVE_MUTATION,
   CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION,
 } from '@/lib/shopify/queries'
-import { getDemoProduct, getDemoProducts } from '@/lib/shopify/demo-data'
-import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify/types'
+import type { ShopifyCart } from '@/lib/shopify/types'
 import { toast } from 'sonner'
 import { useCustomerAuth } from './CustomerAuthContext'
 
@@ -44,69 +43,6 @@ export function useCart() {
   return ctx
 }
 
-// ─── Demo Cart helpers ───────────────────────────────────────────────────────
-
-let _demoLineId = 0
-
-function buildDemoCart(lines: ShopifyCartLine[]): ShopifyCart {
-  const totalQuantity = lines.reduce((sum, l) => sum + l.quantity, 0)
-  const subtotal = lines.reduce(
-    (sum, l) => sum + parseFloat(l.cost.totalAmount.amount),
-    0,
-  )
-  return {
-    id: 'demo-cart',
-    checkoutUrl: '#',
-    totalQuantity,
-    lines: { edges: lines.map((l) => ({ node: l })) },
-    cost: {
-      subtotalAmount: { amount: subtotal.toFixed(2), currencyCode: 'CAD' },
-      totalAmount: { amount: subtotal.toFixed(2), currencyCode: 'CAD' },
-      totalTaxAmount: null,
-    },
-  }
-}
-
-function makeDemoLine(variantId: string, quantity: number): ShopifyCartLine | null {
-  const allProducts = getDemoProducts()
-
-  // Try to find by variant id first, then treat variantId as a handle
-  let product = allProducts.find(
-    (p) => p.variants.edges.some((e) => e.node.id === variantId),
-  )
-  if (!product) {
-    product = getDemoProduct(variantId) ?? undefined
-  }
-  if (!product) return null
-
-  const variant = product.variants.edges[0].node
-  const price = variant.price
-
-  return {
-    id: `demo-line-${++_demoLineId}`,
-    quantity,
-    merchandise: {
-      id: variant.id,
-      title: variant.title,
-      product: {
-        handle: product.handle,
-        title: product.title,
-        featuredImage: product.featuredImage,
-      },
-      price,
-      selectedOptions: variant.selectedOptions,
-      image: variant.image,
-    },
-    cost: {
-      totalAmount: {
-        amount: (parseFloat(price.amount) * quantity).toFixed(2),
-        currencyCode: price.currencyCode,
-      },
-      amountPerQuantity: price,
-    },
-  }
-}
-
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -117,9 +53,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const openCart = useCallback(() => setCartOpen(true), [])
 
-  // Restore cart from localStorage on mount (Shopify mode only)
+  // Restore cart from localStorage on mount
   useEffect(() => {
-    if (!IS_CONFIGURED) return
     try {
       const savedCartId = localStorage.getItem(CART_ID_KEY)
       if (savedCartId) {
@@ -135,14 +70,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
           })
           .catch((error) => {
-            console.error('Failed to restore cart:', error)
+            logger.error('Failed to restore cart', {
+              action: 'restoreCart',
+              error: error instanceof Error ? error.message : String(error),
+            })
             toast.error('Failed to load your cart. Please refresh the page.')
             localStorage.removeItem(CART_ID_KEY)
           })
           .finally(() => setIsLoading(false))
       }
     } catch (error) {
-      console.error('Failed to restore cart:', error)
+      logger.error('Failed to restore cart', {
+        action: 'restoreCart',
+        error: error instanceof Error ? error.message : String(error),
+      })
       toast.error('Failed to load your cart. Please refresh the page.')
       // Reset to empty cart state on localStorage error
     }
@@ -150,16 +91,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Cart merge: when customer authenticates, merge anonymous cart into their account cart
   useEffect(() => {
-    if (!IS_CONFIGURED || !isAuthenticated || !accessToken) return
+    if (!isAuthenticated || !accessToken) return
 
     const savedCartId = localStorage.getItem(CART_ID_KEY)
     if (!savedCartId) return
 
     setIsLoading(true)
     shopifyFetch<{
-      cartMergeWithBuyerIdentity: {
+      cartBuyerIdentityUpdate: {
         cart: ShopifyCart
-        mergedCart: ShopifyCart
         userErrors: { message: string }[]
       }
     }>(CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION, {
@@ -167,19 +107,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
       customerAccessToken: accessToken,
     })
       .then((data) => {
-        const merged = data.cartMergeWithBuyerIdentity.mergedCart ?? data.cartMergeWithBuyerIdentity.cart
-        if (merged) {
-          setCart(merged)
+        const updated = data.cartBuyerIdentityUpdate.cart
+        if (updated) {
+          setCart(updated)
         }
-        // Clear the anonymous cart ID — it's now merged into the customer's account
+        // Clear the anonymous cart ID — it's now associated with the customer's account
         localStorage.removeItem(CART_ID_KEY)
       })
       .catch((error) => {
-        console.error('Failed to merge cart:', error)
-        // Don't show error toast for merge failures — non-critical
+        logger.error('Failed to merge cart', {
+          action: 'mergeCart',
+          error: error instanceof Error ? error.message : String(error),
+        })
+        // Don't show error toast for merge failures — non-critical.
+        // Clear the stale anonymous cart ID so we don't retry a merge
+        // against a cart that may no longer be valid.
+        localStorage.removeItem(CART_ID_KEY)
       })
       .finally(() => setIsLoading(false))
-  }, [isAuthenticated, accessToken, IS_CONFIGURED])
+  }, [isAuthenticated, accessToken])
 
   // ── Add to Cart ──────────────────────────────────────────────────────────
 
@@ -187,50 +133,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (variantId: string, quantity = 1) => {
       setIsLoading(true)
       try {
-        if (!IS_CONFIGURED) {
-          // Demo mode: in-memory cart
-          const currentLines = cart
-            ? cart.lines.edges.map((e) => e.node)
-            : []
-
-          // Check if variant already in cart
-          const existing = currentLines.find(
-            (l) => l.merchandise.id === variantId,
-          )
-          let updatedLines: ShopifyCartLine[]
-
-          if (existing) {
-            updatedLines = currentLines.map((l) =>
-              l.id === existing.id
-                ? {
-                    ...l,
-                    quantity: l.quantity + quantity,
-                    cost: {
-                      ...l.cost,
-                      totalAmount: {
-                        amount: (
-                          parseFloat(l.cost.amountPerQuantity.amount) *
-                          (l.quantity + quantity)
-                        ).toFixed(2),
-                        currencyCode: l.cost.amountPerQuantity.currencyCode,
-                      },
-                    },
-                  }
-                : l,
-            )
-          } else {
-            const newLine = makeDemoLine(variantId, quantity)
-            if (!newLine) throw new Error('Product not found')
-            updatedLines = [...currentLines, newLine]
-          }
-
-          setCart(buildDemoCart(updatedLines))
-          toast.success('Added to cart')
-          setCartOpen(true)
-          return
-        }
-
-        // Shopify mode
         if (!cart) {
           const data = await shopifyFetch<{
             cartCreate: { cart: ShopifyCart; userErrors: { message: string }[] }
@@ -276,30 +178,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!cart) return
       setIsLoading(true)
       try {
-        if (!IS_CONFIGURED) {
-          const updatedLines = cart.lines.edges
-            .map((e) => e.node)
-            .map((l) =>
-              l.id === lineId
-                ? {
-                    ...l,
-                    quantity,
-                    cost: {
-                      ...l.cost,
-                      totalAmount: {
-                        amount: (
-                          parseFloat(l.cost.amountPerQuantity.amount) * quantity
-                        ).toFixed(2),
-                        currencyCode: l.cost.amountPerQuantity.currencyCode,
-                      },
-                    },
-                  }
-                : l,
-            )
-          setCart(buildDemoCart(updatedLines))
-          return
-        }
-
         const data = await shopifyFetch<{
           cartLinesUpdate: {
             cart: ShopifyCart
@@ -331,19 +209,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!cart) return
       setIsLoading(true)
       try {
-        if (!IS_CONFIGURED) {
-          const updatedLines = cart.lines.edges
-            .map((e) => e.node)
-            .filter((l) => l.id !== lineId)
-          const newCart = updatedLines.length > 0 ? buildDemoCart(updatedLines) : null
-          setCart(newCart)
-          if (!newCart) {
-            localStorage.removeItem(CART_ID_KEY)
-          }
-          toast.success('Removed from cart')
-          return
-        }
-
         const data = await shopifyFetch<{
           cartLinesRemove: {
             cart: ShopifyCart

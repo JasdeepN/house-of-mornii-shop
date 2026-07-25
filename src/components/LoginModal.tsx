@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -24,6 +25,7 @@ export function LoginModal({
   onNavigateToRecovery,
 }: LoginModalProps) {
   const { login, isLoading, lastError } = useCustomerAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,18 +40,19 @@ export function LoginModal({
         onOpenChange(false)
         setEmail('')
         setPassword('')
+        navigate('/account')
       } catch {
-        // Error handled by context
+        // Error handled by context — lastError is rendered above the form
       } finally {
         setIsSubmitting(false)
       }
     },
-    [login, email, password, onOpenChange, isSubmitting],
+    [login, email, password, onOpenChange, isSubmitting, navigate],
   )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md glass-panel border-gold">
+      <DialogContent className="sm:max-w-md glass-panel border-gold z-[60]">
         <DialogHeader>
           <DialogTitle className="text-center text-lg tracking-widest">SIGN IN</DialogTitle>
           <DialogDescription className="text-center">

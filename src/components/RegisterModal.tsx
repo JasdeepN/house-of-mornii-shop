@@ -51,7 +51,7 @@ export function RegisterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md glass-panel border-gold">
+      <DialogContent className="sm:max-w-md glass-panel border-gold z-[60]">
         <DialogHeader>
           <DialogTitle className="text-center text-lg tracking-widest">CREATE ACCOUNT</DialogTitle>
           <DialogDescription className="text-center">

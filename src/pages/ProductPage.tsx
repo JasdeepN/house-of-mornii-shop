@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import DOMPurify from 'dompurify'
 import { useProduct, useRelatedProducts, formatMoney, flattenEdges } from '@/lib/shopify'
 import type { ShopifyProductVariant } from '@/lib/shopify'
 import { useErrorHandler } from '@/lib/errorHandler'
@@ -14,6 +15,33 @@ import { useSEO } from '@/hooks/useSEO'
 import { trackViewItem } from '@/lib/analytics'
 import { JsonLd, productSchema, breadcrumbSchema } from '@/components/JsonLd'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
+import { luxuryEase } from '@/lib/animations'
+
+// H1: DOMPurify config for Shopify rich-text product descriptions.
+// Restrictive allowlist — no scripts, no event handlers, no forms/objects/iframes.
+const DESCRIPTION_SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'p', 'br', 'strong', 'em', 'b', 'i', 'u', 's',
+    'ul', 'ol', 'li',
+    'a',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'span', 'blockquote',
+    'table', 'thead', 'tbody', 'tr', 'td', 'th',
+  ],
+  ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
+}
+
+// Ensure any anchor with target="_blank" (or any target) also gets rel="noopener noreferrer"
+// to prevent reverse-tabnabbing, regardless of what the source HTML provided.
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.hasAttribute('target')) {
+    node.setAttribute('rel', 'noopener noreferrer')
+  }
+})
+
+function sanitizeDescriptionHtml(html: string): string {
+  return DOMPurify.sanitize(html, DESCRIPTION_SANITIZE_CONFIG)
+}
 
 export function ProductPage() {
   const { handle } = useParams()
@@ -42,6 +70,11 @@ export function ProductPage() {
     const variants = product.variants.edges.map((e) => e.node)
     return variants[0] ?? null
   }, [product, selectedVariant])
+
+  // Parent collection — used to add a real middle breadcrumb level instead of skipping straight to the product
+  const primaryCollection = useMemo(() => {
+    return product?.collections?.edges[0]?.node ?? null
+  }, [product])
 
   // SEO — dynamic per product
   useSEO({
@@ -189,6 +222,9 @@ export function ProductPage() {
       <JsonLd data={breadcrumbSchema([
         { name: 'Home', url: `${window.location.origin}/` },
         { name: 'Collections', url: `${window.location.origin}/collections` },
+        ...(primaryCollection
+          ? [{ name: primaryCollection.title, url: `${window.location.origin}/collections/${primaryCollection.handle}` }]
+          : []),
         { name: product.title, url: `${window.location.origin}/products/${product.handle}` },
       ])} />
       <div className="container mx-auto px-6 lg:px-20">
@@ -196,6 +232,9 @@ export function ProductPage() {
           items={[
             { label: 'HOME', to: '/' },
             { label: 'COLLECTIONS', to: '/collections' },
+            ...(primaryCollection
+              ? [{ label: primaryCollection.title.toUpperCase(), to: `/collections/${primaryCollection.handle}` }]
+              : []),
             { label: product.title.toUpperCase() },
           ]}
           className="mb-8"
@@ -206,7 +245,7 @@ export function ProductPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.3, ease: luxuryEase }}
           >
             <ProductGallery images={images} title={product.title} />
           </motion.div>
@@ -215,7 +254,7 @@ export function ProductPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15 }}
+            transition={{ duration: 0.3, delay: 0.15, ease: luxuryEase }}
             className="flex flex-col gap-6"
           >
             {/* Vendor */}
@@ -276,7 +315,7 @@ export function ProductPage() {
             {product.descriptionHtml && (
               <div
                 className="prose prose-invert prose-sm max-w-none mt-4 text-muted-foreground leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(product.descriptionHtml) }}
               />
             )}
           </motion.div>
@@ -287,7 +326,7 @@ export function ProductPage() {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.3, ease: luxuryEase }}
             className="mt-20"
           >
             <div className="text-center mb-10">
@@ -302,7 +341,7 @@ export function ProductPage() {
                   key={rp.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 * i }}
+                  transition={{ duration: 0.3, delay: 0.1 * i, ease: luxuryEase }}
                 >
                   <ProductCard product={rp} />
                 </motion.div>

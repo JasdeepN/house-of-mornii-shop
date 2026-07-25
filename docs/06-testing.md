@@ -48,12 +48,12 @@ if (typeof IntersectionObserver === 'undefined') {
   global.IntersectionObserver = class IntersectionObserver { /* ... */ }
 }
 
-// Stub Shopify env vars to default to demo mode
+// Stub Shopify env vars with valid dummy credentials (client.ts throws on empty/missing values)
 if (!import.meta.env.VITE_SHOPIFY_STORE_DOMAIN) {
-  import.meta.env.VITE_SHOPIFY_STORE_DOMAIN = ''
+  import.meta.env.VITE_SHOPIFY_STORE_DOMAIN = 'test-store.myshopify.com'
 }
 if (!import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN) {
-  import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN = ''
+  import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN = 'test-storefront-token'
 }
 
 // Mark test environment for siteConfig.ts
@@ -81,9 +81,8 @@ Test files live alongside their source files with `.test.ts` or `.test.tsx` suff
 
 | Test File | Tests |
 |-----------|-------|
-| [`src/lib/shopify/client.test.ts`](src/lib/shopify/client.test.ts) | Mode detection, error classification |
-| [`src/lib/shopify/demo-data.test.ts`](src/lib/shopify/demo-data.test.ts) | Demo data structure validation |
-| [`src/lib/shopify/hooks.test.tsx`](src/lib/shopify/hooks.test.tsx) | Query hook behavior |
+| [`src/lib/shopify/client.test.ts`](src/lib/shopify/client.test.ts) | Credential resolution, error classification |
+| [`src/lib/shopify/hooks.test.tsx`](src/lib/shopify/hooks.test.tsx) | Query hook behavior (mocked `shopifyFetch` + fixtures) |
 | [`src/lib/shopify/types.test.ts`](src/lib/shopify/types.test.ts) | Type helper functions |
 | [`src/components/Header.test.tsx`](src/components/Header.test.tsx) | Header rendering, navigation |
 | [`src/components/CartFlyout.test.tsx`](src/components/CartFlyout.test.tsx) | Cart drawer interactions |

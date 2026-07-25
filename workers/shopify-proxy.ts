@@ -12,15 +12,48 @@ interface ProxyRequest {
   variables?: Record<string, unknown>
 }
 
+// H3: CORS origin allowlist. Never reflect an arbitrary Origin header back —
+// only echo it when it matches a known-good origin, otherwise fall back to the
+// primary production origin. Override via env.ALLOWED_ORIGIN (comma-separated)
+// in the Worker/Pages project settings if additional origins are needed
+// (e.g. preview deployments), without editing this file.
+const DEFAULT_ALLOWED_ORIGINS = ['https://houseofmornii.com']
+
+function resolveAllowedOrigins(env: { [key: string]: string }): string[] {
+  if (env.ALLOWED_ORIGIN) {
+    return env.ALLOWED_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+  }
+  return DEFAULT_ALLOWED_ORIGINS
+}
+
+// H4: Reject mutations sent to this read-oriented proxy. Matches the `mutation`
+// keyword as a GraphQL operation type (word boundary, case-insensitive) so
+// legitimate queries that merely mention the word in a string literal aren't
+// falsely blocked in edge cases, while blocking actual mutation operations.
+const MUTATION_PATTERN = /\bmutation\b/i
+
+// TODO(rate-limiting): This Worker does not implement full request-rate limiting
+// itself — Cloudflare Rate Limiting rules (dashboard/wrangler.toml `[[rate_limiting]]`
+// or a Rules-based WAF rate limit) should be configured on the
+// /api/shopify/admin route to throttle abusive per-IP traffic. The mutation
+// rejection below IS implementable in-worker today and is enforced here.
+
 export default {
   async fetch(request: Request, env: { [key: string]: string }): Promise<Response> {
-    // CORS handling
-    const origin = request.headers.get('Origin') || '*'
+    // CORS handling — allowlist only, never reflect arbitrary Origin headers (H3)
+    const allowedOrigins = resolveAllowedOrigins(env)
+    const requestOrigin = request.headers.get('Origin')
+    const allowOrigin =
+      requestOrigin && allowedOrigins.includes(requestOrigin)
+        ? requestOrigin
+        : allowedOrigins[0]
+
     const corsHeaders: Record<string, string> = {
-      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Origin': allowOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400', // 24 hours preflight cache
+      'Vary': 'Origin',
     }
 
     // Handle CORS preflight
@@ -63,6 +96,16 @@ export default {
       return new Response(
         JSON.stringify({ error: 'Missing query' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      )
+    }
+
+    // H4: Reject destructive mutation operations — this proxy is for read-only
+    // catalog queries (products/collections). Mutations must never be routed
+    // through this client-facing endpoint.
+    if (MUTATION_PATTERN.test(body.query)) {
+      return new Response(
+        JSON.stringify({ error: 'Mutations are not permitted through this proxy' }),
+        { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       )
     }
 

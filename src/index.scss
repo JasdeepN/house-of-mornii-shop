@@ -128,7 +128,6 @@ $bg-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' wid
 
   body > #root {
     position: relative;
-    z-index: 1;
   }
 
   h1,
@@ -485,6 +484,17 @@ body[data-theme="light"] {
     transform 0.35s var(--glass-ease),
     box-shadow 0.35s var(--glass-ease),
     border-color 0.35s var(--glass-ease);
+
+  /* Radix Dialog/AlertDialog content must stay `position: fixed` (set via Tailwind's
+     `.fixed` utility) so it centers in the viewport. Because this bare `.glass-panel`
+     rule loads after tailwind.css, it was winning the specificity tie against `.fixed`,
+     pushing the modal out of the viewport (appearing as just a dark overlay). Scope a
+     higher-specificity override back to `fixed` for any dialog/alert-dialog content
+     that also has the glass-panel class. */
+  &[data-slot="dialog-content"],
+  &[data-slot="alert-dialog-content"] {
+    position: fixed;
+  }
 
   /* Radial highlight sheen overlay */
   &::before {

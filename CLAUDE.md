@@ -32,16 +32,15 @@ ErrorBoundary
 All page components are **lazy-loaded** via `React.lazy`. Routes: `/`, `/shop`, `/collections`, `/collections/:handle`, `/products/:handle`, `/about`, `/contact`, `/cart`. Page transitions use `framer-motion` `AnimatePresence`.
 
 ### Shopify integration (`src/lib/shopify/`)
-- **`client.ts`** — thin GraphQL fetch wrapper against `https://{domain}/api/2026-01/graphql.json`. Exports `IS_CONFIGURED` (boolean) and `shopifyFetch<T>()`.
-- **`hooks.ts`** — TanStack Query hooks: `useCollections`, `useCollection`, `useProduct`, `useProducts`, `useRelatedProducts`. Each hook checks `IS_CONFIGURED` and falls back to demo data when false.
-- **`demo-data.ts`** — in-memory product/collection fixtures used when Shopify credentials are absent.
+- **`client.ts`** — thin GraphQL fetch wrapper (via `@shopify/storefront-api-client` SDK) against `https://{domain}/api/2026-01/graphql.json`. Exports `IS_CONFIGURED` (always `true`) and `shopifyFetch<T>()`. Throws at module load if credentials are missing/placeholder — no fallback in any environment.
+- **`hooks.ts`** — TanStack Query hooks: `useCollections`, `useCollection`, `useProduct`, `useProducts`, `useRelatedProducts`. All hooks always call `shopifyFetch`.
 - **`queries.ts`** — all GraphQL query/mutation strings.
 - **`types.ts`** — TypeScript types for Shopify API responses.
 
-**Demo mode**: The app runs fully without Shopify credentials. Set `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` in `.env.local` to switch to live data. When unconfigured, `IS_CONFIGURED === false` and every data-fetching path silently uses demo fixtures instead.
+**No demo mode**: Live Shopify credentials (`VITE_SHOPIFY_STORE_DOMAIN`, `VITE_SHOPIFY_STOREFRONT_TOKEN`) are required in every environment — local, UAT, and production. `client.ts` throws immediately if they are missing or set to a placeholder value. Fixture data for unit tests only lives in `src/test/fixtures/shopify-fixtures.ts`.
 
 ### Cart state (`src/context/CartContext.tsx`)
-`CartProvider` wraps cart CRUD. In demo mode, cart is managed in-memory. In Shopify mode, cart ID is persisted to `localStorage` under key `hom-cart-id` and synced via Storefront API mutations.
+`CartProvider` wraps cart CRUD. Cart ID is persisted to `localStorage` under key `hom-cart-id` and always synced via Storefront API mutations.
 
 ### Path alias
 `@/` resolves to `src/`. Configured in both `vite.config.ts` and `vitest.config.ts`.
@@ -54,8 +53,9 @@ All page components are **lazy-loaded** via `React.lazy`. Routes: `/`, `/shop`, 
 
 ### Testing
 - Vitest + `@testing-library/react` + jsdom.
-- Setup file: `src/test/setup.ts` — patches `IntersectionObserver`, stubs `import.meta.env` Shopify vars to empty strings (triggering demo mode).
+- Setup file: `src/test/setup.ts` — patches `IntersectionObserver`, stubs `import.meta.env` Shopify vars to valid dummy credentials (required since `client.ts` throws on empty values).
 - Test files live alongside source: `*.test.{ts,tsx}`.
+- Fixture data (for mocking `shopifyFetch`) lives in `src/test/fixtures/shopify-fixtures.ts`.
 
 ### Analytics (`src/lib/analytics.ts`)
 GA4 + Meta Pixel scaffold. Page views are tracked automatically in `AnimatedRoutes`. Replace `G-XXXXXXXXXX` in `index.html` with a real GA4 measurement ID to activate.

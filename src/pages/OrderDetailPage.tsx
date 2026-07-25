@@ -97,10 +97,10 @@ export function OrderDetailPage() {
               <div className="space-y-4">
                 {order.lineItems.edges.map(({ node: item }, index) => (
                   <div key={index} className="flex gap-4 pb-4 border-b border-border/30 last:border-0">
-                    {item.image && (
+                    {item.variant?.image && (
                       <img
-                        src={item.image.url}
-                        alt={item.image.altText ?? item.title}
+                        src={item.variant.image.url}
+                        alt={item.variant.image.altText ?? item.title}
                         className="w-16 h-16 object-cover rounded"
                       />
                     )}
@@ -111,7 +111,7 @@ export function OrderDetailPage() {
                       </p>
                     </div>
                     <p className="font-medium">
-                      {item.originalPrice.amount} {item.originalPrice.currencyCode}
+                      {item.originalTotalPrice.amount} {item.originalTotalPrice.currencyCode}
                     </p>
                   </div>
                 ))}

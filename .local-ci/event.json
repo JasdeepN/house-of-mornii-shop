@@ -1,0 +1,6 @@
+{
+  "ref": "refs/heads/dev",
+  "branch": "dev",
+  "workflow": "deploy",
+  "event_name": "push"
+}

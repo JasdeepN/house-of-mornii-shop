@@ -40,6 +40,7 @@ export interface ShopifyProduct {
   }
   tags?: string[]
   vendor: string
+  collections?: { edges: { node: { handle: string; title: string } }[] }
 }
 
 export interface ShopifyCollection {
@@ -111,6 +112,7 @@ export interface ShopifyCustomer {
   email: string
   phone: string | null
   acceptsMarketing: boolean
+  defaultAddress?: { id: string } | null
   addresses: { edges: { node: ShopifyMailingAddress }[] }
   orders: {
     edges: { node: ShopifyOrder }[]
@@ -123,6 +125,8 @@ export interface ShopifyMailingAddress {
   firstName: string
   lastName: string
   address1: string
+  address2?: string | null
+  company?: string | null
   city: string
   province: string
   country: string
@@ -144,14 +148,15 @@ export interface ShopifyOrder {
 export interface ShopifyOrderLineItem {
   title: string
   quantity: number
-  originalPrice: ShopifyMoney
-  image: ShopifyImage | null
+  originalTotalPrice: ShopifyMoney
+  variant: {
+    image: ShopifyImage | null
+  } | null
 }
 
 export interface ShopifyCustomerAccessToken {
   accessToken: string
   expiresAt: string
-  recoveryToken?: string
 }
 
 export interface ShopifyAuthenticationURL {
@@ -180,6 +185,21 @@ export interface CustomerCreateInput {
 export interface CustomerUpdateInput {
   firstName?: string
   lastName?: string
+  email?: string
   phone?: string
+  password?: string
   acceptsMarketing?: boolean
+}
+
+export interface MailingAddressInput {
+  address1?: string
+  address2?: string
+  city?: string
+  company?: string
+  country?: string
+  firstName?: string
+  lastName?: string
+  phone?: string
+  province?: string
+  zip?: string
 }

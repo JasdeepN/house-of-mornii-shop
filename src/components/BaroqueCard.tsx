@@ -3,22 +3,11 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { OrnamentalBorder, OrnamentalDivider } from "@/components/OrnamentalBorder"
 import { Separator } from "@/components/ui/separator"
+import { fadeSlideUp, staggerContainer } from "@/lib/animations"
 
-// Animation constants suitable for the "regal" feel
-const FADE_IN_VARIANTS = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
-}
-
-const STAGGER_CONTAINER = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.1
-    }
-  }
-}
+// Reuse shared luxury motion language — no local duplicates
+const FADE_IN_VARIANTS = fadeSlideUp
+const STAGGER_CONTAINER = staggerContainer
 
 interface BaroqueCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode

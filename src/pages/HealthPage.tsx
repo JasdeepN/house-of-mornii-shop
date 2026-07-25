@@ -7,7 +7,7 @@ import { getHealthStatus, STOREFRONT_MODE, IS_CONFIGURED } from '@/lib/shopify'
 import { formatMoney } from '@/lib/shopify'
 
 interface HealthInfo {
-  status: 'healthy' | 'degraded' | 'unhealthy'
+  status: 'healthy' | 'unhealthy'
   mode: typeof STOREFRONT_MODE
   configured: boolean
   timestamp: string
@@ -36,7 +36,6 @@ export function HealthPage() {
 
   const statusColor = {
     healthy: 'text-green-500',
-    degraded: 'text-amber-500',
     unhealthy: 'text-red-500',
   }
 
@@ -95,10 +94,7 @@ export function HealthPage() {
             <dl className="space-y-2 text-sm">
               <dt className="font-medium">Healthy</dt>
               <dd className="text-muted-foreground ml-4">Storefront is properly configured with valid credentials and API is responding.</dd>
-              
-              <dt className="font-medium mt-2">Degraded</dt>
-              <dd className="text-muted-foreground ml-4">Running in demo mode or tokenless mode. UI renders but checkout may not function.</dd>
-              
+
               <dt className="font-medium mt-2">Unhealthy</dt>
               <dd className="text-muted-foreground ml-4">Critical configuration missing. Storefront cannot function commercially.</dd>
             </dl>

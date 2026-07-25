@@ -219,7 +219,6 @@ export const CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION = `
       customerAccessToken {
         accessToken
         expiresAt
-        recoveryToken
       }
       customerUserErrors {
         field
@@ -231,22 +230,20 @@ export const CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION = `
 `
 
 export const CUSTOMER_ACCESS_TOKEN_DELETE_MUTATION = `
-  mutation customerAccessTokenDelete($input: CustomerAccessTokenDeleteInput!) {
-    customerAccessTokenDelete(input: $input) {
+  mutation customerAccessTokenDelete($customerAccessToken: String!) {
+    customerAccessTokenDelete(customerAccessToken: $customerAccessToken) {
       deletedAccessToken
-      deletedCustomerAccessReason
       userErrors { field message }
     }
   }
 `
 
 export const CUSTOMER_ACCESS_TOKEN_RENEW_MUTATION = `
-  mutation customerAccessTokenRenew($input: CustomerAccessTokenRenewInput!) {
-    customerAccessTokenRenew(input: $input) {
+  mutation customerAccessTokenRenew($customerAccessToken: String!) {
+    customerAccessTokenRenew(customerAccessToken: $customerAccessToken) {
       customerAccessToken {
         accessToken
         expiresAt
-        recoveryToken
       }
       userErrors { field message }
     }
@@ -274,29 +271,28 @@ export const CUSTOMER_CREATE_MUTATION = `
 `
 
 export const CUSTOMER_RECOVER_MUTATION = `
-  mutation customerRecover($input: CustomerRecoverInput!) {
-    customerRecover(input: $input) {
-      userErrors { field message }
+  mutation customerRecover($email: String!) {
+    customerRecover(email: $email) {
+      customerUserErrors { field message code }
     }
   }
 `
 
 export const CUSTOMER_RESET_MUTATION = `
-  mutation customerReset($input: CustomerResetInput!) {
-    customerReset(input: $input) {
+  mutation customerReset($id: ID!, $input: CustomerResetInput!) {
+    customerReset(id: $id, input: $input) {
       customerAccessToken {
         accessToken
         expiresAt
-        recoveryToken
       }
-      userErrors { field message }
+      customerUserErrors { field message code }
     }
   }
 `
 
 export const CUSTOMER_UPDATE_MUTATION = `
-  mutation customerUpdate($customerAccessToken: String!, $input: CustomerUpdateInput!) {
-    customerUpdate(input: $input, customerAccessToken: $customerAccessToken) {
+  mutation customerUpdate($customerAccessToken: String!, $customer: CustomerUpdateInput!) {
+    customerUpdate(customer: $customer, customerAccessToken: $customerAccessToken) {
       customer {
         id
         firstName
@@ -304,6 +300,10 @@ export const CUSTOMER_UPDATE_MUTATION = `
         email
         phone
         acceptsMarketing
+      }
+      customerAccessToken {
+        accessToken
+        expiresAt
       }
       customerUserErrors {
         field
@@ -329,10 +329,9 @@ export const CART_CREATE_WITH_AUTH_URL_MUTATION = `
 `
 
 export const CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION = `
-  mutation cartMergeWithCustomerAccessToken($cartId: ID!, $customerAccessToken: String!) {
-    cartMergeWithBuyerIdentity(cartId: $cartId, buyerIdentity: { customerAccessToken: $customerAccessToken }) {
+  mutation cartBuyerIdentityUpdate($cartId: ID!, $customerAccessToken: String!) {
+    cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: { customerAccessToken: $customerAccessToken }) {
       cart { ...CartFields }
-      mergedCart { ...CartFields }
       userErrors { field message }
     }
   }
@@ -349,6 +348,9 @@ export const CUSTOMER_QUERY = `
       email
       phone
       acceptsMarketing
+      defaultAddress {
+        id
+      }
       addresses(first: 20) {
         edges {
           node {
@@ -356,6 +358,8 @@ export const CUSTOMER_QUERY = `
             firstName
             lastName
             address1
+            address2
+            company
             city
             province
             country
@@ -379,8 +383,10 @@ export const CUSTOMER_QUERY = `
                 node {
                   title
                   quantity
-                  originalPrice { amount currencyCode }
-                  image { url altText width height }
+                  originalTotalPrice { amount currencyCode }
+                  variant {
+                    image { url altText width height }
+                  }
                 }
               }
             }
@@ -405,6 +411,73 @@ export const CUSTOMER_BY_ACCESS_TOKEN_QUERY = `
     }
   }
 `
+// ─── Customer Address Mutations ────────────────────────────────────────────────
+
+export const CUSTOMER_ADDRESS_CREATE_MUTATION = `
+  mutation customerAddressCreate($address: MailingAddressInput!, $customerAccessToken: String!) {
+    customerAddressCreate(address: $address, customerAccessToken: $customerAccessToken) {
+      customerAddress {
+        id
+        firstName
+        lastName
+        address1
+        address2
+        city
+        company
+        country
+        province
+        zip
+        phone
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_ADDRESS_UPDATE_MUTATION = `
+  mutation customerAddressUpdate($address: MailingAddressInput!, $customerAccessToken: String!, $id: ID!) {
+    customerAddressUpdate(address: $address, customerAccessToken: $customerAccessToken, id: $id) {
+      customerAddress {
+        id
+        firstName
+        lastName
+        address1
+        address2
+        city
+        company
+        country
+        province
+        zip
+        phone
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_ADDRESS_DELETE_MUTATION = `
+  mutation customerAddressDelete($customerAccessToken: String!, $id: ID!) {
+    customerAddressDelete(customerAccessToken: $customerAccessToken, id: $id) {
+      deletedCustomerAddressId
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION = `
+  mutation customerDefaultAddressUpdate($addressId: ID!, $customerAccessToken: String!) {
+    customerDefaultAddressUpdate(addressId: $addressId, customerAccessToken: $customerAccessToken) {
+      customer {
+        id
+        defaultAddress {
+          id
+        }
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
 export const CART_LINES_UPDATE_MUTATION = `
   mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
     cartLinesUpdate(cartId: $cartId, lines: $lines) {
