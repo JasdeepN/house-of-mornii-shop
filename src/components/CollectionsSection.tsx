@@ -11,7 +11,7 @@ import {
   BaroqueCardDescription,
   BaroqueCardContent
 } from '@/components/BaroqueCard'
-import { fadeSlideUp, viewportOnce } from '@/lib/animations'
+import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
 
 // To use real photos: import them here and set the `image` field, e.g.:
 // import everydayImg from '@/assets/images/collection-everyday.jpg'
@@ -50,7 +50,7 @@ export function CollectionsSection() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, ease: luxuryEase }}
           className="text-center mb-8"
         >
           <h2 className="text-4xl lg:text-5xl mb-4 tracking-[0.15em]">Collections</h2>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { CaretDown, Sparkle } from '@phosphor-icons/react'
 import { OrnamentalBorder } from '@/components/OrnamentalBorder'
 import { BrandLockup } from '@/components/BrandLockup'
+import { luxuryEase } from '@/lib/animations'
 
 const SCROLL_HIDE_THRESHOLD = 80 // px below which indicator is visible
 
@@ -14,7 +15,7 @@ const wordVariants = {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { delay: 0.2 + i * 0.18, duration: 0.9, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+    transition: { delay: 0.2 + i * 0.18, duration: 0.9, ease: luxuryEase },
   }),
 }
 
@@ -141,7 +142,7 @@ export function HeroSection() {
           y: showScrollIndicator ? 0 : 12
         }}
         whileHover={{ scale: 1.05 }}
-        transition={{ duration: 0.35 }}
+        transition={{ duration: 0.35, ease: luxuryEase }}
       >
         <span
           className="text-[9px] tracking-[0.4em] uppercase text-hero-scroll-text"

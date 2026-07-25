@@ -4,13 +4,11 @@ This document provides comprehensive documentation for the Shopify Storefront AP
 
 ## Overview
 
-The application integrates with Shopify Storefront API v2026-01 to provide product browsing, collection navigation, and cart functionality. The integration supports three operational modes:
+The application integrates with Shopify Storefront API v2026-01 to provide product browsing, collection navigation, and cart functionality. Live credentials (store domain + Storefront token) are required in every environment — local, UAT, and production. There is no demo or tokenless fallback; the client throws at module load if credentials are missing or placeholder values.
 
 | Mode | Condition | Behavior |
 |------|-----------|----------|
-| `demo` | No valid credentials | Uses fixture data, no API calls |
-| `tokenless` | Domain only | Limited fields (no tags, metafields) |
-| `token` | Domain + token | Full API access |
+| `token` | Domain + token present | Full API access |
 
 ## API Configuration
 
@@ -35,8 +33,8 @@ Main API client module with exports:
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `STOREFRONT_MODE` | `StorefrontMode` | Current operational mode ('demo' \| 'tokenless' \| 'token') |
-| `IS_CONFIGURED` | `boolean` | True when valid credentials present |
+| `STOREFRONT_MODE` | `StorefrontMode` | Always `'token'` |
+| `IS_CONFIGURED` | `boolean` | Always `true` |
 | `shopifyFetch<T>()` | `function` | Execute GraphQL queries/mutations |
 | `StorefrontError` | `class` | Typed error handling |
 

@@ -6,7 +6,7 @@
 
 declare global {
   interface Window {
-    dataLayer: Record<string, unknown>[]
+    dataLayer: unknown[][]
     gtag: (...args: unknown[]) => void
     fbq?: (...args: unknown[]) => void
     _fbq?: unknown
@@ -28,7 +28,7 @@ export function initGA4(): void {
 
   window.dataLayer = window.dataLayer || []
   window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer.push(args as Record<string, unknown>)
+    window.dataLayer.push(args)
   }
   window.gtag('js', new Date())
   window.gtag('config', id)

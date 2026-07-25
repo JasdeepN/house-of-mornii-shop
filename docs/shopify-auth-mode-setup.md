@@ -1,29 +1,22 @@
-# Shopify Live-Mode Config Contract & Auth Mode Setup Guide
+# Shopify Live-Mode Config Contract & Setup Guide
 
-This document covers the three Storefront auth modes, required environment variables, and deployment configuration for the House of Mornii storefront.
+This document covers the required environment variables and deployment configuration for the House of Mornii storefront. The app requires live Shopify Storefront API credentials in all environments (local, UAT, and production) — there is no demo or fixture-data mode.
 
-## Auth Modes
+## Startup Behavior
 
-The app resolves one of three `StorefrontMode` states on startup:
-
-| Mode | Condition | Behavior |
-|------|-----------|----------|
-| `demo` | `VITE_SHOPIFY_STORE_DOMAIN` absent or set to a placeholder | Fixture data only. No live API calls made. |
-| `tokenless` | Domain present, `VITE_SHOPIFY_STOREFRONT_TOKEN` absent | Connects to Shopify with no token. Only un-gated fields (titles, prices, images, variants) are available. Tags and metafields are excluded from queries. |
-| `token` | Both domain and token present | Full Storefront API access. Token is sent as `X-Shopify-Storefront-Access-Token`. All fields including tags, metafields, and customer APIs are available. |
-
-Resolution logic lives in `src/lib/shopify/client.ts`:
+The app resolves Shopify credentials on startup in [`src/lib/shopify/client.ts`](../src/lib/shopify/client.ts:23). If `VITE_SHOPIFY_STORE_DOMAIN` or `VITE_SHOPIFY_STOREFRONT_TOKEN` is missing or set to a placeholder value, the client throws at module load time — the app will not render a degraded or fixture-backed UI. Every environment (local dev, UAT, production) must point at a real Shopify store (a dev/UAT store or the live store).
 
 ```ts
-export const STOREFRONT_MODE: StorefrontMode = resolveStorefrontMode()
+export const STOREFRONT_MODE: StorefrontMode = resolveStorefrontMode() // always 'token'
+export const IS_CONFIGURED = true
 ```
 
 ## Required Environment Variables
 
-| Variable | Required for live mode | Description |
-|----------|------------------------|-------------|
+| Variable | Required | Description |
+|----------|----------|-------------|
 | `VITE_SHOPIFY_STORE_DOMAIN` | Yes | Your `*.myshopify.com` storefront domain. Example: `house-of-mornii.myshopify.com` |
-| `VITE_SHOPIFY_STOREFRONT_TOKEN` | Recommended | Public Storefront API access token. Unlocks tags, metafields, and customer order APIs. |
+| `VITE_SHOPIFY_STOREFRONT_TOKEN` | Yes | Public Storefront API access token. Required for tags, metafields, and customer APIs. |
 
 Both variables must be prefixed with `VITE_` to be exposed to the Vite build.
 
@@ -34,9 +27,9 @@ Both variables must be prefixed with `VITE_` to be exposed to the Vite build.
    cp .env.example .env.local
    ```
 
-2. Fill in your credentials:
+2. Fill in your credentials (use a Shopify development store for local work):
    ```env
-   VITE_SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
+   VITE_SHOPIFY_STORE_DOMAIN=your-dev-store.myshopify.com
    VITE_SHOPIFY_STOREFRONT_TOKEN=your-storefront-api-public-access-token
    ```
 
@@ -45,7 +38,7 @@ Both variables must be prefixed with `VITE_` to be exposed to the Vite build.
    npm run dev
    ```
 
-The console will print a warning if either value is missing, indicating which mode is active.
+If either value is missing or a placeholder, the app throws immediately at startup — there is no fallback.
 
 ## How to Get a Storefront Token
 
@@ -61,15 +54,23 @@ The console will print a warning if either value is missing, indicating which mo
    - `unauthenticated_read_checkouts`
 6. Click **Install app** and copy the **Public access token**.
 
+## Environments
+
+| Environment | Shopify Store |
+|-------------|----------------|
+| Local | Shopify development store (recommended, same as UAT or a personal dev store) |
+| UAT | Shopify development store |
+| Production | Live Shopify store |
+
 ## Production Deployment (Cloudflare Pages)
 
 Set environment variables in the Cloudflare Pages dashboard:
 
 1. Go to **Workers & Pages → house-of-mornii-shop → Settings → Environment variables**.
-2. Add both variables under **Production** (and **Preview** if desired).
+2. Add both variables under **Production** (and **Preview** for UAT).
 3. Rebuild the deployment — Vite bakes env vars into the bundle at build time.
 
-> **Important:** The app will fail to start in production with a misconfiguration screen if `VITE_SHOPIFY_STORE_DOMAIN` is unset or set to a placeholder value. This is intentional — it prevents a visually healthy but commercially dead storefront from being served to real customers. See [demo-mode-developer-guide.md](./demo-mode-developer-guide.md) for details.
+> **Important:** The app throws at module load and will not start if `VITE_SHOPIFY_STORE_DOMAIN` or `VITE_SHOPIFY_STOREFRONT_TOKEN` is unset or set to a placeholder value, in every environment including local dev. This is intentional — it prevents a broken or commercially dead storefront from being served.
 
 ## CI / GitHub Actions
 
@@ -83,26 +84,14 @@ Pass the variables as GitHub secrets to your build workflow:
   run: npm run build
 ```
 
-For preview environments, use a dedicated Shopify **development store** with its own Storefront token so production credentials are never used in non-production builds.
-
-## Tokenless Mode Caveats
-
-When running in `tokenless` mode the app silently switches to tag-free query variants:
-
-- `PRODUCTS_QUERY_TOKENLESS` — no `tags` field on products
-- `COLLECTION_BY_HANDLE_QUERY_TOKENLESS` — no `tags` field
-- `PRODUCT_BY_HANDLE_QUERY_TOKENLESS` — no `tags` field
-
-Tag-based search filtering in the Shop page falls back gracefully (matches on title only). No visible error is surfaced to the user, but tag-driven features will be silently absent.
-
-To verify which mode is active at runtime, check the browser console on first load in development. In production, check the Vite build output — `STOREFRONT_MODE` is a compile-time constant.
+For preview/UAT environments, use a dedicated Shopify **development store** with its own Storefront token so production credentials are never used in non-production builds.
 
 ## Related Files
 
 | File | Purpose |
 |------|---------|
 | `src/lib/shopify/client.ts` | Credential resolution, mode constant, `shopifyFetch` |
-| `src/lib/shopify/queries.ts` | Token-mode and tokenless-mode query variants |
-| `src/lib/shopify/hooks.ts` | Data-fetching hooks that select query based on mode |
-| `src/main.tsx` | Production demo-mode guard |
+| `src/lib/shopify/queries.ts` | GraphQL query/mutation definitions |
+| `src/lib/shopify/hooks.ts` | Data-fetching hooks |
+| `src/main.tsx` | App bootstrap |
 | `.env.example` | Template for local credentials |

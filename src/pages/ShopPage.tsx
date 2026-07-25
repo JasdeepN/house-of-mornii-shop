@@ -8,8 +8,6 @@ import {
   useCollections,
   useCollection,
   shopifyFetch,
-  IS_CONFIGURED,
-  getDemoProducts,
   PRODUCTS_QUERY,
 } from '@/lib/shopify'
 import { isServiceError as checkIsServiceError, useErrorHandler } from '@/lib/errorHandler'
@@ -97,30 +95,16 @@ export function ShopPage() {
     if (!cursor) return
     setIsLoadingMore(true)
     try {
-      if (!IS_CONFIGURED) {
-        const items = getDemoProducts()
-        const afterId = atob(cursor)
-        const idx = items.findIndex((p) => p.id === afterId)
-        const startIdx = idx >= 0 ? idx + 1 : 0
-        const page = items.slice(startIdx, startIdx + 12)
-        setLoadedMore((prev) => [...prev, ...page])
-        if (startIdx + 12 >= items.length) {
-          setHasMorePages(false)
-        } else {
-          setAfterCursor(btoa(page[page.length - 1].id))
+      const data = await shopifyFetch<{
+        products: {
+          edges: { node: ShopifyProduct; cursor: string }[]
+          pageInfo: { hasNextPage: boolean; endCursor: string | null }
         }
-      } else {
-        const data = await shopifyFetch<{
-          products: {
-            edges: { node: ShopifyProduct; cursor: string }[]
-            pageInfo: { hasNextPage: boolean; endCursor: string | null }
-          }
-        }>(PRODUCTS_QUERY, { first: 12, sortKey, reverse, after: cursor })
-        const newProducts = data.products.edges.map((e) => e.node)
-        setLoadedMore((prev) => [...prev, ...newProducts])
-        setHasMorePages(data.products.pageInfo.hasNextPage)
-        setAfterCursor(data.products.pageInfo.endCursor ?? undefined)
-      }
+      }>(PRODUCTS_QUERY, { first: 12, sortKey, reverse, after: cursor })
+      const newProducts = data.products.edges.map((e) => e.node)
+      setLoadedMore((prev) => [...prev, ...newProducts])
+      setHasMorePages(data.products.pageInfo.hasNextPage)
+      setAfterCursor(data.products.pageInfo.endCursor ?? undefined)
     } finally {
       setIsLoadingMore(false)
     }
@@ -172,7 +156,7 @@ export function ShopPage() {
           <motion.div
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ delay: 0.7, duration: 0.8, ease: luxuryEase }}
+            transition={{ delay: 0.4, duration: 0.4, ease: luxuryEase }}
           >
             <OrnamentalDivider className="mb-12" />
           </motion.div>
@@ -182,7 +166,7 @@ export function ShopPage() {
             variants={fadeSlideUp}
             initial="hidden"
             animate="visible"
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.2, duration: 0.3, ease: luxuryEase }}
             className="text-center text-lg lg:text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto mb-16"
           >
             Explore our full collection of heritage-inspired jewellery.
@@ -192,7 +176,7 @@ export function ShopPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
+          transition={{ duration: 0.3, delay: 0.15, ease: luxuryEase }}
           className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8"
         >
           {/* Collection filter chips */}

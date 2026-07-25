@@ -107,21 +107,7 @@ export function reportInfo(
  * When VITE_SENTRY_DSN is configured, initialize Sentry SDK here
  */
 async function reportToSentry(event: MonitoringEvent): Promise<void> {
-  // TODO: Initialize Sentry when DSN is available
-  // import * as Sentry from '@sentry/react'
-  // Sentry.captureException(new Error(event.message), {
-  //   level: event.severity,
-  //   contexts: {
-  //     custom: {
-  //       environment: event.environment,
-  //       mode: event.mode,
-  //     },
-  //   },
-  //   tags: {
-  //     storefront_mode: event.mode,
-  //   },
-  // })
-  
+  // TODO(monitoring): integrate Sentry when VITE_SENTRY_DSN is configured
   console.error('[MONITORING] Sentry event (DSN configured but SDK not initialized):', event)
 }
 
@@ -129,8 +115,7 @@ async function reportToSentry(event: MonitoringEvent): Promise<void> {
  * Set user context for error reporting (e.g., authenticated user ID)
  */
 export function setUserContext(userId: string, userEmail?: string): void {
-  // TODO: Set Sentry user context
-  // Sentry.setUser({ id: userId, email: userEmail })
+  // TODO(monitoring): integrate Sentry when VITE_SENTRY_DSN is configured
   logger.info('[MONITORING] User context set', { userId, userEmail, action: 'setUserContext' })
 }
 
@@ -138,7 +123,6 @@ export function setUserContext(userId: string, userEmail?: string): void {
  * Add tags to all subsequent error reports
  */
 export function addTags(tags: Record<string, string>): void {
-  // TODO: Add Sentry tags
-  // Object.entries(tags).forEach(([key, value]) => Sentry.setTag(key, value))
+  // TODO(monitoring): integrate Sentry when VITE_SENTRY_DSN is configured
   logger.info('[MONITORING] Tags added', { ...tags, action: 'addTags' })
 }

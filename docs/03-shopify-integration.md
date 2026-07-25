@@ -2,59 +2,47 @@
 
 ## Overview
 
-The application integrates with Shopify Storefront API v2026-01 to provide product browsing, collection navigation, and cart functionality. The integration is designed to work seamlessly across three operational modes, allowing full development without credentials while supporting production-grade e-commerce when configured.
+The application integrates with Shopify Storefront API v2026-01 to provide product browsing, collection navigation, and cart functionality. Live Shopify credentials (store domain + Storefront access token) are required in every environment — local, UAT, and production. There is no demo or fixture-data mode; the client throws at module load if credentials are missing or placeholder values.
 
-## Operational Modes
+## Startup Credential Resolution
 
 ```mermaid
 stateDiagram-v2
     [*] --> ModeDetection
-    ModeDetection --> Demo: No domain
-    ModeDetection --> Tokenless: Domain only
-    ModeDetection --> Token: Domain + token
-    
-    Demo --> FallbackData: Uses fixtures
-    Tokenless --> LimitedFields: No tags/metafields
+    ModeDetection --> Token: Domain + token present
+    ModeDetection --> Throw: Domain or token missing/placeholder
+
     Token --> FullAccess: All fields available
-    
-    FallbackData --> [*]
-    LimitedFields --> [*]
     FullAccess --> [*]
+    Throw --> [*]
 ```
 
-| Mode | Condition | Behavior | Fields Available |
-|------|-----------|----------|------------------|
-| `demo` | No valid credentials | Uses fixture data, no API calls | All (from fixtures) |
-| `tokenless` | Domain present, no token | Only tokenless-safe fields | Basic product data, images, prices |
-| `token` | Domain + Storefront token | Full API access | Tags, metafields, customer APIs |
-
-### Mode Detection Logic
-
-Mode is determined in [`src/lib/shopify/client.ts`](src/lib/shopify/client.ts:22):
+Mode is determined in [`src/lib/shopify/client.ts`](../src/lib/shopify/client.ts:23):
 
 ```typescript
 function resolveStorefrontMode(): StorefrontMode {
   const hasDomain = !!domain && !PLACEHOLDER_DOMAINS.has(domain)
   const hasToken = !!token
-  if (!hasDomain) return 'demo'
-  if (!hasToken) return 'tokenless'
+  if (!hasDomain || !hasToken) {
+    throw new Error('Shopify credentials are required in all environments')
+  }
   return 'token'
 }
 
 export const STOREFRONT_MODE: StorefrontMode = resolveStorefrontMode()
-export const IS_CONFIGURED = STOREFRONT_MODE !== 'demo'
+export const IS_CONFIGURED = true
 ```
 
-Placeholder domains (`your-store.myshopify.com`, `CHANGE_ME`) are explicitly checked to prevent accidental tokenless deployments.
+Placeholder domains (`your-store.myshopify.com`, `CHANGE_ME`) are explicitly checked to prevent accidental misconfigured deployments.
 
 ## API Configuration
 
 ### Environment Variables
 
-| Variable | Required | Mode | Description |
-|----------|----------|------|-------------|
-| `VITE_SHOPIFY_STORE_DOMAIN` | Token/Tokenless | All | Shopify store domain (e.g., `mornii.myshopify.com`) |
-| `VITE_SHOPIFY_STOREFRONT_TOKEN` | Token | Token | Public Storefront API access token |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_SHOPIFY_STORE_DOMAIN` | Yes | Shopify store domain (e.g., `mornii.myshopify.com`) |
+| `VITE_SHOPIFY_STOREFRONT_TOKEN` | Yes | Public Storefront API access token |
 
 ### API Endpoint
 
@@ -64,16 +52,15 @@ POST https://{STORE_DOMAIN}/api/2026-01/graphql.json
 
 ### Authentication Headers
 
-| Mode | Header | Value |
-|------|--------|-------|
-| Tokenless | None | Public fields only |
-| Token | `X-Shopify-Storefront-Access-Token` | Storefront token value |
+| Header | Value |
+|--------|-------|
+| `X-Shopify-Storefront-Access-Token` | Storefront token value |
 
 ## Core Modules
 
 ### Client (`@/lib/shopify/client`)
 
-The thin GraphQL client module with no SDK dependency:
+The thin GraphQL client module (via `@shopify/storefront-api-client` SDK):
 
 ```typescript
 // Execute a GraphQL query/mutation
@@ -87,8 +74,8 @@ const product = await shopifyFetch<ProductResponse>(
 ```
 
 **Exports:**
-- `STOREFRONT_MODE` - Current operational mode
-- `IS_CONFIGURED` - Boolean for live credentials presence
+- `STOREFRONT_MODE` - Always `'token'`
+- `IS_CONFIGURED` - Always `true`
 - `shopifyFetch<T>()` - Generic GraphQL executor
 - `StorefrontError` - Typed error class with category classification
 
@@ -143,7 +130,7 @@ interface ShopifyProduct {
   options: { id: string; name: string; values: string[] }[]
   variants: { edges: { node: ShopifyProductVariant }[] }
   priceRange: { minVariantPrice: ShopifyMoney; maxVariantPrice: ShopifyMoney }
-  tags?: string[]         // Token-gated field
+  tags?: string[]
   vendor: string
 }
 
@@ -173,12 +160,12 @@ interface ShopifyCart {
 ```
 
 **Utility Functions:**
-- [`flattenEdges<T>()`](src/lib/shopify/types.ts:93) - Flattens GraphQL connection edges to array
-- [`formatMoney()`](src/lib/shopify/types.ts:98) - Formats money for display using `Intl.NumberFormat`
+- [`flattenEdges<T>()`](../src/lib/shopify/types.ts:93) - Flattens GraphQL connection edges to array
+- [`formatMoney()`](../src/lib/shopify/types.ts:98) - Formats money for display using `Intl.NumberFormat`
 
 ### Hooks (`@/lib/shopify/hooks`)
 
-TanStack Query hooks wrapping the client with automatic demo fallback:
+TanStack Query hooks wrapping the client:
 
 ```typescript
 // Collections
@@ -201,19 +188,6 @@ const { data: related } = useRelatedProducts(handle)
 | `useProduct()` | `['product', handle]` | 2 minutes |
 | `useProducts()` | `['products', sortKey, reverse, query, first, after]` | 5 minutes |
 | `useRelatedProducts()` | `['relatedProducts', handle]` | 5 minutes |
-
-**Demo Mode Sorting:**
-When in demo mode, the hooks implement client-side sorting that mirrors Shopify behavior:
-- `PRICE` - Sorts by `minVariantPrice.amount` numerically
-- `TITLE` - Uses `localeCompare()` for alphabetical sorting
-- `BEST_SELLING` - Returns fixtures in predefined order
-
-**Demo Mode Pagination:**
-Cursor-based pagination is simulated using base64-encoded product IDs:
-```typescript
-const cursor = btoa(product.id)  // Encode
-const id = atob(cursor)          // Decode
-```
 
 ## GraphQL Queries
 
@@ -246,33 +220,24 @@ query Collections {
 }
 ```
 
-#### `COLLECTION_BY_HANDLE_QUERY` (Token Mode)
+#### `COLLECTION_BY_HANDLE_QUERY`
 Fetches single collection with paginated products.
 
 **Variables:** `$handle: String!`, `$first: Int!`, `$after: String`, `$sortKey: ProductCollectionSortKeys`, `$reverse: Boolean`
 
-#### `COLLECTION_BY_HANDLE_QUERY_TOKENLESS` (Tokenless Mode)
-Same structure but uses `PRODUCT_CARD_FRAGMENT_TOKENLESS` which omits `tags` field.
-
 ### Products
 
-#### `PRODUCTS_QUERY` (Token Mode)
+#### `PRODUCTS_QUERY`
 Fetches products with pagination and search.
 
 **Variables:** `$first: Int!`, `$after: String`, `$sortKey: ProductSortKeys`, `$reverse: Boolean`, `$query: String`
 
-#### `PRODUCTS_QUERY_TOKENLESS` (Tokenless Mode)
-Same structure without token-gated fields.
-
-#### `PRODUCT_BY_HANDLE_QUERY` (Token Mode)
+#### `PRODUCT_BY_HANDLE_QUERY`
 Fetches single product with full variant data.
 
 **Variables:** `$handle: String!`
 
 **Returns:** Complete product with variants, images, options, price range, tags, and collection membership.
-
-#### `PRODUCT_BY_HANDLE_QUERY_TOKENLESS` (Tokenless Mode)
-Same structure without `tags` field.
 
 ### Shared Fragments
 
@@ -295,7 +260,7 @@ fragment ProductCardFields on Product {
     minVariantPrice { amount currencyCode }
     maxVariantPrice { amount currencyCode }
   }
-  tags              # Token-gated: omitted in tokenless mode
+  tags
   vendor
 }
 
@@ -347,36 +312,9 @@ Removes items from cart.
 
 **Returns:** Updated cart
 
-## Token-Gated Fields
-
-The following fields require a Storefront access token and are excluded from tokenless queries:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `Product.tags` | `[String!]` | Product tags for filtering/searching |
-| `Product.metafields` | `[Metafield!]` | Custom metadata |
-| `Customer` types | Various | Customer account APIs |
-
-The [`token-requirements.ts`](src/lib/shopify/token-requirements.ts) module documents which queries use which fragment variant.
-
-## Demo Data (`@/lib/shopify/demo-data`)
-
-When `IS_CONFIGURED === false`, the app uses fixture data that mirrors Shopify API structure:
-
-**Products (12 total across 3 collections):**
-| Collection | Products | Price Range |
-|------------|----------|-------------|
-| Everyday | Aria Pendant, Seren Studs, Lumiere Bangle, Cassia Chain | $59 - $125 |
-| Festive | Noor Chandeliers, Zara Ring, Rania Collar, Farah Drops | $135 - $245 |
-| Bridal | Maharani Set, Celestia Tikka, Anaya Jhumkas, Priya Harness | $195 - $450 |
-
-**Image Placeholders:** Generated via `placehold.co` with brand colors (dark background, gold text).
-
-**GID Format:** Demo data uses synthetic GIDs (`gid://shopify/Product/1`, etc.) for compatibility.
-
 ## Health Checks
 
-The [`health.ts`](src/lib/shopify/health.ts) module provides API connectivity verification:
+The [`health.ts`](../src/lib/shopify/health.ts) module provides API connectivity verification:
 
 ```typescript
 import { checkShopifyHealth } from '@/lib/shopify/health'
@@ -384,6 +322,10 @@ import { checkShopifyHealth } from '@/lib/shopify/health'
 const status = await checkShopifyHealth()
 // Returns: { ok: boolean, mode: StorefrontMode, error?: string }
 ```
+
+## Test Fixtures (`@/test/fixtures/shopify-fixtures`)
+
+Fixture data mirroring the Shopify API structure is retained for unit tests only (no longer used at runtime). Located in [`src/test/fixtures/shopify-fixtures.ts`](../src/test/fixtures/shopify-fixtures.ts), it exports `getFixtureCollections()`, `getFixtureCollection()`, `getFixtureProduct()`, `getFixtureProducts()`, and `getEdgeCaseProducts()` for use in mocked `shopifyFetch` responses within test suites.
 
 ## Integration Flow
 
@@ -393,25 +335,11 @@ sequenceDiagram
     participant Hook as useProduct/useCollection/etc.
     participant Client as shopifyFetch
     participant Shopify as Storefront API
-    participant Demo as demo-data.ts
 
     Component->>Hook: Call hook with params
-    Hook->>Hook: Check IS_CONFIGURED
-    
-    alt Token Mode
-        Hook->>Client: shopifyFetch(query, vars)
-        Client->>Shopify: POST with X-Shopify-Storefront-Access-Token
-        Shopify-->>Client: Full response (tags, metafields)
-        Client-->>Hook: Parsed data
-    else Tokenless Mode
-        Hook->>Client: shopifyFetch(tokenlessQuery, vars)
-        Client->>Shopify: POST without token header
-        Shopify-->>Client: Limited response (no tags/metafields)
-        Client-->>Hook: Parsed data
-    else Demo Mode
-        Hook->>Demo: getDemoProduct/getDemoCollection(handle)
-        Demo-->>Hook: Fixture data mirroring API structure
-    end
-    
+    Hook->>Client: shopifyFetch(query, vars)
+    Client->>Shopify: POST with X-Shopify-Storefront-Access-Token
+    Shopify-->>Client: Full response (tags, metafields)
+    Client-->>Hook: Parsed data
     Hook-->>Component: QueryResult with data/loading/error
 ```

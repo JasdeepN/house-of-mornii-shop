@@ -42,7 +42,7 @@ VITE_SITE_URL=http://localhost:5173
 VITE_CONTACT_EMAIL=
 VITE_NEWSLETTER_ENDPOINT=
 
-# Optional — leave empty to use demo product data
+# Required — a Shopify development store works well for local use
 VITE_SHOPIFY_STORE_DOMAIN=your-dev-store.myshopify.com
 VITE_SHOPIFY_STOREFRONT_TOKEN=your_storefront_api_token
 
@@ -51,7 +51,7 @@ VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX
 VITE_META_PIXEL_ID=
 ```
 
-If `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are both empty, the app runs in **demo mode** — a full in-memory product catalog is used. This is the default for new contributors.
+`VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are required — the app throws at module load if either is empty or a placeholder value, in every environment including local dev. Use a Shopify development store for local work.
 
 If `VITE_NEWSLETTER_ENDPOINT` is empty, the newsletter form runs in **prototype mode** — it exercises the UI success path without writing to a real email provider.
 

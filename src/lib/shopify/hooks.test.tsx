@@ -1,14 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import {
+  getFixtureCollections,
+  getFixtureCollection,
+  getFixtureProduct,
+  getFixtureProducts,
+} from '@/test/fixtures/shopify-fixtures'
 
-// Always force demo mode for hook tests
+const shopifyFetch = vi.fn()
+
+// Token mode — shopifyFetch is mocked to return fixture-shaped responses.
 vi.mock('./client', () => ({
-  IS_CONFIGURED: false,
-  shopifyFetch: vi.fn(() => {
-    throw new Error('shopifyFetch should not be called in demo mode')
-  }),
+  IS_CONFIGURED: true,
+  STOREFRONT_MODE: 'token',
+  shopifyFetch: (...args: unknown[]) => shopifyFetch(...args),
+}))
+
+vi.mock('./admin-proxy', () => ({
+  adminProxyFetch: vi.fn(),
+  ADMIN_PROXY_ENABLED: false,
 }))
 
 // Must import AFTER mock setup
@@ -27,8 +39,16 @@ function createWrapper() {
   }
 }
 
-describe('useCollections (demo mode)', () => {
-  it('returns 3 demo collections', async () => {
+beforeEach(() => {
+  shopifyFetch.mockReset()
+})
+
+describe('useCollections', () => {
+  it('returns 3 fixture collections', async () => {
+    shopifyFetch.mockResolvedValueOnce({
+      collections: { edges: getFixtureCollections().map((c) => ({ node: c })) },
+    })
+
     const { result } = renderHook(() => useCollections(), {
       wrapper: createWrapper(),
     })
@@ -39,8 +59,10 @@ describe('useCollections (demo mode)', () => {
   })
 })
 
-describe('useCollection (demo mode)', () => {
+describe('useCollection', () => {
   it('returns collection by handle', async () => {
+    shopifyFetch.mockResolvedValueOnce({ collection: getFixtureCollection('festive') })
+
     const { result } = renderHook(() => useCollection('festive'), {
       wrapper: createWrapper(),
     })
@@ -51,6 +73,8 @@ describe('useCollection (demo mode)', () => {
   })
 
   it('returns null for unknown handle', async () => {
+    shopifyFetch.mockResolvedValueOnce({ collection: null })
+
     const { result } = renderHook(() => useCollection('unknown'), {
       wrapper: createWrapper(),
     })
@@ -59,58 +83,43 @@ describe('useCollection (demo mode)', () => {
     expect(result.current.data).toBeNull()
   })
 
-  it('sorts by PRICE when sortKey is PRICE', async () => {
+  it('passes PRICE sortKey through to shopifyFetch', async () => {
+    const collection = getFixtureCollection('everyday')!
+    shopifyFetch.mockResolvedValueOnce({ collection })
+
     const { result } = renderHook(
       () => useCollection('everyday', 12, 'PRICE'),
       { wrapper: createWrapper() },
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const prices = result.current.data!.products.edges.map((e) =>
-      parseFloat(e.node.priceRange.minVariantPrice.amount),
+    expect(shopifyFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ handle: 'everyday', sortKey: 'PRICE' }),
     )
-    for (let i = 1; i < prices.length; i++) {
-      expect(prices[i]).toBeGreaterThanOrEqual(prices[i - 1])
-    }
   })
 
-  it('sorts by TITLE when sortKey is TITLE', async () => {
+  it('passes TITLE sortKey through to shopifyFetch', async () => {
+    const collection = getFixtureCollection('everyday')!
+    shopifyFetch.mockResolvedValueOnce({ collection })
+
     const { result } = renderHook(
       () => useCollection('everyday', 12, 'TITLE'),
       { wrapper: createWrapper() },
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const titles = result.current.data!.products.edges.map((e) => e.node.title)
-    const sorted = [...titles].sort()
-    expect(titles).toEqual(sorted)
-  })
-
-  it('does not mutate shared demo collection ordering when sorted', async () => {
-    const { getDemoCollection } = await import('./demo-data')
-    const originalOrder = getDemoCollection('everyday')!.products.edges.map((e) => e.node.handle)
-
-    const { result: sortedResult } = renderHook(
-      () => useCollection('everyday', 12, 'TITLE', true),
-      { wrapper: createWrapper() },
+    expect(shopifyFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ handle: 'everyday', sortKey: 'TITLE' }),
     )
-
-    await waitFor(() => expect(sortedResult.current.isSuccess).toBe(true))
-
-    expect(getDemoCollection('everyday')!.products.edges.map((e) => e.node.handle)).toEqual(originalOrder)
-
-    const { result: unsortedResult } = renderHook(
-      () => useCollection('everyday'),
-      { wrapper: createWrapper() },
-    )
-
-    await waitFor(() => expect(unsortedResult.current.isSuccess).toBe(true))
-    expect(unsortedResult.current.data!.products.edges.map((e) => e.node.handle)).toEqual(originalOrder)
   })
 })
 
-describe('useProduct (demo mode)', () => {
-  it('returns product by handle with collection info', async () => {
+describe('useProduct', () => {
+  it('returns product by handle', async () => {
+    shopifyFetch.mockResolvedValueOnce({ product: getFixtureProduct('aria-pendant') })
+
     const { result } = renderHook(() => useProduct('aria-pendant'), {
       wrapper: createWrapper(),
     })
@@ -118,10 +127,11 @@ describe('useProduct (demo mode)', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     const product = result.current.data!
     expect(product.title).toBe('Aria Pendant')
-    expect(product.collections?.edges[0].node.handle).toBe('everyday')
   })
 
   it('returns null for unknown handle', async () => {
+    shopifyFetch.mockResolvedValueOnce({ product: null })
+
     const { result } = renderHook(() => useProduct('nonexistent'), {
       wrapper: createWrapper(),
     })
@@ -131,80 +141,77 @@ describe('useProduct (demo mode)', () => {
   })
 })
 
-describe('useProducts (demo mode)', () => {
-  it('returns all 12 demo products', async () => {
+describe('useProducts', () => {
+  it('returns all fixture products', async () => {
+    const products = getFixtureProducts()
+    shopifyFetch.mockResolvedValueOnce({
+      products: {
+        edges: products.map((p) => ({ node: p, cursor: btoa(p.id) })),
+        pageInfo: { hasNextPage: false, endCursor: null },
+      },
+    })
+
     const { result } = renderHook(() => useProducts(), {
       wrapper: createWrapper(),
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(result.current.data!.edges).toHaveLength(12)
+    expect(result.current.data!.edges).toHaveLength(products.length)
   })
 
-  it('filters by query string', async () => {
-    const { result } = renderHook(
+  it('passes query filter through to shopifyFetch', async () => {
+    shopifyFetch.mockResolvedValueOnce({
+      products: { edges: [], pageInfo: { hasNextPage: false, endCursor: null } },
+    })
+
+    renderHook(
       () => useProducts('BEST_SELLING', false, 'pendant'),
       { wrapper: createWrapper() },
     )
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const products = result.current.data!.edges.map((e) => e.node)
-    expect(products.length).toBeGreaterThan(0)
-    for (const p of products) {
-      expect(
-        p.title.toLowerCase().includes('pendant') ||
-          p.tags.some((t) => t.toLowerCase().includes('pendant')),
-      ).toBe(true)
-    }
+    await waitFor(() =>
+      expect(shopifyFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ query: 'pendant' }),
+      ),
+    )
   })
 
-  it('sorts by PRICE', async () => {
-    const { result } = renderHook(() => useProducts('PRICE'), {
-      wrapper: createWrapper(),
+  it('passes first limit through to shopifyFetch', async () => {
+    shopifyFetch.mockResolvedValueOnce({
+      products: { edges: [], pageInfo: { hasNextPage: true, endCursor: null } },
     })
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const prices = result.current.data!.edges.map((e) =>
-      parseFloat(e.node.priceRange.minVariantPrice.amount),
-    )
-    for (let i = 1; i < prices.length; i++) {
-      expect(prices[i]).toBeGreaterThanOrEqual(prices[i - 1])
-    }
-  })
-
-  it('respects reverse flag', async () => {
-    const { result } = renderHook(() => useProducts('PRICE', true), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const prices = result.current.data!.edges.map((e) =>
-      parseFloat(e.node.priceRange.minVariantPrice.amount),
-    )
-    for (let i = 1; i < prices.length; i++) {
-      expect(prices[i]).toBeLessThanOrEqual(prices[i - 1])
-    }
-  })
-
-  it('respects first limit', async () => {
     const { result } = renderHook(
       () => useProducts('BEST_SELLING', false, undefined, 4),
       { wrapper: createWrapper() },
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(result.current.data!.edges).toHaveLength(4)
-    expect(result.current.data!.pageInfo.hasNextPage).toBe(true)
+    expect(shopifyFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ first: 4 }),
+    )
   })
 })
 
-describe('useRelatedProducts (demo mode)', () => {
+describe('useRelatedProducts', () => {
   it('returns products from same collection excluding current', async () => {
+    const collection = getFixtureCollection('everyday')!
+    const product = getFixtureProduct('aria-pendant')!
+
+    shopifyFetch.mockImplementation((query: string) => {
+      if (query.includes('ProductByHandle') || query.includes('product(')) {
+        return Promise.resolve({ product })
+      }
+      return Promise.resolve({ collection })
+    })
+
     const { result } = renderHook(
       () => {
-        const product = useProduct('aria-pendant')
-        const related = useRelatedProducts('everyday', product.data?.id)
-        return { product, related }
+        const productResult = useProduct('aria-pendant')
+        const related = useRelatedProducts('everyday', productResult.data?.id)
+        return { product: productResult, related }
       },
       { wrapper: createWrapper() },
     )

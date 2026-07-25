@@ -7,7 +7,7 @@ const addToCart = vi.fn(() => Promise.resolve())
 const trackAddToCart = vi.fn()
 
 vi.mock('@/context/CartContext', async () => {
-  const actual = await vi.importActual<'@/context/CartContext'>('@/context/CartContext')
+  const actual = await vi.importActual<typeof import('@/context/CartContext')>('@/context/CartContext')
   return {
     ...(actual as Record<string, unknown>),
     useCart: () => ({

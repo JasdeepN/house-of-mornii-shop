@@ -1,14 +1,18 @@
-import { describe, it, expect, vi } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { CartProvider, useCart } from './CartContext'
+import { CustomerAuthProvider } from '@/context/CustomerAuthContext'
 import type { ReactNode } from 'react'
+import { getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
+import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify/types'
 
-// Force demo mode
+const shopifyFetch = vi.fn()
+
 vi.mock('@/lib/shopify/client', () => ({
-  IS_CONFIGURED: false,
-  shopifyFetch: vi.fn(),
+  IS_CONFIGURED: true,
+  shopifyFetch: (...args: unknown[]) => shopifyFetch(...args),
 }))
 
 function createWrapper() {
@@ -19,16 +23,76 @@ function createWrapper() {
     return (
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>
-          <CartProvider>{children}</CartProvider>
+          <CustomerAuthProvider>
+            <CartProvider>{children}</CartProvider>
+          </CustomerAuthProvider>
         </QueryClientProvider>
       </MemoryRouter>
     )
   }
 }
 
+// Build a mock ShopifyCart response from a set of lines, mirroring the
+// shape the real Storefront API cart mutations return.
+let _lineId = 0
+function makeLine(variantId: string, quantity: number): ShopifyCartLine {
+  const products = getFixtureProducts()
+  const product = products.find((p) =>
+    p.variants.edges.some((e) => e.node.id === variantId),
+  )!
+  const variant = product.variants.edges[0].node
+  const price = variant.price
+  return {
+    id: `line-${++_lineId}`,
+    quantity,
+    merchandise: {
+      id: variant.id,
+      title: variant.title,
+      product: {
+        handle: product.handle,
+        title: product.title,
+        featuredImage: product.featuredImage,
+      },
+      price,
+      selectedOptions: variant.selectedOptions,
+      image: variant.image,
+    },
+    cost: {
+      totalAmount: {
+        amount: (parseFloat(price.amount) * quantity).toFixed(2),
+        currencyCode: price.currencyCode,
+      },
+      amountPerQuantity: price,
+    },
+  }
+}
+
+function makeCart(lines: ShopifyCartLine[]): ShopifyCart {
+  const totalQuantity = lines.reduce((sum, l) => sum + l.quantity, 0)
+  const subtotal = lines.reduce(
+    (sum, l) => sum + parseFloat(l.cost.totalAmount.amount),
+    0,
+  )
+  return {
+    id: 'gid://shopify/Cart/test-cart',
+    checkoutUrl: 'https://checkout.example.com',
+    totalQuantity,
+    lines: { edges: lines.map((l) => ({ node: l })) },
+    cost: {
+      subtotalAmount: { amount: subtotal.toFixed(2), currencyCode: 'CAD' },
+      totalAmount: { amount: subtotal.toFixed(2), currencyCode: 'CAD' },
+      totalTaxAmount: null,
+    },
+  }
+}
+
 describe('useCart', () => {
+  beforeEach(() => {
+    shopifyFetch.mockReset()
+    localStorage.clear()
+  })
+
   it('throws when used outside CartProvider', () => {
-    // Suppress console.error for expected error
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     expect(() => {
       renderHook(() => useCart())
@@ -69,17 +133,22 @@ describe('useCart', () => {
   })
 })
 
-describe('Demo cart operations', () => {
-  it('addToCart creates a demo cart with one item', async () => {
+describe('Cart operations (token mode, shopifyFetch mocked)', () => {
+  beforeEach(() => {
+    shopifyFetch.mockReset()
+    localStorage.clear()
+  })
+
+  it('addToCart creates a cart with one item', async () => {
     const { result } = renderHook(() => useCart(), {
       wrapper: createWrapper(),
     })
 
-    // Use a known demo product variant id
-    // We need the actual variant ID from demo data
-    const { getDemoProducts } = await import('@/lib/shopify/demo-data')
-    const products = getDemoProducts()
-    const variantId = products[0].variants.edges[0].node.id
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
+    const line = makeLine(variantId, 1)
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([line]), userErrors: [] },
+    })
 
     await act(async () => {
       await result.current.addToCart(variantId)
@@ -95,11 +164,21 @@ describe('Demo cart operations', () => {
       wrapper: createWrapper(),
     })
 
-    const { getDemoProducts } = await import('@/lib/shopify/demo-data')
-    const variantId = getDemoProducts()[0].variants.edges[0].node.id
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
 
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([makeLine(variantId, 1)]), userErrors: [] },
+    })
     await act(async () => {
       await result.current.addToCart(variantId)
+    })
+
+    const existingLineId = result.current.cart!.lines.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartLinesAdd: {
+        cart: makeCart([{ ...makeLine(variantId, 3), id: existingLineId }]),
+        userErrors: [],
+      },
     })
     await act(async () => {
       await result.current.addToCart(variantId, 2)
@@ -116,13 +195,23 @@ describe('Demo cart operations', () => {
       wrapper: createWrapper(),
     })
 
-    const { getDemoProducts } = await import('@/lib/shopify/demo-data')
-    const products = getDemoProducts()
+    const products = getFixtureProducts()
     const variantId1 = products[0].variants.edges[0].node.id
     const variantId2 = products[1].variants.edges[0].node.id
 
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([makeLine(variantId1, 1)]), userErrors: [] },
+    })
     await act(async () => {
       await result.current.addToCart(variantId1)
+    })
+
+    const line1 = result.current.cart!.lines.edges[0].node
+    shopifyFetch.mockResolvedValueOnce({
+      cartLinesAdd: {
+        cart: makeCart([line1, makeLine(variantId2, 1)]),
+        userErrors: [],
+      },
     })
     await act(async () => {
       await result.current.addToCart(variantId2)
@@ -137,14 +226,21 @@ describe('Demo cart operations', () => {
       wrapper: createWrapper(),
     })
 
-    const { getDemoProducts } = await import('@/lib/shopify/demo-data')
-    const variantId = getDemoProducts()[0].variants.edges[0].node.id
-
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([makeLine(variantId, 1)]), userErrors: [] },
+    })
     await act(async () => {
       await result.current.addToCart(variantId)
     })
 
     const lineId = result.current.cart!.lines.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartLinesUpdate: {
+        cart: makeCart([{ ...makeLine(variantId, 5), id: lineId }]),
+        userErrors: [],
+      },
+    })
 
     await act(async () => {
       await result.current.updateLineItem(lineId, 5)
@@ -159,14 +255,18 @@ describe('Demo cart operations', () => {
       wrapper: createWrapper(),
     })
 
-    const { getDemoProducts } = await import('@/lib/shopify/demo-data')
-    const variantId = getDemoProducts()[0].variants.edges[0].node.id
-
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([makeLine(variantId, 1)]), userErrors: [] },
+    })
     await act(async () => {
       await result.current.addToCart(variantId)
     })
 
     const lineId = result.current.cart!.lines.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartLinesRemove: { cart: null, userErrors: [] },
+    })
 
     await act(async () => {
       await result.current.removeLineItem(lineId)
@@ -181,10 +281,13 @@ describe('Demo cart operations', () => {
       wrapper: createWrapper(),
     })
 
-    const { getDemoProducts } = await import('@/lib/shopify/demo-data')
-    const product = getDemoProducts()[0]
+    const product = getFixtureProducts()[0]
     const variantId = product.variants.edges[0].node.id
     const unitPrice = parseFloat(product.variants.edges[0].node.price.amount)
+
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([makeLine(variantId, 3)]), userErrors: [] },
+    })
 
     await act(async () => {
       await result.current.addToCart(variantId, 3)

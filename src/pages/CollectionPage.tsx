@@ -6,8 +6,6 @@ import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import {
   useCollection,
   shopifyFetch,
-  IS_CONFIGURED,
-  getDemoCollection,
   COLLECTION_BY_HANDLE_QUERY,
 } from '@/lib/shopify'
 import { useErrorHandler } from '@/lib/errorHandler'
@@ -16,6 +14,7 @@ import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { ProductGrid } from '@/components/ProductGrid'
 import { useSEO } from '@/hooks/useSEO'
 import { trackViewItemList } from '@/lib/analytics'
+import { fadeSlideUp, luxuryEase } from '@/lib/animations'
 
 const SORT_OPTIONS = [
   { label: 'Best Selling', key: 'BEST_SELLING', reverse: false },
@@ -73,29 +72,24 @@ export function CollectionPage() {
     if (!cursor) return
     setIsLoadingMore(true)
     try {
-      if (!IS_CONFIGURED) {
-        // Demo mode doesn't support real pagination, so hide the button
-        setHasMorePages(false)
-      } else {
-        const data = await shopifyFetch<{
-          collection: {
-            products: {
-              edges: { node: ShopifyProduct; cursor: string }[]
-              pageInfo: { hasNextPage: boolean; endCursor: string | null }
-            }
+      const data = await shopifyFetch<{
+        collection: {
+          products: {
+            edges: { node: ShopifyProduct; cursor: string }[]
+            pageInfo: { hasNextPage: boolean; endCursor: string | null }
           }
-        }>(COLLECTION_BY_HANDLE_QUERY, {
-          handle,
-          first: 12,
-          sortKey,
-          reverse,
-          after: cursor,
-        })
-        const newProducts = data.collection.products.edges.map((e) => e.node)
-        setLoadedProducts((prev) => [...prev, ...newProducts])
-        setHasMorePages(data.collection.products.pageInfo.hasNextPage)
-        setAfterCursor(data.collection.products.pageInfo.endCursor ?? undefined)
-      }
+        }
+      }>(COLLECTION_BY_HANDLE_QUERY, {
+        handle,
+        first: 12,
+        sortKey,
+        reverse,
+        after: cursor,
+      })
+      const newProducts = data.collection.products.edges.map((e) => e.node)
+      setLoadedProducts((prev) => [...prev, ...newProducts])
+      setHasMorePages(data.collection.products.pageInfo.hasNextPage)
+      setAfterCursor(data.collection.products.pageInfo.endCursor ?? undefined)
     } finally {
       setIsLoadingMore(false)
     }
@@ -183,9 +177,9 @@ export function CollectionPage() {
         />
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate="visible"
           className="text-center mb-10"
         >
           <h1 className="text-4xl lg:text-5xl tracking-[0.15em] mb-4">
@@ -203,7 +197,7 @@ export function CollectionPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
+          transition={{ duration: 0.3, delay: 0.15, ease: luxuryEase }}
           className="flex justify-end mb-8"
         >
           <div className="relative group">

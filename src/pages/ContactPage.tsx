@@ -44,7 +44,7 @@ export function ContactPage() {
         <motion.div
           initial={{ opacity: 0, y: 30, filter: 'blur(6px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.9, ease: luxuryEase }}
+          transition={{ duration: 0.3, ease: luxuryEase }}
           className="text-center mb-4"
         >
           <h1 className="text-4xl lg:text-5xl xl:text-6xl tracking-[0.15em]">Contact</h1>
@@ -54,7 +54,7 @@ export function ContactPage() {
         <motion.div
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ delay: 0.4, duration: 0.8, ease: luxuryEase }}
+          transition={{ delay: 0.2, duration: 0.3, ease: luxuryEase }}
         >
           <OrnamentalDivider className="mb-12" />
         </motion.div>
@@ -112,7 +112,7 @@ export function ContactPage() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewportOnce}
-          transition={{ duration: 0.8, ease: luxuryEase }}
+          transition={{ duration: 0.3, ease: luxuryEase }}
           className="max-w-xl mx-auto text-center mb-20"
         >
           <h2 className="text-2xl text-accent tracking-[0.15em] mb-6">BOOK A STYLING</h2>
@@ -143,7 +143,7 @@ export function ContactPage() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewportOnce}
-          transition={{ duration: 0.8, ease: luxuryEase }}
+          transition={{ duration: 0.3, ease: luxuryEase }}
           className="max-w-2xl mx-auto"
         >
           <h2 className="text-2xl tracking-[0.15em] text-center mb-6">Frequently Asked Questions</h2>

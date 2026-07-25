@@ -3,19 +3,24 @@ import { screen } from '@testing-library/react'
 import { Routes, Route } from 'react-router-dom'
 import { renderWithProviders } from '@/test/utils'
 import { CollectionPage } from './CollectionPage'
+import { getFixtureCollection } from '@/test/fixtures/shopify-fixtures'
+
+const shopifyFetch = vi.fn()
 
 vi.mock('@/lib/shopify/client', async () => {
   const actual = await vi.importActual<typeof import('@/lib/shopify/client')>('@/lib/shopify/client')
   return {
     ...actual,
-    IS_CONFIGURED: false,
-    STOREFRONT_MODE: 'demo',
-    shopifyFetch: vi.fn(),
+    IS_CONFIGURED: true,
+    STOREFRONT_MODE: 'token',
+    shopifyFetch: (...args: unknown[]) => shopifyFetch(...args),
   }
 })
 
 describe('CollectionPage', () => {
-  it('renders a demo collection detail route without hook-order errors', async () => {
+  it('renders a collection detail route without hook-order errors', async () => {
+    shopifyFetch.mockResolvedValue({ collection: getFixtureCollection('everyday') })
+
     renderWithProviders(
       <Routes>
         <Route path="/collections/:handle" element={<CollectionPage />} />

@@ -1,13 +1,7 @@
 export { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE, StorefrontError, validateQueryMode } from './client'
 export type { StorefrontMode, StorefrontErrorCategory } from './client'
-export { adminProxyFetch, HAS_ADMIN_PROXY } from './admin-proxy'
+export { adminProxyFetch } from './admin-proxy'
 export { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } from './hooks'
-export {
-  getDemoCollections,
-  getDemoCollection,
-  getDemoProduct,
-  getDemoProducts,
-} from './demo-data'
 export {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
@@ -30,7 +24,6 @@ export {
   type ShopifyImage,
   type ShopifyMoney,
 } from './types'
-export { EnvironmentWarning } from '../../components/EnvironmentWarning'
 export { ErrorBoundary } from '../../components/ErrorBoundary'
 export {
   TOKEN_GATED_FIELDS,
