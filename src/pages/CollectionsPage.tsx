@@ -86,6 +86,7 @@ export function CollectionsPage() {
                   animate
                   noGlow
                   hoverable
+                  frameVariant
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   <BaroqueCardHeader withDivider>

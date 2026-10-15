@@ -23,10 +23,15 @@ interface BaroqueCardProps extends React.HTMLAttributes<HTMLDivElement> {
    * If true, hides the soft golden glow under-lighting effect. Default: false
    */
   noGlow?: boolean
+  /**
+   * If true, applies the ornate French gold baroque frame with corner rosettes.
+   * Default: false
+   */
+  frameVariant?: boolean
 }
 
 const BaroqueCard = React.forwardRef<HTMLDivElement, BaroqueCardProps>(
-  ({ children, className, animate = true, hoverable = false, noGlow = false, ...props }, ref) => {
+  ({ children, className, animate = true, hoverable = false, noGlow = false, frameVariant = false, ...props }, ref) => {
     const Wrapper = animate ? motion.div : "div"
     const wrapperProps = animate ? {
       initial: "hidden",
@@ -36,7 +41,7 @@ const BaroqueCard = React.forwardRef<HTMLDivElement, BaroqueCardProps>(
     } : {}
 
     return (
-      <OrnamentalBorder className={cn("w-full", className)} hoverable={hoverable} noGlow={noGlow}>
+      <OrnamentalBorder className={cn("w-full", className)} hoverable={hoverable} noGlow={noGlow} frameVariant={frameVariant}>
         {/* @ts-ignore */}
         <Wrapper
           ref={ref}

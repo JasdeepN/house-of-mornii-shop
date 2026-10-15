@@ -69,8 +69,9 @@ export function CollectionsSection() {
                   animate
                   noGlow
                   hoverable
+                  frameVariant
                   style={{ animationDelay: `${index * 150}ms` }}
-               >
+                >
                   <BaroqueCardHeader withDivider={true}>
                     <BaroqueCardTitle className="text-xl md:text-2xl">{collection.title}</BaroqueCardTitle>
                     <BaroqueCardDescription>{collection.subtitle}</BaroqueCardDescription>

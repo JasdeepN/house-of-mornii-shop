@@ -45,6 +45,7 @@ export function HeroSection() {
         <OrnamentalBorder
           contentClassName="p-8 md:p-12 lg:p-14"
           hoverable
+          frameVariant
         >
           <div className="flex flex-col items-center text-center gap-8">
 
