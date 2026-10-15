@@ -24,7 +24,6 @@ export {
   type ShopifyImage,
   type ShopifyMoney,
 } from './types'
-export { ErrorBoundary } from '../../components/ErrorBoundary'
 export {
   TOKEN_GATED_FIELDS,
   getRequiredModeForFields,
