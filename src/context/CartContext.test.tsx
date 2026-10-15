@@ -6,7 +6,7 @@ import { CartProvider, useCart } from './CartContext'
 import { CustomerAuthProvider } from '@/context/CustomerAuthContext'
 import type { ReactNode } from 'react'
 import { getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
-import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify/types'
+import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify'
 
 const shopifyFetch = vi.fn()
 

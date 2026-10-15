@@ -2,7 +2,7 @@
 // Used exclusively by unit tests to mock `shopifyFetch` responses in token mode.
 // This module must never be imported from production runtime code.
 
-import type { ShopifyProduct, ShopifyCollection } from '@/lib/shopify/types'
+import type { ShopifyProduct, ShopifyCollection } from '@/lib/shopify'
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 

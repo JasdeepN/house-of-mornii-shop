@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { useCustomerAuth } from '@/context/CustomerAuthContext'
-import type { CustomerCreateInput } from '@/lib/shopify/types'
+import type { CustomerCreateInput } from '@/lib/shopify'
 
 interface RegisterModalProps {
   open: boolean

@@ -6,17 +6,17 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { shopifyFetch } from '@/lib/shopify/client'
 import { logger } from '@/lib/logger'
 import {
+  shopifyFetch,
   CART_CREATE_MUTATION,
   CART_QUERY,
   CART_LINES_ADD_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_LINES_REMOVE_MUTATION,
   CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION,
-} from '@/lib/shopify/queries'
-import type { ShopifyCart } from '@/lib/shopify/types'
+  type ShopifyCart,
+} from '@/lib/shopify'
 import { toast } from 'sonner'
 import { useCustomerAuth } from './CustomerAuthContext'
 

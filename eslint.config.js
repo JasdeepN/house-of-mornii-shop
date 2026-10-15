@@ -40,6 +40,23 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lib/shopify/**', '**/*.test.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/lib/shopify/*'],
+              message: 'Import from the @/lib/shopify barrel (AGENTS.md).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: [
       '*.config.ts',
       '*.config.js',

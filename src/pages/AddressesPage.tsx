@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { OrnamentalBorder } from '@/components/OrnamentalBorder'
 import { Plus, PencilSimple, Trash, Star, AddressBook } from '@phosphor-icons/react'
-import type { MailingAddressInput, ShopifyMailingAddress } from '@/lib/shopify/types'
+import type { MailingAddressInput, ShopifyMailingAddress } from '@/lib/shopify'
 import { toast } from 'sonner'
 
 const EMPTY_ADDRESS: MailingAddressInput = {

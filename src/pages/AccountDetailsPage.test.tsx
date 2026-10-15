@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { AccountDetailsPage } from './AccountDetailsPage'
 import { useCustomerAuth } from '@/context/CustomerAuthContext'
 import { toast } from 'sonner'
-import type { ShopifyCustomer } from '@/lib/shopify/types'
+import type { ShopifyCustomer } from '@/lib/shopify'
 
 vi.mock('@/context/CustomerAuthContext', () => ({
   useCustomerAuth: vi.fn(),

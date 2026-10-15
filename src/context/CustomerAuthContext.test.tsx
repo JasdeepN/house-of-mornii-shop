@@ -4,7 +4,7 @@ import type {
   ShopifyCustomer,
   ShopifyCustomerAccessToken,
   ShopifyMailingAddress,
-} from '@/lib/shopify/types'
+} from '@/lib/shopify'
 
 const ACCESS_TOKEN_KEY = 'hom-customer-access-token'
 const EXPIRES_AT_KEY = 'hom-customer-expires-at'

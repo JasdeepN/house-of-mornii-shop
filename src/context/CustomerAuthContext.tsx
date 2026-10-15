@@ -6,8 +6,8 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { shopifyFetch } from '@/lib/shopify/client'
 import {
+  shopifyFetch,
   CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION,
   CUSTOMER_ACCESS_TOKEN_DELETE_MUTATION,
   CUSTOMER_ACCESS_TOKEN_RENEW_MUTATION,
@@ -20,8 +20,6 @@ import {
   CUSTOMER_ADDRESS_UPDATE_MUTATION,
   CUSTOMER_ADDRESS_DELETE_MUTATION,
   CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION,
-} from '@/lib/shopify/queries'
-import {
   ShopifyCustomer,
   ShopifyCustomerAccessToken,
   ShopifyMailingAddress,
@@ -29,7 +27,7 @@ import {
   type CustomerUpdateInput,
   type MailingAddressInput,
   type ShopifyCustomerUserError,
-} from '@/lib/shopify/types'
+} from '@/lib/shopify'
 import { toast } from 'sonner'
 
 const ACCESS_TOKEN_KEY = 'hom-customer-access-token'
