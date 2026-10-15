@@ -4,10 +4,8 @@ Use these sources first when running a deep architecture review in this reposito
 
 ## High-Signal Docs
 
-- `CLAUDE.md`
-  Use for commands, provider hierarchy, routing, Shopify integration, testing setup, and demo-mode behavior.
-- `.github/copilot-instructions.md`
-  Use for repo-specific architecture constraints, UI patterns, design rules, and component conventions.
+- `AGENTS.md`
+  Use for commands, architecture, Shopify integration, conventions, design rules, and testing setup.
 - `PRD.md`
   Use to compare implemented behavior and design choices against product intent.
 - `INTEGRATION_SUMMARY.md`

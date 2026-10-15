@@ -1,30 +1,11 @@
 ---
 applyTo: "**"
-description: Define the minimum verification required before marking a ticket or task done in this repository.
+description: Minimum verification before a task is called done.
 ---
 
-# Verification Bar Before Done
+Done means the changed path was exercised and passed.
 
-Do not mark a ticket, task, or implementation complete until the changed behavior has been validated at the appropriate level.
-
-## Minimum bar
-
-- Run the most targeted automated checks that exercise the changed code path.
-- For backend behavior changes, prefer the narrowest relevant pytest suite or integration test.
-- For frontend changes, run at least a production build or the most relevant UI test, and use both when practical.
-- For security-sensitive changes, validate both the protected path and the blocked or rejected path.
-
-## Before marking done
-
-- Confirm the relevant tests or checks passed.
-- If a check failed, fix it or explicitly state why it is unrelated and not part of the current task.
-- If validation could not be run, explain the exact blocker and avoid presenting the task as fully verified.
-
-## Reporting
-
-- Include the validation command or task at a high level in the final summary.
-- State whether the result was fully verified, partially verified, or blocked by environment/tooling issues.
-
-## Scope
-
-This is a hard completion gate for implementation work in this repository.
+- Run the narrowest relevant test (`npx vitest run <file>`); for UI changes also run `npm run build`.
+- Security fixes add a regression test with a blocked-exploit case and a valid-input case, and run it.
+- A failure is fixed, or shown to be unrelated. Unrun checks are reported as blocked, never as passing.
+- Final summary states the commands run and whether the result is verified, partial, or blocked.

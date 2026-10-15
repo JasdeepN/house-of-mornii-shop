@@ -8,11 +8,19 @@ Welcome to the House of Mornii Shop application documentation. This documentatio
 |----------|-------------|
 | [01 - Architecture](./01-architecture.md) | Application architecture, tech stack, data flow, directory structure |
 | [02 - Components](./02-components.md) | Complete component library with props, purposes, and relationships |
-| [03 - Shopify Integration](./03-shopify-integration.md) | Storefront API integration, modes, queries, mutations |
+| [03 - Shopify Integration](./03-shopify-integration.md) | Storefront API integration, token-only mode, queries, mutations |
 | [04 - State Management](./04-state-management.md) | CartContext, TanStack Query, localStorage patterns |
 | [05 - Styling System](./05-styling-system.md) | Tailwind CSS 4, design tokens, OKLCH colors, animations |
 | [06 - Testing](./06-testing.md) | Vitest setup, Playwright E2E, testing patterns |
 | [07 - Deployment](./07-deployment.md) | Environment variables, Cloudflare Pages, CI/CD |
+| [08 - Shopify Automation Worker](./08-shopify-automation-worker.md) | Cloudflare Worker: Admin proxy, webhooks, scheduled backups |
+| [09 - Error Handling](./09-error-handling.md) | StorefrontError, error categories, page-level error patterns |
+| [10 - Newsletter Integration](./10-newsletter-integration.md) | Provider-neutral newsletter architecture and provider research |
+| [11 - Shopify Admin Reference](./11-shopify-admin-reference.md) | Admin management guide and dev store setup checklist |
+| [12 - Deployment & Operations](./12-deployment-operations.md) | Deployment runbook, DNS/SSL, launch checklist, API version updates |
+| [13 - Architecture Decisions](./13-architecture-decisions.md) | Key decisions, remediation history, lessons learned |
+| [14 - Test Coverage Analysis](./14-test-coverage-analysis.md) | Comprehensive test coverage assessment, gaps, and recommendations |
+| [15 - Production Readiness Audit](./15-production-readiness-audit.md) | Blockers/warnings audit before production launch |
 
 ## Documentation Structure
 
@@ -23,11 +31,19 @@ graph LR
     Arch --> Shopify[03-Shopify Integration]
     Arch --> State[04-State Management]
     Arch --> Style[05-Styling System]
+    Arch --> Worker[08-Automation Worker]
+    Arch --> Errors[09-Error Handling]
+    Arch --> Decisions[13-Architecture Decisions]
     Comp --> State
     Shopify --> State
+    Shopify --> Worker
+    Shopify --> Errors
     State --> Test[06-Testing]
     Style --> Deploy[07-Deployment]
     Test --> Deploy
+    Deploy --> Ops[12-Deployment & Ops]
+    Ops --> Admin[11-Admin Reference]
+    Ops --> Newsletter[10-Newsletter Integration]
 ```
 
 ## Reading Order Recommendations
@@ -41,8 +57,9 @@ graph LR
 ### For Shopify Integration Work
 
 1. **[03 - Shopify Integration](./03-shopify-integration.md)** - API modes, queries, mutations
-2. **[04 - State Management](./04-state-management.md)** - Cart persistence patterns
-3. **[02 - Components](./02-components.md)** - Product and cart components
+2. **[08 - Shopify Automation Worker](./08-shopify-automation-worker.md)** - Admin proxy, webhooks, backups
+3. **[09 - Error Handling](./09-error-handling.md)** - Error categories and page patterns
+4. **[04 - State Management](./04-state-management.md)** - Cart persistence patterns
 
 ### For UI/Design Work
 
@@ -53,8 +70,16 @@ graph LR
 ### For DevOps/Deployment
 
 1. **[07 - Deployment](./07-deployment.md)** - Environment setup, Cloudflare Pages
-2. **[06 - Testing](./06-testing.md)** - CI pipeline, test configuration
-3. **[.env.example](../.env.example)** - Complete environment variable reference
+2. **[12 - Deployment & Operations](./12-deployment-operations.md)** - Runbook, DNS/SSL, launch checklist
+3. **[08 - Shopify Automation Worker](./08-shopify-automation-worker.md)** - Worker deployment and secrets
+4. **[06 - Testing](./06-testing.md)** - CI pipeline, test configuration
+5. **[.env.example](../.env.example)** - Complete environment variable reference
+
+### For Business/Stakeholders
+
+1. **[11 - Shopify Admin Reference](./11-shopify-admin-reference.md)** - Day-to-day store management
+2. **[10 - Newsletter Integration](./10-newsletter-integration.md)** - Newsletter provider options
+3. **[13 - Architecture Decisions](./13-architecture-decisions.md)** - Key decisions and lessons learned
 
 ## AI Agent Tools (`.roo/`)
 
@@ -73,37 +98,14 @@ graph LR
 | [`../README.md`](../README.md) | Project overview and quick start |
 | [`../PRD.md`](../PRD.md) | Product requirements and design direction |
 | [`../GOLDEN_GLOW_GUIDE.md`](../GOLDEN_GLOW_GUIDE.md) | Golden glow under-lighting system guide |
-| [`../SHOPIFY_STOREFRONT_API.md`](./SHOPIFY_STOREFRONT_API.md) | Shopify API reference (legacy) |
 | [`../.env.example`](../.env.example) | Environment variable templates |
 | [`../AGENTS.md`](../AGENTS.md) | Repository rules and conventions |
 
-## Existing Architecture Documents
-
-Additional research and planning documents are available in the `docs/` subdirectory:
-
-| Document | Topic |
-|----------|-------|
-| [architecture-reviews/shopify-storefront-status-2026-04-10.md](./architecture-reviews/shopify-storefront-status-2026-04-10.md) | Shopify integration audit |
-| [cloudflare-pages-ci-strategy.md](./cloudflare-pages-ci-strategy.md) | CI/CD strategy for Cloudflare |
-| [deployment-runbook.md](./deployment-runbook.md) | Detailed deployment procedures |
-| [error-handling-architecture.md](./error-handling-architecture.md) | Error handling patterns |
-| [newsletter-integration-guide.md](./newsletter-integration-guide.md) | Newsletter provider integration |
-| [production-launch-checklist.md](./production-launch-checklist.md) | Pre-launch verification steps |
-| [shopify-admin-reference.md](./shopify-admin-reference.md) | Shopify admin setup guide |
-| [shopify-auth-mode-setup.md](./shopify-auth-mode-setup.md) | Authentication configuration |
-| [shopify-dev-store-audit.md](./shopify-dev-store-audit.md) | Development store audit checklist |
-| [shopify-error-handling-guide.md](./shopify-error-handling-guide.md) | Shopify-specific error handling |
-| [status-report-2026-04-26.md](./status-report-2026-04-26.md) | Project status report |
-
 ## Key Concepts Summary
 
-### Three Operational Modes
+### Storefront Mode
 
-| Mode | Credentials | Data Source |
-|------|-------------|-------------|
-| Demo | None | Fixture data |
-| Tokenless | Domain only | Limited Shopify fields |
-| Token | Domain + token | Full Shopify API |
+The application operates in **token-only mode**. All environments (local, UAT, production) require real Shopify credentials — `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN`. There is no demo or tokenless fallback; `client.ts` throws at module load if credentials are missing or placeholder values.
 
 ### State Management Layers
 
