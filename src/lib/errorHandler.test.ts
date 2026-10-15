@@ -15,6 +15,11 @@ describe('getErrorCategory', () => {
     expect(getErrorCategory(new StorefrontError('Network error', 'network_error'))).toBe('network_error')
   })
 
+  it('returns unknown for a StorefrontError with an unrecognized category', () => {
+    // Cast: simulates a category string that the StorefrontErrorCategory union does not list
+    expect(getErrorCategory(new StorefrontError('Odd category', 'not_a_category' as never))).toBe('unknown')
+  })
+
   it('returns unknown for non-StorefrontError', () => {
     expect(getErrorCategory(new Error('Generic error'))).toBe('unknown')
     expect(getErrorCategory(new TypeError('Type error'))).toBe('unknown')
@@ -85,6 +90,16 @@ describe('useErrorHandler', () => {
     expect(result.current).not.toBeNull()
     expect(result.current!.title).toBe('Connection Error')
     expect(result.current!.showRetry).toBe(false)
+  })
+
+  it('returns correct display for query_error', () => {
+    const error = new StorefrontError('Query failed', 'query_error')
+    const { result } = renderHook(() => useErrorHandler(error))
+
+    expect(result.current).not.toBeNull()
+    expect(result.current!.title).toBe('Data Error')
+    expect(result.current!.showRetry).toBe(true)
+    expect(result.current!.showHomeLink).toBe(false)
   })
 
   it('returns correct display for unknown errors', () => {
