@@ -1,0 +1,43 @@
+# Customer session Worker (#15, ADR 0002): sign-in through the Customer Account
+# API, with Customer tokens kept in KV behind an HttpOnly cookie. Separate from
+# shopify-proxy so the public sign-in routes sit away from the Admin token.
+#
+# One Worker per environment, routed at /api/customer/* on the storefront
+# domain. Deploy with `--env dev` or `--env production`. Nothing is configured
+# at the top level on purpose, so a bare deploy cannot pick a store.
+#
+# Local dev runs with `npm run dev:customer` (see package.json); it needs HTTPS
+# on a registered hostname, so it goes through a Cloudflare Tunnel.
+
+name = "customer-session"
+main = "workers/customer-session.ts"
+compatibility_date = "2026-10-01"
+
+[env.dev]
+name = "customer-session-dev"
+routes = [{ pattern = "dev.houseofmornii.com/api/customer/*", zone_name = "houseofmornii.com" }]
+
+[[env.dev.kv_namespaces]]
+binding = "SESSIONS"
+id = "dc6242f4fab84bdc9c2ff20d57fad104"
+
+[env.dev.vars]
+SHOP_ID = "66145059023"
+CLIENT_ID = "76880721-b765-413c-a656-8c2edd9f8b6d"
+APP_ORIGIN = "https://dev.houseofmornii.com"
+API_VERSION = "2026-10"
+
+[env.production]
+name = "customer-session-production"
+routes = [{ pattern = "houseofmornii.com/api/customer/*", zone_name = "houseofmornii.com" }]
+
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+id = "e0093e5c7c78421d97114d3e61cce9b9"
+
+[env.production.vars]
+SHOP_ID = "81308844271"
+# The store owner provides the production client ID before release.
+CLIENT_ID = "SET_ME"
+APP_ORIGIN = "https://houseofmornii.com"
+API_VERSION = "2026-10"
