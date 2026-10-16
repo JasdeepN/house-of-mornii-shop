@@ -2,7 +2,7 @@
 
 ## Overview
 
-The application deploys as a static site to Cloudflare Pages (or any static hosting platform). The build pipeline includes TypeScript compilation, Vite bundling, and production mode guards that prevent accidental demo-mode deployments.
+The application deploys as a static site to Cloudflare Pages (or any static hosting platform). The build pipeline includes TypeScript compilation, Vite bundling, and production guards that prevent deployment without live Shopify credentials.
 
 ## Prerequisites
 
@@ -84,9 +84,9 @@ npm run dev
 # → http://localhost:5173
 ```
 
-### Demo Mode (No Credentials)
+### Credentials Are Required
 
-If Shopify credentials are left empty, the app runs in **demo mode** with fixture data. This is the default for new contributors and enables full development without Shopify access.
+Shopify credentials are required in every environment, including local development. If `VITE_SHOPIFY_STORE_DOMAIN` or `VITE_SHOPIFY_STOREFRONT_TOKEN` is missing or a placeholder, `src/lib/shopify/client.ts` throws at module load and the app will not start. Use a Shopify development store for local work.
 
 ## Build Process
 
@@ -125,7 +125,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 ```
 
-These guards prevent accidental deployment of the demo-mode application to production.
+These guards prevent deployment without valid Shopify credentials — there is no demo-mode fallback in this codebase.
 
 ## Cloudflare Pages Deployment
 

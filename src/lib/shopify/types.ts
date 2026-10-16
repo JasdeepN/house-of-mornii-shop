@@ -40,6 +40,7 @@ export interface ShopifyProduct {
   }
   tags?: string[]
   vendor: string
+  collections?: { edges: { node: { handle: string; title: string } }[] }
 }
 
 export interface ShopifyCollection {
@@ -100,4 +101,105 @@ export function formatMoney(money: ShopifyMoney): string {
     style: 'currency',
     currency: money.currencyCode,
   }).format(parseFloat(money.amount))
+}
+
+// ─── Customer Account API types ────────────────────────────────────────────────
+
+export interface ShopifyCustomer {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  phone: string | null
+  acceptsMarketing: boolean
+  defaultAddress?: { id: string } | null
+  addresses: { edges: { node: ShopifyMailingAddress }[] }
+  orders: {
+    edges: { node: ShopifyOrder }[]
+    pageInfo: { hasNextPage: boolean; endCursor: string | null }
+  }
+}
+
+export interface ShopifyMailingAddress {
+  id: string
+  firstName: string
+  lastName: string
+  address1: string
+  address2?: string | null
+  company?: string | null
+  city: string
+  province: string
+  country: string
+  zip: string
+  phone: string
+}
+
+export interface ShopifyOrder {
+  id: string
+  name: string
+  orderNumber: number
+  processedAt: string
+  totalPrice: ShopifyMoney
+  financialStatus: string
+  fulfillmentStatus: string | null
+  lineItems: { edges: { node: ShopifyOrderLineItem }[] }
+}
+
+export interface ShopifyOrderLineItem {
+  title: string
+  quantity: number
+  originalTotalPrice: ShopifyMoney
+  variant: {
+    image: ShopifyImage | null
+  } | null
+}
+
+export interface ShopifyCustomerAccessToken {
+  accessToken: string
+  expiresAt: string
+}
+
+export interface ShopifyAuthenticationURL {
+  url: string | null
+}
+
+export interface ShopifyCustomerUserError {
+  field: string | null
+  message: string
+  code: string | null
+}
+
+// Input types for mutations
+export interface CustomerAccessTokenCreateInput {
+  email: string
+  password: string
+}
+
+export interface CustomerCreateInput {
+  email: string
+  password: string
+  firstName?: string
+  lastName?: string
+}
+
+export interface CustomerUpdateInput {
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+  password?: string
+  acceptsMarketing?: boolean
+}
+
+export interface MailingAddressInput {
+  address1?: string
+  address2?: string
+  city?: string
+  company?: string
+  country?: string
+  firstName?: string
+  lastName?: string
+  phone?: string
+  province?: string
+  zip?: string
 }

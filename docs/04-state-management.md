@@ -60,21 +60,18 @@ useQuery({
 | `useProduct(handle)` | `['product', handle]` | Cart mutation |
 | `useProducts()` | `['products', sortKey, reverse, query, first, after]` | Cart mutation |
 
-### Demo Mode Fallback Pattern
+### Query Function Pattern
 
-Every hook checks `IS_CONFIGURED` and returns fixture data when credentials are absent:
+Hooks call `shopifyFetch` directly — there is no fallback path:
 
 ```typescript
 queryFn: async () => {
-  if (!IS_CONFIGURED) {
-    return getDemoProduct(handle)
-  }
   const data = await shopifyFetch<ProductResponse>(PRODUCT_BY_HANDLE_QUERY, { handle })
   return data.product
 }
 ```
 
-This enables full development and testing without Shopify credentials.
+Unit tests mock `shopifyFetch` with fixture data from `src/test/fixtures/shopify-fixtures.ts`.
 
 ### Query Options Reference
 
@@ -118,10 +115,9 @@ import { CartProvider } from '@/context/CartContext'
 
 ### Cart Persistence Strategy
 
-| Mode | Storage | Key | Behavior |
-|------|---------|-----|----------|
-| Shopify | localStorage | `hom-cart-id` | Cart ID persisted, restored on mount |
-| Demo | In-memory only | N/A | Cart lost on page refresh |
+| Storage | Key | Behavior |
+|---------|-----|----------|
+| localStorage | `hom-cart-id` | Cart ID persisted, restored on mount |
 
 **Restoration Flow:**
 ```mermaid
@@ -144,21 +140,6 @@ sequenceDiagram
     end
 ```
 
-### Demo Mode Cart Operations
-
-In demo mode, cart operations use in-memory state with synthetic line IDs:
-
-```typescript
-// Demo line ID generation
-let _demoLineId = 0
-function makeDemoLine(variantId: string, quantity: number): ShopifyCartLine {
-  return {
-    id: `demo-line-${++_demoLineId}`,
-    // ... populated from demo-data.ts fixtures
-  }
-}
-```
-
 ### Cart Actions
 
 | Action | Parameters | Behavior |
@@ -166,7 +147,7 @@ function makeDemoLine(variantId: string, quantity: number): ShopifyCartLine {
 | `addToCart` | `variantId`, `quantity?` | Creates new cart or adds to existing; merges quantities for same variant |
 | `updateLineItem` | `lineId`, `quantity` | Updates line quantity via `CART_LINES_UPDATE_MUTATION` |
 | `removeLineItem` | `lineId` | Removes line via `CART_LINES_REMOVE_MUTATION` |
-| `clearCart` | None | Resets cart to null (demo mode) or clears localStorage |
+| `clearCart` | None | Clears cart state and localStorage |
 
 ## Theme State
 

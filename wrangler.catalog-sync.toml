@@ -1,0 +1,49 @@
+# wrangler.catalog-sync.toml — Catalog Sync Worker (prod → dev nightly)
+#
+# Deploys workers/catalog-sync.ts as its OWN Cloudflare Worker, separate from
+# wrangler.toml (which deploys workers/shopify-proxy.ts). A separate config
+# file was chosen over adding a second `main`/entrypoint to wrangler.toml
+# because Wrangler only supports one `main` per top-level config — a second
+# Worker with its own cron trigger, name, and (asymmetric prod+dev) secrets
+# is cleaner expressed as its own file than shoehorned into `[env.*]` blocks
+# that already mean something else (Pages custom-domain routing) in the
+# existing file. Deploy with:
+#
+#   npx wrangler deploy --config wrangler.catalog-sync.toml
+#
+# This Worker has NO HTTP route — it exists solely for its scheduled() Cron
+# Trigger. It only meaningfully runs against the dev environment (it WRITES
+# into the dev store); there is no `production` variant of this Worker.
+#
+# Requires Admin API credentials for BOTH stores:
+#   - PROD (source, read-only):      PROD_SHOPIFY_STORE_DOMAIN (var) + PROD_ADMIN_ACCESS_TOKEN (secret)
+#   - DEV  (destination, read+write): DEV_SHOPIFY_STORE_DOMAIN (var) + DEV_ADMIN_ACCESS_TOKEN (secret)
+#
+# Secrets (NEVER put these here — set via `wrangler secret put <NAME> --config wrangler.catalog-sync.toml`):
+#   PROD_ADMIN_ACCESS_TOKEN — Admin API access token for the PRODUCTION store (read-only usage enforced in code)
+#   DEV_ADMIN_ACCESS_TOKEN  — Admin API access token for the DEV store (read+write; this is the only store the sync writes to)
+#
+# To provision secrets once:
+#   npx wrangler secret put PROD_ADMIN_ACCESS_TOKEN --config wrangler.catalog-sync.toml
+#   npx wrangler secret put DEV_ADMIN_ACCESS_TOKEN --config wrangler.catalog-sync.toml
+#
+# Scope: catalog only (products + collections). Orders and customers are
+# NEVER read from prod or written to dev by this Worker — see
+# workers/catalog-sync.ts and docs/dev-snapshot-environment-plan.md.
+
+name = "catalog-sync-worker"
+main = "workers/catalog-sync.ts"
+compatibility_date = "2025-01-01"
+
+# Nightly at 02:00 UTC — one hour before the existing 03:00 backup Cron
+# Trigger in wrangler.toml, so dev reflects ~24h-old prod catalog data.
+[triggers]
+crons = ["0 2 * * *"]
+
+[vars]
+# Source store (read-only Admin API reads of products/collections).
+PROD_SHOPIFY_STORE_DOMAIN = "2svzqt-hg.myshopify.com"
+# Destination store — the isolated free Shopify development store created
+# via Shopify Partners (partners.shopify.com). This is the ONLY store this
+# Worker ever writes to.
+DEV_SHOPIFY_STORE_DOMAIN = "dev-hom.myshopify.com"

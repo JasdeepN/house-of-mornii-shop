@@ -1,14 +1,5 @@
 {
   "mcpServers": {
-    "plane": {
-      "command": "uvx",
-      "args": ["plane-mcp-server", "stdio"],
-      "env": {
-        "PLANE_API_KEY": "plane_api_f8584e63337f412889c44633ad762a5a",
-        "PLANE_WORKSPACE_SLUG": "projects",
-        "PLANE_BASE_URL": "http://172.0.10.1:8082/"
-      }
-    },
     "sequential-thinking": {
       "command": "npx",
       "args": [
@@ -18,7 +9,9 @@
     },
     "fetch": {
       "command": "uvx",
-      "args": ["mcp-server-fetch"]
+      "args": [
+        "mcp-server-fetch"
+      ]
     },
     "memory": {
       "command": "npx",
@@ -36,5 +29,3 @@
     }
   }
 }
-
-

@@ -1,31 +1,50 @@
-Thanks for helping make GitHub safe for everyone.
+# Security Policy
 
-# Security
+## Supported Versions
 
-GitHub takes the security of our software products and services seriously, including all of the open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/GitHub).
+House of Mornii Shop is deployed continuously from the `main` branch. Only the
+latest deployed production build is supported with security fixes; there are
+no maintained legacy versions.
 
-Even though [open source repositories are outside of the scope of our bug bounty program](https://bounty.github.com/index.html#scope) and therefore not eligible for bounty rewards, we will ensure that your finding gets passed along to the appropriate maintainers for remediation. 
+| Branch/Deployment | Supported          |
+| ------------------ | ------------------- |
+| `main` (production) | :white_check_mark: |
+| Feature branches / PRs | :x:              |
 
-## Reporting Security Issues
+## Reporting a Vulnerability
 
-If you believe you have found a security vulnerability in any GitHub-owned repository, please report it to us through coordinated disclosure.
+If you discover a security vulnerability in this project (e.g. XSS, CSRF,
+credential exposure, dependency vulnerabilities, or misconfigured
+infrastructure), please report it privately rather than opening a public
+GitHub issue.
 
-**Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
+**Contact:** security@houseofmornii.com
 
-Instead, please send an email to opensource-security[@]github.com.
+Please include:
 
-Please include as much of the information listed below as you can to help us better understand and resolve the issue:
+- A description of the vulnerability and its potential impact
+- Steps to reproduce (proof-of-concept code or requests, if available)
+- The affected URL, file, or component
+- Your suggested remediation, if you have one
 
-  * The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)
-  * Full paths of source file(s) related to the manifestation of the issue
-  * The location of the affected source code (tag/branch/commit or direct URL)
-  * Any special configuration required to reproduce the issue
-  * Step-by-step instructions to reproduce the issue
-  * Proof-of-concept or exploit code (if possible)
-  * Impact of the issue, including how an attacker might exploit the issue
+## Response Expectations
 
-This information will help us triage your report more quickly.
+- **Acknowledgement:** within 2 business days of your report
+- **Initial assessment:** within 5 business days, including severity and
+  expected remediation timeline
+- **Resolution:** critical/high severity issues are prioritized for a fix or
+  mitigation within 14 days; lower severity issues are addressed in the
+  normal development cycle
 
-## Policy
+We ask that you give us a reasonable amount of time to investigate and
+remediate an issue before any public disclosure. We do not currently operate
+a paid bug bounty program, but we will credit reporters (with permission) in
+release notes where appropriate.
 
-See [GitHub's Safe Harbor Policy](https://docs.github.com/en/site-policy/security-policies/github-bug-bounty-program-legal-safe-harbor#1-safe-harbor-terms)
+## Scope
+
+This policy covers the House of Mornii Shop web application source code,
+build/deployment pipeline (Cloudflare Pages, GitHub Actions), and the
+Cloudflare Worker used as a Shopify Storefront API proxy. It does not cover
+third-party services (Shopify, Cloudflare) themselves — please report issues
+with those platforms directly to their respective security teams.

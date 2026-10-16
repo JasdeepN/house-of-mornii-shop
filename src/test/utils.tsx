@@ -2,6 +2,7 @@ import { render, type RenderOptions } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { CartProvider } from '@/context/CartContext'
+import { CustomerAuthProvider } from '@/context/CustomerAuthContext'
 import type { ReactElement, ReactNode } from 'react'
 
 function createTestQueryClient() {
@@ -34,7 +35,9 @@ export function renderWithProviders(
     return (
       <MemoryRouter initialEntries={initialEntries}>
         <QueryClientProvider client={queryClient}>
-          <CartProvider>{children}</CartProvider>
+          <CustomerAuthProvider>
+            <CartProvider>{children}</CartProvider>
+          </CustomerAuthProvider>
         </QueryClientProvider>
       </MemoryRouter>
     )

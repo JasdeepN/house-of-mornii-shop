@@ -4,20 +4,17 @@
 import { STOREFRONT_MODE, IS_CONFIGURED } from './client'
 
 export interface HealthStatus {
-  status: 'healthy' | 'degraded' | 'unhealthy'
+  status: 'healthy' | 'unhealthy'
   mode: typeof STOREFRONT_MODE
   configured: boolean
   timestamp: string
 }
 
 export function getHealthStatus(): HealthStatus {
-  let status: HealthStatus['status'] = 'healthy'
-
-  if (STOREFRONT_MODE === 'demo') {
-    status = 'degraded'
-  } else if (!IS_CONFIGURED) {
-    status = 'unhealthy'
-  }
+  // Always 'healthy' at runtime — the app throws on startup in client.ts
+  // if live Shopify credentials are missing, so this code path is only
+  // ever reached when properly configured.
+  const status: HealthStatus['status'] = IS_CONFIGURED ? 'healthy' : 'unhealthy'
 
   return {
     status,

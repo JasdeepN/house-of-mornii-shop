@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test/utils'
 import { CartFlyout } from './CartFlyout'
 import { useCart } from '@/context/CartContext'
-import { getDemoProducts } from '@/lib/shopify/demo-data'
+import { getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
 
-// Force demo mode
+const shopifyFetch = vi.fn()
+
 vi.mock('@/lib/shopify/client', () => ({
-  IS_CONFIGURED: false,
-  shopifyFetch: vi.fn(),
+  IS_CONFIGURED: true,
+  shopifyFetch: (...args: unknown[]) => shopifyFetch(...args),
 }))
 
 function OpenCartWrapper() {
@@ -23,13 +24,55 @@ function OpenCartWrapper() {
 
 function PopulatedCartWrapper() {
   const { addToCart, openCart } = useCart()
-  const variantId = getDemoProducts()[0].variants.edges[0].node.id
+  const product = getFixtureProducts()[0]
+  const variant = product.variants.edges[0].node
 
   return (
     <>
       <button
         onClick={async () => {
-          await addToCart(variantId)
+          shopifyFetch.mockResolvedValueOnce({
+            cartCreate: {
+              cart: {
+                id: 'gid://shopify/Cart/test-cart',
+                checkoutUrl: '',
+                totalQuantity: 1,
+                lines: {
+                  edges: [
+                    {
+                      node: {
+                        id: 'line-1',
+                        quantity: 1,
+                        merchandise: {
+                          id: variant.id,
+                          title: variant.title,
+                          product: {
+                            handle: product.handle,
+                            title: product.title,
+                            featuredImage: product.featuredImage,
+                          },
+                          price: variant.price,
+                          selectedOptions: variant.selectedOptions,
+                          image: variant.image,
+                        },
+                        cost: {
+                          totalAmount: variant.price,
+                          amountPerQuantity: variant.price,
+                        },
+                      },
+                    },
+                  ],
+                },
+                cost: {
+                  subtotalAmount: variant.price,
+                  totalAmount: variant.price,
+                  totalTaxAmount: null,
+                },
+              },
+              userErrors: [],
+            },
+          })
+          await addToCart(variant.id)
           openCart()
         }}
       >

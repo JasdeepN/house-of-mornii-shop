@@ -16,19 +16,18 @@ vi.mock('@/lib/analytics', () => ({
 }))
 
 vi.mock('@/lib/shopify', async () => {
-  const actual = await vi.importActual<'@/lib/shopify'>('@/lib/shopify')
+  const actual = await vi.importActual<typeof import('@/lib/shopify')>('@/lib/shopify')
   return {
     ...(actual as Record<string, unknown>),
     useProducts: (...args: unknown[]) => mockUseProducts(...args),
     useCollections: (...args: unknown[]) => mockUseCollections(...args),
     useCollection: (...args: unknown[]) => mockUseCollection(...args),
     shopifyFetch: vi.fn(),
-    IS_CONFIGURED: false,
-    STOREFRONT_MODE: 'demo',
+    IS_CONFIGURED: true,
+    STOREFRONT_MODE: 'token',
     StorefrontError: class StorefrontError extends Error {
       category = 'misconfigured'
     },
-    getDemoProducts: vi.fn(() => []),
   }
 })
 

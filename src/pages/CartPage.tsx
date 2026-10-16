@@ -9,6 +9,7 @@ import { useSEO } from '@/hooks/useSEO'
 import { trackBeginCheckout } from '@/lib/analytics'
 import { FreeShippingBar } from '@/components/FreeShippingBar'
 import { isValidCheckoutUrl } from '@/lib/cart'
+import { luxuryEase } from '@/lib/animations'
 
 function CartLineItem({ line }: { line: ShopifyCartLine }) {
   const { updateLineItem, removeLineItem, isLoading } = useCart()
@@ -115,7 +116,7 @@ export function CartPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.3, ease: luxuryEase }}
             className="flex flex-col items-center gap-6"
           >
             <ShoppingBag size={48} weight="thin" className="text-muted-foreground" />
@@ -141,7 +142,7 @@ export function CartPage() {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.3, ease: luxuryEase }}
           className="text-4xl lg:text-5xl tracking-[0.15em] mb-8 text-center"
         >
           Your Bag
@@ -155,7 +156,7 @@ export function CartPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.3, delay: 0.1, ease: luxuryEase }}
           >
             {lines.map((line) => (
               <CartLineItem key={line.id} line={line} />
@@ -166,7 +167,7 @@ export function CartPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.2, ease: luxuryEase }}
             className="mt-8 space-y-4"
           >
             <FreeShippingBar subtotalAmount={cart.cost.subtotalAmount.amount} className="mb-2" />

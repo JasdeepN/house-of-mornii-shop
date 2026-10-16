@@ -2,9 +2,8 @@ import { afterEach, describe, it, expect, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithProviders, renderWithRouter } from '@/test/utils'
 
-// Force demo mode
 vi.mock('@/lib/shopify/client', () => ({
-  IS_CONFIGURED: false,
+  IS_CONFIGURED: true,
   shopifyFetch: vi.fn(),
 }))
 

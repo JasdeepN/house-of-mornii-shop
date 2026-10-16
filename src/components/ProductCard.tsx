@@ -11,6 +11,7 @@ import {
 import type { ShopifyProduct } from '@/lib/shopify'
 import { formatMoney } from '@/lib/shopify'
 import { memo } from 'react'
+import { luxuryEase, viewportOnce } from '@/lib/animations'
 
 interface ProductCardProps {
   product: ShopifyProduct
@@ -41,8 +42,8 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.12 }}
+      viewport={viewportOnce}
+      transition={{ duration: 0.6, ease: luxuryEase, delay: index * 0.12 }}
     >
     <Link to={`/products/${product.handle}`} className="block h-full" data-testid="product-card">
       <BaroqueCard

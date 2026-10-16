@@ -1,49 +1,56 @@
 # AGENTS.md
 
-This file provides guidance to agents when working with code in this repository.
+Single source of truth for agents. `CLAUDE.md` imports this file.
 
-## Build & Development
+## Commands
 
-```bash
-npm run dev          # Start dev server (Vite, port 5173)
-npm run build        # TypeScript compile + Vite build (outputs to dist/)
-npm run preview      # Serve the dist/ build locally
-npm run lint         # ESLint (flat config via typescript-eslint, no eslint.config.js file)
-npm run test         # Vitest in watch mode
-npm run test:run     # Vitest single run (CI)
-npm run test:e2e     # Playwright E2E tests
-```
-
-Run a single test: `npx vitest run src/lib/shopify/client.test.ts`
+- `npm run dev` (port 5173), `npm run build`, `npm run lint`, `npm run test:run`
+- One test file: `npx vitest run src/lib/shopify/client.test.ts`
+- Done means the narrowest relevant test passed; UI changes also pass `npm run build` (see `.github/instructions/verification-bar-before-done.instructions.md`).
 
 ## Stack
 
-React 19 + TypeScript 5.7 + Vite 7 + React Router DOM 7 + TanStack Query + Tailwind CSS 4 + Framer Motion
+React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Framer Motion. `@/` resolves to `src/`.
 
-## Shopify Integration (Critical)
+## Architecture
 
-Three modes detected via `STOREFRONT_MODE` from `@/lib/shopify/client`: `'demo'`, `'tokenless'`, or `'token'`. Check `IS_CONFIGURED` boolean to know if live credentials exist. All data-fetching hooks in `src/lib/shopify/hooks.ts` fall back to `demo-data.ts` when `IS_CONFIGURED` is false. **Production builds abort with exit(1) if demo mode detected** — never deploy without credentials.
+- Providers (`src/main.tsx`): `ErrorBoundary` > `QueryClientProvider` > `CartProvider` > `App`.
+- Routes (`src/App.tsx`): all pages lazy-loaded; `AnimatePresence` transitions; page views tracked in `AnimatedRoutes` via `src/lib/analytics.ts`.
+- Cart: `src/context/CartContext.tsx`, synced through Storefront API mutations.
+- Storefront hosting: Workers static assets, one Worker per environment, deployed by `.github/workflows/deploy-site.yml`. `dev-hom` (`wrangler.site.dev.jsonc`, branch `dev`) serves `dev.houseofmornii.com`; `prod-hom` (`wrangler.site.production.jsonc`, branch `main`) serves `houseofmornii.com`. Store credentials are secrets on the GitHub environments `dev` and `production`, each locked to its own branch.
+- Workers (secrets via `wrangler secret put`, never committed):
+  - `workers/shopify-proxy.ts` (`wrangler.toml`): Admin API proxy, webhook receiver, daily backup cron.
+  - `workers/catalog-sync.ts` (`wrangler.catalog-sync.toml`): nightly prod-to-dev sync of products and collections only.
 
-## Path Alias
+## Shopify
 
-`@/` resolves to `src/` (configured in both `vite.config.ts` and `vitest.config.ts`).
+- Import from the `@/lib/shopify` barrel (`index.ts`), never from subpaths.
+- Live credentials `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are required in every environment; `client.ts` throws at module load when they are missing or placeholders (`your-store.myshopify.com`, `CHANGE_ME`). No demo fallback exists.
+- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`, `VITE_SHOPIFY_ADMIN_PROXY_ENABLED`.
+
+## Conventions
+
+- Storage keys: `hom-cart-id`, `hom-customer-access-token`, `hom-customer-expires-at` (localStorage); `hom_welcome_shown` (sessionStorage).
+- `@/lib/utils.ts` exports only `cn()`. `@/lib/siteConfig.ts` exports `getSiteConfig`, `absoluteSiteUrl`, `getContactConfig`, `getNewsletterConfig`, `getWelcomePopupConfig`.
+- Newsletter returns `{ mode: 'prototype' | 'endpoint' }`; analytics branch on it.
+- Files: components `PascalCase.tsx`, utilities `kebab-case.ts`, tests `*.test.{ts,tsx}` beside source.
+- `src/components/ui/` is shadcn: extend through `className` or wrappers, leave the files untouched.
+
+## Design
+
+- Colors: OKLCH only, via Tailwind tokens (`bg-accent`) or inline `oklch()`. Gold is muted: `oklch(0.60 0.11 78)`. Teal `oklch(0.45 0.08 210)`, background `oklch(0.15 0.02 210)`, card `oklch(0.22 0.03 210)`.
+- Fonts: Cinzel headings (uppercase, tracking 0.12-0.15em), Cormorant Garamond body, Great Vibes (`font-script`) for "Mornii" only.
+- Wrap framed content in `OrnamentalBorder` (PNG frame, padding `p-12 md:p-16 lg:p-20`); its content needs `relative z-10`.
+- Motion: `duration: 0.8`, stagger list items 0.15-0.2s.
+- Decorative images use `alt=""`; text meets WCAG AA (ratios in `PRD.md`).
 
 ## Testing
 
-- Vitest + `@testing-library/react` + jsdom. Test files alongside source: `*.test.{ts,tsx}`.
-- `src/test/setup.ts` patches `IntersectionObserver` (required by framer-motion in jsdom) and stubs Shopify env vars to empty strings.
-- In tests, `import.meta.env` vars are writable via `@ts-expect-error` — use `vi.stubEnv()` to override.
+- Vitest, Testing Library, jsdom. `src/test/setup.ts` patches `IntersectionObserver` and `ResizeObserver` and stubs Shopify env with dummy credentials (`test-store.myshopify.com`, `test-storefront-token`); empty values would throw.
+- Mock `shopifyFetch` from `@/lib/shopify/client` with `src/test/fixtures/shopify-fixtures.ts`.
 
-## Key Patterns
+## Issues and domain docs
 
-- **Cart ID**: localStorage key is `hom-cart-id` (not `cart-id`).
-- **Welcome popup**: sessionStorage key is `hom_welcome_shown`.
-- **Newsletter mode**: Returns `{ mode: 'prototype' | 'endpoint' }` — check this for analytics tracking.
-- **Shopify imports**: Use `@/lib/shopify/index.ts` re-export barrel — not individual subpath imports.
-- **`@/lib/utils.ts`**: Only exports `cn()` — no other utilities.
-- **`@/lib/siteConfig.ts`**: Exports `getSiteConfig()`, `absoluteSiteUrl()`, `getContactConfig()`, `getNewsletterConfig()`, `getWelcomePopupConfig()`.
-
-## Environment Variables
-
-Required for Shopify: `VITE_SHOPIFY_STORE_DOMAIN`, `VITE_SHOPIFY_STOREFRONT_TOKEN`
-Optional: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`
+- Issues: GitHub via `gh`; see `docs/agents/issue-tracker.md`.
+- Domain: root `GLOSSARY.md` and `docs/adr/`; see `docs/agents/domain.md`.
+- Deeper reference: `docs/00-index.md`, `PRD.md`.

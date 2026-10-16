@@ -44,16 +44,20 @@ if (typeof window.matchMedia === 'undefined') {
   })
 }
 
-// Stub import.meta.env defaults for tests
-// Individual tests can override with vi.stubEnv()
+// Stub import.meta.env defaults for tests.
+// NOTE: client.ts throws at module-load time if these are missing (token
+// mode is now required in all environments), so tests must stub valid
+// dummy values rather than empty strings. Most tests mock
+// '@/lib/shopify/client' directly and never hit this path, but any test
+// that imports the real client module needs these to be non-empty.
+// Individual tests can still override with vi.stubEnv().
 if (!import.meta.env.VITE_SHOPIFY_STORE_DOMAIN) {
   // @ts-expect-error — writable in test env
-  import.meta.env.VITE_SHOPIFY_STORE_DOMAIN = ''
+  import.meta.env.VITE_SHOPIFY_STORE_DOMAIN = 'test-store.myshopify.com'
 }
 if (!import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN) {
   // @ts-expect-error — writable in test env
-  import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN = ''
+  import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN = 'test-storefront-token'
 }
 // Mark as test environment for siteConfig.ts
-// @ts-expect-error — writable in test env
 import.meta.env.VITEST = 'true'

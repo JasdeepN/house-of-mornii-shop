@@ -97,7 +97,6 @@ src/
 │   │   ├── queries.ts         # GraphQL query/mutation strings
 │   │   ├── types.ts           # TypeScript interfaces
 │   │   ├── hooks.ts           # TanStack Query data hooks
-│   │   ├── demo-data.ts       # Fixture products and collections
 │   │   ├── health.ts          # API health check utilities
 │   │   └── token-requirements.ts  # Token-gated field documentation
 │   ├── analytics.ts           # GA4 + Meta Pixel tracking
@@ -131,7 +130,6 @@ sequenceDiagram
     participant Hook as TanStack Query Hook
     participant Client as Shopify Client
     participant API as Storefront API
-    participant Demo as Demo Data
     participant Cache as Query Cache
 
     User->>Component: Navigate to /collections/everyday
@@ -141,15 +139,9 @@ sequenceDiagram
         Cache-->>Hook: Return cached data
     else Cache miss
         Hook->>Client: shopifyFetch(query, vars)
-        alt IS_CONFIGURED
-            Client->>API: POST graphql.json
-            API-->>Client: Collection + Products JSON
-            Client-->>Hook: Parsed ShopifyCollection
-        else Not configured
-            Client->>Demo: getDemoCollection('everyday')
-            Demo-->>Client: Fixture collection
-            Client-->>Hook: Fixture collection
-        end
+        Client->>API: POST graphql.json
+        API-->>Client: Collection + Products JSON
+        Client-->>Hook: Parsed ShopifyCollection
         Hook->>Cache: Store in cache
         Hook-->>Component: ShopifyCollection data
     end
@@ -198,7 +190,6 @@ import { Button } from '@/components/ui/button'
 The root [`App.tsx`](src/App.tsx) wraps the application with:
 - `BrowserRouter` for routing
 - `JsonLd` for structured data (organization schema)
-- `EnvironmentWarning` for credential validation
 - `Header`, `ScrollToHash`, `Footer` as persistent layout
 - `CartFlyout` and `WelcomePopup` as global overlays
 - `Toaster` from Sonner for notifications
@@ -209,7 +200,8 @@ The root [`App.tsx`](src/App.tsx) wraps the application with:
 - `CartProvider` (React Context)
 - `ErrorBoundary` (react-error-boundary)
 - Analytics initialization (GA4, Meta Pixel)
-- Production demo-mode guard that throws if credentials are missing
+
+Shopify credential validation happens at module load in [`src/lib/shopify/client.ts`](src/lib/shopify/client.ts) — the app throws before mounting if credentials are missing or placeholder values, in every environment.
 
 ## Build Pipeline
 
@@ -229,4 +221,4 @@ flowchart LR
     end
 ```
 
-Production builds include a guard that aborts if Shopify credentials are missing or contain placeholder values, preventing accidental demo-mode deployments.
+Production builds include a guard that aborts if Shopify credentials are missing or contain placeholder values, preventing broken deployments (there is no demo-mode fallback to fall back to).

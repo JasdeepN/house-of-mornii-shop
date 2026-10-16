@@ -35,6 +35,16 @@ pids
 
 .spark-workbench-id
 
+
 # Playwright
 playwright-report/
 test-results/
+.playwright-mcp/
+
+# Local CI/CD configuration
+.local-ci/.secrets
+.local-ci/.env.build
+.local-ci/.env.production
+
+# Local backup export integration test output (scripts/test-backup-export.ts)
+.test-backups/

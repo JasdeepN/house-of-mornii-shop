@@ -82,5 +82,8 @@ export async function adminProxyFetch<T = unknown>(options: AdminFetchOptions): 
   return json.data
 }
 
-/** True when the Admin API proxy endpoint is reachable (dev or prod). */
-export const HAS_ADMIN_PROXY = true // Always true — proxy endpoint exists in all environments
+// C2: Non-secret client flag indicating whether the Admin API proxy should be
+// used for read queries. This is a boolean toggle only — the real Admin token
+// (SHOPIFY_ADMIN_ACCESS_TOKEN) is held server-side in the Cloudflare Worker and
+// is NEVER read from client env vars. Do not reintroduce a VITE_-prefixed token var.
+export const ADMIN_PROXY_ENABLED = import.meta.env.VITE_SHOPIFY_ADMIN_PROXY_ENABLED === 'true'

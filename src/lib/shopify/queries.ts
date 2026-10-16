@@ -211,6 +211,273 @@ export const CART_LINES_ADD_MUTATION = `
   ${CART_FRAGMENT}
 `
 
+// ─── Customer Account Mutations & Queries ──────────────────────────────────────
+
+export const CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION = `
+  mutation customerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
+    customerAccessTokenCreate(input: $input) {
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`
+
+export const CUSTOMER_ACCESS_TOKEN_DELETE_MUTATION = `
+  mutation customerAccessTokenDelete($customerAccessToken: String!) {
+    customerAccessTokenDelete(customerAccessToken: $customerAccessToken) {
+      deletedAccessToken
+      userErrors { field message }
+    }
+  }
+`
+
+export const CUSTOMER_ACCESS_TOKEN_RENEW_MUTATION = `
+  mutation customerAccessTokenRenew($customerAccessToken: String!) {
+    customerAccessTokenRenew(customerAccessToken: $customerAccessToken) {
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      userErrors { field message }
+    }
+  }
+`
+
+export const CUSTOMER_CREATE_MUTATION = `
+  mutation customerCreate($input: CustomerCreateInput!) {
+    customerCreate(input: $input) {
+      customer {
+        id
+        firstName
+        lastName
+        email
+        phone
+        acceptsMarketing
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`
+
+export const CUSTOMER_RECOVER_MUTATION = `
+  mutation customerRecover($email: String!) {
+    customerRecover(email: $email) {
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_RESET_MUTATION = `
+  mutation customerReset($id: ID!, $input: CustomerResetInput!) {
+    customerReset(id: $id, input: $input) {
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_UPDATE_MUTATION = `
+  mutation customerUpdate($customerAccessToken: String!, $customer: CustomerUpdateInput!) {
+    customerUpdate(customer: $customer, customerAccessToken: $customerAccessToken) {
+      customer {
+        id
+        firstName
+        lastName
+        email
+        phone
+        acceptsMarketing
+      }
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`
+
+// Cart mutations with authentication
+export const CART_CREATE_WITH_AUTH_URL_MUTATION = `
+  mutation cartCreateWithAuthUrl($lines: [CartLineInput!]!) {
+    cartCreate(input: { lines: $lines }) {
+      cart { ...CartFields }
+      cartBuyerIdentity {
+        authenticationUrl(returnTo: "/account")
+      }
+      userErrors { field message }
+    }
+  }
+  ${CART_FRAGMENT}
+`
+
+export const CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION = `
+  mutation cartBuyerIdentityUpdate($cartId: ID!, $customerAccessToken: String!) {
+    cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: { customerAccessToken: $customerAccessToken }) {
+      cart { ...CartFields }
+      userErrors { field message }
+    }
+  }
+  ${CART_FRAGMENT}
+`
+
+// Customer queries
+export const CUSTOMER_QUERY = `
+  query Customer($customerAccessToken: String!) {
+    customer(customerAccessToken: $customerAccessToken) {
+      id
+      firstName
+      lastName
+      email
+      phone
+      acceptsMarketing
+      defaultAddress {
+        id
+      }
+      addresses(first: 20) {
+        edges {
+          node {
+            id
+            firstName
+            lastName
+            address1
+            address2
+            company
+            city
+            province
+            country
+            zip
+            phone
+          }
+        }
+      }
+      orders(first: 50, sortKey: PROCESSED_AT, reverse: true) {
+        edges {
+          node {
+            id
+            name
+            orderNumber
+            processedAt
+            totalPrice { amount currencyCode }
+            financialStatus
+            fulfillmentStatus
+            lineItems(first: 10) {
+              edges {
+                node {
+                  title
+                  quantity
+                  originalTotalPrice { amount currencyCode }
+                  variant {
+                    image { url altText width height }
+                  }
+                }
+              }
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`
+
+export const CUSTOMER_BY_ACCESS_TOKEN_QUERY = `
+  query CustomerByAccessToken($customerAccessToken: String!) {
+    customer(customerAccessToken: $customerAccessToken) {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+`
+// ─── Customer Address Mutations ────────────────────────────────────────────────
+
+export const CUSTOMER_ADDRESS_CREATE_MUTATION = `
+  mutation customerAddressCreate($address: MailingAddressInput!, $customerAccessToken: String!) {
+    customerAddressCreate(address: $address, customerAccessToken: $customerAccessToken) {
+      customerAddress {
+        id
+        firstName
+        lastName
+        address1
+        address2
+        city
+        company
+        country
+        province
+        zip
+        phone
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_ADDRESS_UPDATE_MUTATION = `
+  mutation customerAddressUpdate($address: MailingAddressInput!, $customerAccessToken: String!, $id: ID!) {
+    customerAddressUpdate(address: $address, customerAccessToken: $customerAccessToken, id: $id) {
+      customerAddress {
+        id
+        firstName
+        lastName
+        address1
+        address2
+        city
+        company
+        country
+        province
+        zip
+        phone
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_ADDRESS_DELETE_MUTATION = `
+  mutation customerAddressDelete($customerAccessToken: String!, $id: ID!) {
+    customerAddressDelete(customerAccessToken: $customerAccessToken, id: $id) {
+      deletedCustomerAddressId
+      customerUserErrors { field message code }
+    }
+  }
+`
+
+export const CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION = `
+  mutation customerDefaultAddressUpdate($addressId: ID!, $customerAccessToken: String!) {
+    customerDefaultAddressUpdate(addressId: $addressId, customerAccessToken: $customerAccessToken) {
+      customer {
+        id
+        defaultAddress {
+          id
+        }
+      }
+      customerUserErrors { field message code }
+    }
+  }
+`
+
 export const CART_LINES_UPDATE_MUTATION = `
   mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
     cartLinesUpdate(cartId: $cartId, lines: $lines) {

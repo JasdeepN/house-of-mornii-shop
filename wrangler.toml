@@ -1,0 +1,85 @@
+# wrangler.toml — Shopify Automation Worker
+#
+# Deploys workers/shopify-proxy.ts as a Cloudflare Worker with three
+# responsibilities:
+#   1. POST /api/shopify/admin    — read-only Admin API proxy (mutation-blocked)
+#   2. POST /api/shopify/webhook  — HMAC-verified Shopify webhook receiver
+#   3. scheduled()                — daily Cron Trigger that backs up
+#                                    products/collections/orders to R2
+#
+# Two named environments are defined below:
+#   - env.dev        → dev.houseofmornii.com   (deployed on push to `dev` branch)
+#   - env.production → houseofmornii.com       (deployed on push to `main` branch)
+#
+# Bindings (KV/R2/vars) are NOT inherited between environments in Wrangler —
+# each environment below declares its own. See:
+# https://developers.cloudflare.com/workers/wrangler/configuration/#non-inheritable-keys
+#
+# Secrets (NEVER put these here — set via `wrangler secret put <NAME> --env <env>`):
+#   SHOPIFY_ADMIN_ACCESS_TOKEN  — Admin API access token (server-side only)
+#   SHOPIFY_WEBHOOK_SECRET      — Shared secret used to verify webhook HMACs
+#
+# To provision secrets once per environment, out-of-band:
+#   npx wrangler secret put SHOPIFY_ADMIN_ACCESS_TOKEN --env dev
+#   npx wrangler secret put SHOPIFY_WEBHOOK_SECRET --env dev
+#   npx wrangler secret put SHOPIFY_ADMIN_ACCESS_TOKEN --env production
+#   npx wrangler secret put SHOPIFY_WEBHOOK_SECRET --env production
+#
+# Deploy manually with:
+#   npx wrangler deploy --env dev
+#   npx wrangler deploy --env production
+
+name = "shopify-automation-worker"
+main = "workers/shopify-proxy.ts"
+compatibility_date = "2025-01-01"
+
+# ---------------------------------------------------------------------------
+# Dev environment — dev.houseofmornii.com
+# ---------------------------------------------------------------------------
+[env.dev]
+name = "shopify-automation-worker-dev"
+routes = [
+  { pattern = "dev.houseofmornii.com/api/shopify/*", zone_name = "houseofmornii.com" }
+]
+
+[env.dev.triggers]
+crons = ["0 3 * * *"]
+
+[[env.dev.r2_buckets]]
+binding = "SHOPIFY_BACKUPS"
+bucket_name = "shopify-backups-dev"
+
+[[env.dev.kv_namespaces]]
+binding = "BACKUP_INDEX"
+id = "1ec1c137cb154caba663d2b6e223f3ad"
+
+[env.dev.vars]
+# Isolated dev store: use a free Shopify development store here, separate
+# from the production store below. Create one via Shopify Partners
+# (partners.shopify.com) — development stores are free with no subscription.
+SHOPIFY_STORE_DOMAIN = "dev-hom.myshopify.com"
+ALLOWED_ORIGIN = "https://dev.houseofmornii.com"
+
+# ---------------------------------------------------------------------------
+# Production environment — houseofmornii.com
+# ---------------------------------------------------------------------------
+[env.production]
+name = "shopify-automation-worker-production"
+routes = [
+  { pattern = "houseofmornii.com/api/shopify/*", zone_name = "houseofmornii.com" }
+]
+
+[env.production.triggers]
+crons = ["0 3 * * *"]
+
+[[env.production.r2_buckets]]
+binding = "SHOPIFY_BACKUPS"
+bucket_name = "shopify-backups-production"
+
+[[env.production.kv_namespaces]]
+binding = "BACKUP_INDEX"
+id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"
+
+[env.production.vars]
+SHOPIFY_STORE_DOMAIN = "2svzqt-hg.myshopify.com"
+ALLOWED_ORIGIN = "https://houseofmornii.com"

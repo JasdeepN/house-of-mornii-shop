@@ -8,6 +8,8 @@ import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
 import { SearchBar } from '@/components/SearchBar'
 import { useTheme } from '@/hooks/useTheme'
+import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { CustomerMenu } from '@/components/CustomerMenu'
 
 const navLinks = [
   { label: 'SHOP', href: '/shop' },
@@ -16,53 +18,56 @@ const navLinks = [
   { label: 'CONTACT', href: '/contact' },
 ]
 
-export function Header() {
+export function Header({ onLoginClick }: { onLoginClick?: () => void } = {}) {
   const [isOpen, setIsOpen] = useState(false)
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const { itemCount, openCart } = useCart()
   const { theme, toggleTheme } = useTheme()
-  
+  const { isAuthenticated } = useCustomerAuth()
+
   // Debounce navigation to prevent rapid state updates
+  const navigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navigateDebounced = useCallback(
     (path: string) => {
-      if (navigateDebounced.timeoutId) {
-        clearTimeout(navigateDebounced.timeoutId)
+      if (navigateTimeoutRef.current) {
+        clearTimeout(navigateTimeoutRef.current)
       }
-      navigateDebounced.timeoutId = setTimeout(() => {
+      navigateTimeoutRef.current = setTimeout(() => {
         navigate(path)
-      }, 200) as unknown as number
+      }, 200)
     },
     [navigate],
   )
-  
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (navigateDebounced.timeoutId) {
-        clearTimeout(navigateDebounced.timeoutId)
+      if (navigateTimeoutRef.current) {
+        clearTimeout(navigateTimeoutRef.current)
       }
     }
   }, [])
-  
+
   // Debounce sheet open state to prevent rapid toggling
+  const sheetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const setIsOpenDebounced = useCallback(
     (open: boolean) => {
-      if (setIsOpenDebounced.timeoutId) {
-        clearTimeout(setIsOpenDebounced.timeoutId)
+      if (sheetTimeoutRef.current) {
+        clearTimeout(sheetTimeoutRef.current)
       }
-      setIsOpenDebounced.timeoutId = setTimeout(() => {
+      sheetTimeoutRef.current = setTimeout(() => {
         setIsOpen(open)
-      }, 100) as unknown as number
+      }, 100)
     },
     [],
   )
-  
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (setIsOpenDebounced.timeoutId) {
-        clearTimeout(setIsOpenDebounced.timeoutId)
+      if (sheetTimeoutRef.current) {
+        clearTimeout(sheetTimeoutRef.current)
       }
     }
   }, [])
@@ -141,6 +146,9 @@ export function Header() {
               </nav>
 
                <div className="flex items-center gap-3">
+                {/* Customer auth menu */}
+                <CustomerMenu onLoginClick={onLoginClick} />
+                
                 {/* Theme toggle — desktop */}
                 <button
                   onClick={toggleTheme}

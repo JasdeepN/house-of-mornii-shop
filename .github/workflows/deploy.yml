@@ -1,0 +1,88 @@
+name: Deploy
+
+# The storefront itself is NOT deployed here; deploy-site.yml does that.
+# This workflow runs the tests, then deploys the
+# automation Workers that sit on /api/shopify/* routes in front of the site.
+
+on:
+  push:
+    branches: [main, dev]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # src/test/setup.ts stubs the Shopify env, so tests need no secrets.
+      # deploy-site.yml builds the site, so there is no build step here.
+      - name: Run tests
+        run: npx vitest run
+
+  # ---------------------------------------------------------------------
+  # Dev — every push to `dev`
+  # ---------------------------------------------------------------------
+  deploy-dev:
+    needs: test-and-build
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Shopify Automation Worker (dev) — routed at dev.houseofmornii.com/api/shopify/*
+      # Worker secrets (SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_WEBHOOK_SECRET) are
+      # provisioned out-of-band per environment via `wrangler secret put --env dev`.
+      - name: Deploy Shopify Automation Worker (dev)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env dev
+
+      # Catalog Sync Worker — nightly prod→dev catalog (products+collections
+      # only, no orders/customers) sync. Only meaningful for dev (it WRITES
+      # into the dev store), so it is deployed exclusively on this dev path.
+      # Uses its own config file (wrangler.catalog-sync.toml) since it is a
+      # separate Worker/entrypoint from workers/shopify-proxy.ts. Secrets
+      # (PROD_ADMIN_ACCESS_TOKEN, DEV_ADMIN_ACCESS_TOKEN) are provisioned
+      # out-of-band via `wrangler secret put --config wrangler.catalog-sync.toml`.
+      - name: Deploy Catalog Sync Worker (dev)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config wrangler.catalog-sync.toml
+
+  # ---------------------------------------------------------------------
+  # Production — every push to `main`
+  # ---------------------------------------------------------------------
+  deploy-production:
+    needs: test-and-build
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Shopify Automation Worker (production) — routed at houseofmornii.com/api/shopify/*
+      # Worker secrets (SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_WEBHOOK_SECRET) are
+      # provisioned out-of-band per environment via `wrangler secret put --env production`.
+      - name: Deploy Shopify Automation Worker (production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env production

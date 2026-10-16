@@ -65,7 +65,7 @@ export function AboutPage() {
           <motion.div
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ delay: 0.7, duration: 0.8, ease: luxuryEase }}
+            transition={{ delay: 0.4, duration: 0.4, ease: luxuryEase }}
           >
             <OrnamentalDivider className="mb-12" />
           </motion.div>
@@ -75,7 +75,7 @@ export function AboutPage() {
             variants={fadeSlideUp}
             initial="hidden"
             animate="visible"
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.2, duration: 0.3, ease: luxuryEase }}
             className="text-center text-lg lg:text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto mb-16"
           >
             Where heritage-inspired opulence meets modern styling.

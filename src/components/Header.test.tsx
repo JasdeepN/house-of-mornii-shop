@@ -3,9 +3,8 @@ import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/utils'
 import { Header } from './Header'
 
-// Force demo mode
 vi.mock('@/lib/shopify/client', () => ({
-  IS_CONFIGURED: false,
+  IS_CONFIGURED: true,
   shopifyFetch: vi.fn(),
 }))
 
