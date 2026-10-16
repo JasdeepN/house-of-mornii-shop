@@ -1,7 +1,7 @@
 name: Deploy
 
 # The storefront itself is NOT deployed here; deploy-site.yml does that.
-# This workflow runs the tests and a build check, then deploys the
+# This workflow runs the tests, then deploys the
 # automation Workers that sit on /api/shopify/* routes in front of the site.
 
 on:
@@ -24,18 +24,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # src/test/setup.ts stubs the Shopify env, so tests need no secrets.
+      # deploy-site.yml builds the site, so there is no build step here.
       - name: Run tests
         run: npx vitest run
-        env:
-          VITE_SHOPIFY_STORE_DOMAIN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STORE_DOMAIN || secrets.DEV_VITE_SHOPIFY_STORE_DOMAIN }}
-          VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STOREFRONT_TOKEN || secrets.DEV_VITE_SHOPIFY_STOREFRONT_TOKEN }}
-
-      - name: Build check
-        run: npm run build
-        env:
-          VITE_SHOPIFY_STORE_DOMAIN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STORE_DOMAIN || secrets.DEV_VITE_SHOPIFY_STORE_DOMAIN }}
-          VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STOREFRONT_TOKEN || secrets.DEV_VITE_SHOPIFY_STOREFRONT_TOKEN }}
-          VITE_SITE_URL: ${{ github.ref_name == 'main' && 'https://houseofmornii.com' || 'https://dev.houseofmornii.com' }}
 
   # ---------------------------------------------------------------------
   # Dev — every push to `dev`
