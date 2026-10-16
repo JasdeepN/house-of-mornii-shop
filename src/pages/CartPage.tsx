@@ -8,7 +8,8 @@ import { TrustBadges, PaymentIcons } from '@/components/TrustBadges'
 import { useSEO } from '@/hooks/useSEO'
 import { trackBeginCheckout } from '@/lib/analytics'
 import { FreeShippingBar } from '@/components/FreeShippingBar'
-import { isValidCheckoutUrl } from '@/lib/cart'
+import { checkoutLink, isValidCheckoutUrl } from '@/lib/cart'
+import { useCustomerSession } from '@/lib/customer'
 import { luxuryEase } from '@/lib/animations'
 
 function CartLineItem({ line }: { line: ShopifyCartLine }) {
@@ -105,6 +106,7 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
 
 export function CartPage() {
   const { cart, isLoading, itemCount } = useCart()
+  const signedIn = useCustomerSession().session.status === 'signed-in'
   const lines = cart ? flattenEdges(cart.lines) : []
 
   useSEO({ title: 'Your Bag' })
@@ -187,7 +189,7 @@ export function CartPage() {
 
             {isValidCheckoutUrl(cart.checkoutUrl) ? (
               <a
-                href={cart.checkoutUrl}
+                href={checkoutLink(cart.checkoutUrl, signedIn)}
                 onClick={() => trackBeginCheckout(cart.cost.totalAmount.amount, cart.cost.totalAmount.currencyCode)}
                 className={`block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
                   isLoading
