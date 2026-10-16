@@ -41,7 +41,7 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/lib/shopify/**', '**/*.test.{ts,tsx}'],
+    ignores: ['src/lib/shopify/**', 'src/lib/customer/**', '**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -50,6 +50,10 @@ export default tseslint.config(
             {
               group: ['@/lib/shopify/*'],
               message: 'Import from the @/lib/shopify barrel (AGENTS.md).',
+            },
+            {
+              group: ['@/lib/customer/*'],
+              message: 'Import from the @/lib/customer barrel.',
             },
           ],
         },
