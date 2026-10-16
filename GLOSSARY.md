@@ -17,7 +17,7 @@ A named, curated group of Products.
 _Avoid_: Category, line, range
 
 **Cart**:
-The set of Variants a shopper intends to buy, kept until checkout.
+The set of Variants a shopper intends to buy in one browser, kept until checkout.
 _Avoid_: Basket, bag
 
 **Cart line**:
@@ -25,8 +25,12 @@ One Variant and its quantity within a Cart.
 _Avoid_: Cart item, merchandise
 
 **Customer**:
-A person who signs in to view their orders, addresses, and details.
+A person the store knows by email, who can sign in to see their Orders, addresses, and details.
 _Avoid_: Account, user, buyer
+
+**Customer session**:
+The period during which a Customer is signed in within one browser, from signing in until signing out or expiry.
+_Avoid_: login, log in, log out, auth, account session
 
 **Order**:
 A completed purchase belonging to a Customer.
