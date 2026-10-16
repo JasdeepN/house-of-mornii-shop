@@ -24,6 +24,10 @@ _Avoid_: Basket, bag
 One Variant and its quantity within a Cart.
 _Avoid_: Cart item, merchandise
 
+**Shopper**:
+Anyone using the storefront, whether or not they are signed in.
+_Avoid_: visitor, anon user, guest, user
+
 **Customer**:
 A person the store knows by email, who can sign in to see their Orders, addresses, and details.
 _Avoid_: Account, user, buyer
