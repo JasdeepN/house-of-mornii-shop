@@ -42,8 +42,8 @@ crons = ["0 2 * * *"]
 
 [vars]
 # Source store (read-only Admin API reads of products/collections).
-PROD_SHOPIFY_STORE_DOMAIN = "your-store.myshopify.com"
+PROD_SHOPIFY_STORE_DOMAIN = "2svzqt-hg.myshopify.com"
 # Destination store — the isolated free Shopify development store created
 # via Shopify Partners (partners.shopify.com). This is the ONLY store this
 # Worker ever writes to.
-DEV_SHOPIFY_STORE_DOMAIN = "your-dev-store.myshopify.com"
+DEV_SHOPIFY_STORE_DOMAIN = "dev-hom.myshopify.com"

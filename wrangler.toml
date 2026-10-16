@@ -57,7 +57,7 @@ id = "1ec1c137cb154caba663d2b6e223f3ad"
 # Isolated dev store: use a free Shopify development store here, separate
 # from the production store below. Create one via Shopify Partners
 # (partners.shopify.com) — development stores are free with no subscription.
-SHOPIFY_STORE_DOMAIN = "your-dev-store.myshopify.com"
+SHOPIFY_STORE_DOMAIN = "dev-hom.myshopify.com"
 ALLOWED_ORIGIN = "https://dev.houseofmornii.com"
 
 # ---------------------------------------------------------------------------
@@ -81,5 +81,5 @@ binding = "BACKUP_INDEX"
 id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"
 
 [env.production.vars]
-SHOPIFY_STORE_DOMAIN = "your-store.myshopify.com"
+SHOPIFY_STORE_DOMAIN = "2svzqt-hg.myshopify.com"
 ALLOWED_ORIGIN = "https://houseofmornii.com"

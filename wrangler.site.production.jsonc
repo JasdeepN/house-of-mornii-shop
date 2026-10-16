@@ -1,0 +1,14 @@
+// Storefront (production): the Vite build in dist/ served as Worker static assets.
+// Deployed by Cloudflare Workers Builds from the `main` branch with:
+//   npx wrangler deploy -c wrangler.site.production.jsonc
+// The custom domain houseofmornii.com is attached in the dashboard.
+// No routes here: the /api/* Workers use routes, which run before this
+// Worker's custom domain on the same hostname.
+{
+  "name": "prod-hom",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

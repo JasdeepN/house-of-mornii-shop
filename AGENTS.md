@@ -17,6 +17,7 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 - Providers (`src/main.tsx`): `ErrorBoundary` > `QueryClientProvider` > `CartProvider` > `App`.
 - Routes (`src/App.tsx`): all pages lazy-loaded; `AnimatePresence` transitions; page views tracked in `AnimatedRoutes` via `src/lib/analytics.ts`.
 - Cart: `src/context/CartContext.tsx`, synced through Storefront API mutations.
+- Storefront hosting: Workers static assets, one Worker per environment, built by Cloudflare Workers Builds. `dev-hom` (`wrangler.site.dev.jsonc`, branch `dev`) serves `dev.houseofmornii.com`; `prod-hom` (`wrangler.site.production.jsonc`, branch `main`) serves `houseofmornii.com`. Store credentials are build variables on each Worker.
 - Workers (secrets via `wrangler secret put`, never committed):
   - `workers/shopify-proxy.ts` (`wrangler.toml`): Admin API proxy, webhook receiver, daily backup cron.
   - `workers/catalog-sync.ts` (`wrangler.catalog-sync.toml`): nightly prod-to-dev sync of products and collections only.

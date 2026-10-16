@@ -1,5 +1,11 @@
 name: Deploy
 
+# The storefront itself is NOT deployed here. Cloudflare Workers Builds
+# builds and deploys it per branch: `dev` → dev-hom (dev.houseofmornii.com),
+# `main` → prod-hom (houseofmornii.com). See wrangler.site.*.jsonc.
+# This workflow runs the tests and a build check, then deploys the
+# automation Workers that sit on /api/shopify/* routes in front of the site.
+
 on:
   push:
     branches: [main, dev]
@@ -7,8 +13,6 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.set-env.outputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,37 +26,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Determine target environment
-        id: set-env
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "environment=production" >> "$GITHUB_OUTPUT"
-          else
-            echo "environment=dev" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Run tests
         run: npx vitest run
         env:
           VITE_SHOPIFY_STORE_DOMAIN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STORE_DOMAIN || secrets.DEV_VITE_SHOPIFY_STORE_DOMAIN }}
           VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STOREFRONT_TOKEN || secrets.DEV_VITE_SHOPIFY_STOREFRONT_TOKEN }}
 
-      - name: Build
+      - name: Build check
         run: npm run build
         env:
           VITE_SHOPIFY_STORE_DOMAIN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STORE_DOMAIN || secrets.DEV_VITE_SHOPIFY_STORE_DOMAIN }}
           VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ github.ref_name == 'main' && secrets.PROD_VITE_SHOPIFY_STOREFRONT_TOKEN || secrets.DEV_VITE_SHOPIFY_STOREFRONT_TOKEN }}
           VITE_SITE_URL: ${{ github.ref_name == 'main' && 'https://houseofmornii.com' || 'https://dev.houseofmornii.com' }}
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ github.ref_name }}
-          path: dist/
-          retention-days: 1
-
   # ---------------------------------------------------------------------
-  # Dev — deploys automatically on every push to `dev` → dev.houseofmornii.com
+  # Dev — every push to `dev`
   # ---------------------------------------------------------------------
   deploy-dev:
     needs: test-and-build
@@ -62,22 +50,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-dev
-          path: dist
-
-      - name: Deploy Pages (dev)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            pages deploy dist
-            --project-name=house-of-mornii-dev
-            --branch=dev
 
       # Shopify Automation Worker (dev) — routed at dev.houseofmornii.com/api/shopify/*
       # Worker secrets (SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_WEBHOOK_SECRET) are
@@ -104,7 +76,7 @@ jobs:
           command: deploy --config wrangler.catalog-sync.toml
 
   # ---------------------------------------------------------------------
-  # Production — deploys automatically on every push to `main` → houseofmornii.com
+  # Production — every push to `main`
   # ---------------------------------------------------------------------
   deploy-production:
     needs: test-and-build
@@ -114,22 +86,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-main
-          path: dist
-
-      - name: Deploy Pages (production)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            pages deploy dist
-            --project-name=house-of-mornii
-            --branch=main
 
       # Shopify Automation Worker (production) — routed at houseofmornii.com/api/shopify/*
       # Worker secrets (SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_WEBHOOK_SECRET) are
