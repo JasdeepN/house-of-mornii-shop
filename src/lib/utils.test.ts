@@ -76,8 +76,9 @@ describe('utils', () => {
       expect(cn('a', 'b', 'c', 'd')).toBe('a b c d')
     })
 
-    it('handles duplicate class names', () => {
-      expect(cn('foo', 'foo', 'bar')).toBe('foo bar')
+    it('dedupes duplicate Tailwind utilities (plain duplicate class names are kept)', () => {
+      expect(cn('p-4', 'p-4', 'm-2')).toBe('p-4 m-2')
+      expect(cn('foo', 'foo', 'bar')).toBe('foo foo bar')
     })
   })
 })

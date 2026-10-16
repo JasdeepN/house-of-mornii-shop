@@ -25,7 +25,9 @@ describe('withRetry', () => {
       .mockRejectedValueOnce(new TypeError('Network error'))
       .mockResolvedValueOnce('recovered')
 
-    const result = await withRetry(fn, { initialDelayMs: 10 })
+    const promise = withRetry(fn, { initialDelayMs: 10 })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result).toBe('recovered')
     expect(fn).toHaveBeenCalledTimes(2)
@@ -34,7 +36,9 @@ describe('withRetry', () => {
   it('throws after maxAttempts exhausted', async () => {
     const fn = vi.fn().mockRejectedValue(new TypeError('Network error'))
 
-    await expect(withRetry(fn, { maxAttempts: 3, initialDelayMs: 10 })).rejects.toThrow('Network error')
+    const assertion = expect(withRetry(fn, { maxAttempts: 3, initialDelayMs: 10 })).rejects.toThrow('Network error')
+    await vi.runAllTimersAsync()
+    await assertion
     expect(fn).toHaveBeenCalledTimes(3)
   })
 
@@ -54,7 +58,9 @@ describe('withRetry', () => {
       .mockRejectedValueOnce(retryableError)
       .mockResolvedValueOnce('ok')
 
-    const result = await withRetry(fn, { initialDelayMs: 10 })
+    const promise = withRetry(fn, { initialDelayMs: 10 })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result).toBe('ok')
     expect(fn).toHaveBeenCalledTimes(2)
@@ -79,7 +85,9 @@ describe('withRetry', () => {
       .mockRejectedValueOnce(error)
       .mockResolvedValueOnce('ok')
 
-    const result = await withRetry(fn, { initialDelayMs: 10, retryableStatuses: [403] })
+    const promise = withRetry(fn, { initialDelayMs: 10, retryableStatuses: [403] })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result).toBe('ok')
     expect(fn).toHaveBeenCalledTimes(2)
@@ -89,13 +97,14 @@ describe('withRetry', () => {
     const fn = vi.fn().mockRejectedValue(new TypeError('Network error'))
 
     const promise = withRetry(fn, { maxAttempts: 3, initialDelayMs: 100, multiplier: 2 })
+    const assertion = expect(promise).rejects.toThrow('Network error')
 
     // First attempt fails, should wait 100ms
     await vi.advanceTimersByTimeAsync(100)
     // Second attempt fails, should wait 200ms
     await vi.advanceTimersByTimeAsync(200)
 
-    await expect(promise).rejects.toThrow('Network error')
+    await assertion
     expect(fn).toHaveBeenCalledTimes(3)
   })
 
@@ -108,6 +117,7 @@ describe('withRetry', () => {
       multiplier: 2,
       maxDelayMs: 1500,
     })
+    const assertion = expect(promise).rejects.toThrow('Network error')
 
     // First attempt fails, wait 1000ms
     await vi.advanceTimersByTimeAsync(1000)
@@ -116,7 +126,7 @@ describe('withRetry', () => {
     // Third attempt fails, wait 3000 -> capped at 1500ms
     await vi.advanceTimersByTimeAsync(1500)
 
-    await expect(promise).rejects.toThrow('Network error')
+    await assertion
     expect(fn).toHaveBeenCalledTimes(4)
   })
 
@@ -131,7 +141,9 @@ describe('withRetry', () => {
   it('merges partial config with defaults', async () => {
     const fn = vi.fn().mockResolvedValue('ok')
 
-    const result = await withRetry(fn, { maxAttempts: 5 })
+    const promise = withRetry(fn, { maxAttempts: 5 })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result).toBe('ok')
   })
@@ -145,7 +157,9 @@ describe('withRetry', () => {
       .mockRejectedValueOnce(error)
       .mockResolvedValueOnce('ok')
 
-    const result = await withRetry(fn, { initialDelayMs: 10 })
+    const promise = withRetry(fn, { initialDelayMs: 10 })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result).toBe('ok')
     expect(fn).toHaveBeenCalledTimes(2)
@@ -160,7 +174,9 @@ describe('withRetry', () => {
       .mockRejectedValueOnce(error)
       .mockResolvedValueOnce('ok')
 
-    const result = await withRetry(fn, { initialDelayMs: 10 })
+    const promise = withRetry(fn, { initialDelayMs: 10 })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result).toBe('ok')
     expect(fn).toHaveBeenCalledTimes(2)
@@ -176,7 +192,9 @@ describe('withRetry', () => {
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce('ok')
 
-      const result = await withRetry(fn, { initialDelayMs: 10 })
+      const promise = withRetry(fn, { initialDelayMs: 10 })
+    await vi.runAllTimersAsync()
+    const result = await promise
 
       expect(result).toBe('ok')
       expect(fn).toHaveBeenCalledTimes(2)
