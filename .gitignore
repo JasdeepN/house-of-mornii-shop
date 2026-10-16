@@ -48,3 +48,6 @@ test-results/
 
 # Local backup export integration test output (scripts/test-backup-export.ts)
 .test-backups/
+
+# Wrangler local dev state
+.wrangler/

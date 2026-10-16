@@ -49,9 +49,20 @@ export default defineConfig({
     },
     hmr: {
       overlay: true,
+      // Behind the local HTTPS tunnel the browser reaches Vite on port 443
+      // (`npm run dev:local` sets this).
+      ...(process.env.HMR_CLIENT_PORT ? { clientPort: Number(process.env.HMR_CLIENT_PORT) } : {}),
     },
+    // The Cloudflare Tunnel hostname used for local sign-in work (Shopify
+    // rejects localhost and plain HTTP).
+    allowedHosts: ['local.houseofmornii.com'],
     // Proxy Admin API calls to Cloudflare Worker during local development
     proxy: {
+      // Customer session Worker (`npm run dev:customer`). No rewrite: the
+      // Worker routes on the full /api/customer/* path.
+      '/api/customer': {
+        target: 'http://localhost:8788',
+      },
       '/api/shopify': {
         target: 'http://localhost:8787', // Cloudflare dev server (wrangler dev)
         changeOrigin: true,
