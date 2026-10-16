@@ -1,0 +1,60 @@
+name: Deploy site
+
+# Builds the storefront and deploys it to its Worker:
+#   push to dev  -> dev-hom  -> dev.houseofmornii.com  (GitHub environment "dev")
+#   push to main -> prod-hom -> houseofmornii.com      (GitHub environment "production")
+# Each environment holds its own VITE_SHOPIFY_STORE_DOMAIN and
+# VITE_SHOPIFY_STOREFRONT_TOKEN, and only its own branch may use it.
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref_name == 'main' || github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
+    env:
+      SITE_CONFIG: wrangler.site.${{ github.ref_name == 'main' && 'production' || 'dev' }}.jsonc
+      EXPECTED_STORE: ${{ github.ref_name == 'main' && '2svzqt-hg.myshopify.com' || 'dev-hom.myshopify.com' }}
+      VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
+      VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
+      VITE_SITE_URL: ${{ github.ref_name == 'main' && 'https://houseofmornii.com' || 'https://dev.houseofmornii.com' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Backstop: if an environment secret is ever missing, GitHub falls back
+      # to the repo-wide secret of the same name. Refuse to build then.
+      - name: Check the store matches the branch
+        run: |
+          if [ "$VITE_SHOPIFY_STORE_DOMAIN" != "$EXPECTED_STORE" ]; then
+            echo "::error::This branch must build against $EXPECTED_STORE"
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.1"
+          command: deploy -c ${{ env.SITE_CONFIG }}

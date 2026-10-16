@@ -1,8 +1,6 @@
 name: Deploy
 
-# The storefront itself is NOT deployed here. Cloudflare Workers Builds
-# builds and deploys it per branch: `dev` → dev-hom (dev.houseofmornii.com),
-# `main` → prod-hom (houseofmornii.com). See wrangler.site.*.jsonc.
+# The storefront itself is NOT deployed here; deploy-site.yml does that.
 # This workflow runs the tests and a build check, then deploys the
 # automation Workers that sit on /api/shopify/* routes in front of the site.
 
