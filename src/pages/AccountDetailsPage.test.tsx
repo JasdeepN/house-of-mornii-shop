@@ -1,36 +1,34 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { AccountDetailsPage } from './AccountDetailsPage'
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { useCustomerSession, useCustomerProfile, useUpdateName, useSetEmailMarketing } from '@/lib/customer'
 import { toast } from 'sonner'
-import type { ShopifyCustomer } from '@/lib/shopify'
 
-vi.mock('@/context/CustomerAuthContext', () => ({
-  useCustomerAuth: vi.fn(),
+vi.mock('@/lib/customer', () => ({
+  useCustomerSession: vi.fn(),
+  useCustomerProfile: vi.fn(),
+  useUpdateName: vi.fn(),
+  useSetEmailMarketing: vi.fn(),
+  CustomerUserError: class CustomerUserError extends Error {},
 }))
+const open = vi.fn()
+vi.mock('@/context/SignInDialogContext', () => ({ useSignInDialog: () => ({ open }) }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
 
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}))
+const session = vi.mocked(useCustomerSession)
+const profile = vi.mocked(useCustomerProfile)
+const updateName = vi.fn()
+const setMarketing = vi.fn()
 
-const mockedUseCustomerAuth = useCustomerAuth as unknown as ReturnType<typeof vi.fn>
-
-const BASE_CUSTOMER: ShopifyCustomer = {
-  id: 'gid://shopify/Customer/1',
+const PROFILE = {
+  id: 'c',
   firstName: 'Jane',
   lastName: 'Doe',
-  email: 'jane@example.com',
-  phone: '+1 613 555 1111',
-  acceptsMarketing: true,
+  displayName: 'Jane Doe',
+  emailAddress: { emailAddress: 'jane@example.com', marketingState: 'SUBSCRIBED' },
+  phoneNumber: { phoneNumber: '+1 613 555 1111' },
   defaultAddress: null,
-  addresses: { edges: [] },
-  orders: { edges: [], pageInfo: { hasNextPage: false, endCursor: null } },
 }
 
 function renderPage() {
@@ -41,125 +39,77 @@ function renderPage() {
   )
 }
 
-function buildAuthValue(overrides: Partial<ReturnType<typeof useCustomerAuth>> = {}) {
-  return {
-    customer: null,
-    accessToken: null,
-    isAuthenticated: false,
-    isLoading: false,
-    lastError: null,
-    login: vi.fn(),
-    register: vi.fn(),
-    logout: vi.fn(),
-    initiatePasswordRecovery: vi.fn(),
-    resetPassword: vi.fn(),
-    updateProfile: vi.fn(),
-    refreshAccessToken: vi.fn(),
-    createAddress: vi.fn(),
-    updateAddress: vi.fn(),
-    deleteAddress: vi.fn(),
-    setDefaultAddress: vi.fn(),
-    ...overrides,
-  }
-}
-
 describe('AccountDetailsPage', () => {
   beforeEach(() => {
-    mockedUseCustomerAuth.mockReset()
-    vi.mocked(toast.success).mockClear()
-    vi.mocked(toast.error).mockClear()
+    vi.clearAllMocks()
+    session.mockReturnValue({ session: { status: 'signed-in', customer: { id: 'c', name: 'J', email: 'j@x.com' } } } as never)
+    profile.mockReturnValue({ data: PROFILE, isLoading: false } as never)
+    updateName.mockResolvedValue(undefined)
+    setMarketing.mockResolvedValue(undefined)
+    vi.mocked(useUpdateName).mockReturnValue({ mutateAsync: updateName, isPending: false } as never)
+    vi.mocked(useSetEmailMarketing).mockReturnValue({ mutateAsync: setMarketing, isPending: false } as never)
   })
 
-  it('renders a loading state when isLoading is true', () => {
-    mockedUseCustomerAuth.mockReturnValue(buildAuthValue({ isLoading: true }))
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('opens the sign-in dialog when signed out', () => {
+    session.mockReturnValue({ session: { status: 'signed-out' } } as never)
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+    expect(open).toHaveBeenCalled()
+  })
+
+  it('shows loading while the session loads', () => {
+    session.mockReturnValue({ session: { status: 'loading' } } as never)
     renderPage()
     expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
 
-  it('renders the auth-guard when not authenticated', () => {
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: false, customer: null }),
-    )
+  it('shows name fields, read-only email and phone, and no password field', () => {
     renderPage()
-    expect(screen.getByText('ACCOUNT REQUIRED')).toBeInTheDocument()
-    expect(
-      screen.getByText('Please sign in to manage your account details.'),
-    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/first name/i)).toHaveValue('Jane')
+    expect(screen.getByLabelText(/last name/i)).toHaveValue('Doe')
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument()
+    expect(screen.getByText('+1 613 555 1111')).toBeInTheDocument()
+    expect(screen.queryByText(/password/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox')).toBeChecked()
   })
 
-  it('renders the auth-guard when authenticated flag true but customer is null', () => {
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: true, customer: null }),
-    )
+  it('saves the edited name', async () => {
     renderPage()
-    expect(screen.getByText('ACCOUNT REQUIRED')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Janet' } })
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
+    await waitFor(() => expect(updateName).toHaveBeenCalledWith({ firstName: 'Janet', lastName: 'Doe' }))
+    expect(toast.success).toHaveBeenCalled()
   })
 
-  it('renders the form pre-populated with customer data when authenticated', () => {
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: true, customer: BASE_CUSTOMER }),
-    )
+  it('toggles email marketing', async () => {
     renderPage()
-
-    expect(screen.getByLabelText('First Name')).toHaveValue('Jane')
-    expect(screen.getByLabelText('Last Name')).toHaveValue('Doe')
-    expect(screen.getByLabelText('Email')).toHaveValue('jane@example.com')
-    expect(screen.getByLabelText('Phone')).toHaveValue('+1 613 555 1111')
+    fireEvent.click(screen.getByRole('checkbox'))
+    await waitFor(() => expect(setMarketing).toHaveBeenCalledWith(false))
   })
 
-  it('submits the form and calls updateProfile with correct payload (no password change)', async () => {
-    const updateProfile = vi.fn().mockResolvedValue(undefined)
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: true, customer: BASE_CUSTOMER, updateProfile }),
-    )
+  it('shows the error message when saving the name fails', async () => {
+    updateName.mockRejectedValue(new Error('Name is invalid'))
     renderPage()
-
-    fireEvent.change(screen.getByLabelText('First Name'), { target: { value: 'Janet' } })
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
-
-    await waitFor(() =>
-      expect(updateProfile).toHaveBeenCalledWith({
-        firstName: 'Janet',
-        lastName: 'Doe',
-        email: 'jane@example.com',
-        phone: '+1 613 555 1111',
-        acceptsMarketing: true,
-      }),
-    )
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Account details updated'))
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Name is invalid'))
   })
 
-  it('includes password in payload when a new password is entered', async () => {
-    const updateProfile = vi.fn().mockResolvedValue(undefined)
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: true, customer: BASE_CUSTOMER, updateProfile }),
-    )
+  it('links to the hosted profile page when VITE_SHOPIFY_ACCOUNT_URL is set', () => {
+    vi.stubEnv('VITE_SHOPIFY_ACCOUNT_URL', 'https://shopify.com/123')
     renderPage()
-
-    const user = userEvent.setup()
-    await user.type(screen.getByLabelText(/new password/i), 'supersecret1')
-    await user.click(screen.getByRole('button', { name: /save changes/i }))
-
-    await waitFor(() =>
-      expect(updateProfile).toHaveBeenCalledWith(
-        expect.objectContaining({ password: 'supersecret1' }),
-      ),
+    expect(screen.getByRole('link', { name: /change email or phone/i })).toHaveAttribute(
+      'href',
+      'https://shopify.com/123/profile',
     )
   })
 
-  it('shows an error toast when updateProfile rejects', async () => {
-    const updateProfile = vi.fn().mockRejectedValue(new Error('Update failed. Please try again.'))
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: true, customer: BASE_CUSTOMER, updateProfile }),
-    )
+  it('hides the profile link when the variable is unset', () => {
+    vi.stubEnv('VITE_SHOPIFY_ACCOUNT_URL', '')
     renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith('Update failed. Please try again.'),
-    )
-    // Submit button should return to its non-submitting label
-    expect(screen.getByRole('button', { name: /save changes/i })).not.toBeDisabled()
+    expect(screen.queryByRole('link', { name: /change email or phone/i })).not.toBeInTheDocument()
   })
 })

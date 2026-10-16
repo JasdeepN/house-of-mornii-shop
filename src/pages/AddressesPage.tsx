@@ -1,69 +1,128 @@
-import { useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { useState, useCallback, useMemo } from 'react'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { OrnamentalBorder } from '@/components/OrnamentalBorder'
 import { Plus, PencilSimple, Trash, Star, AddressBook } from '@phosphor-icons/react'
-import type { MailingAddressInput, ShopifyMailingAddress } from '@/lib/shopify'
+import {
+  useAddresses,
+  useCreateAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+  type Address,
+  type AddressInput,
+} from '@/lib/customer'
 import { toast } from 'sonner'
+import { AccountGate } from './account/AccountGate'
+import { getCountryOptions } from './account/countries'
 
-const EMPTY_ADDRESS: MailingAddressInput = {
+interface FormState {
+  firstName: string
+  lastName: string
+  address1: string
+  address2: string
+  company: string
+  city: string
+  zoneCode: string
+  countryCode: string
+  zip: string
+  phoneNumber: string
+  makeDefault: boolean
+}
+
+const EMPTY_FORM: FormState = {
   firstName: '',
   lastName: '',
   address1: '',
   address2: '',
   company: '',
   city: '',
-  province: '',
-  country: '',
+  zoneCode: '',
+  countryCode: '',
   zip: '',
-  phone: '',
+  phoneNumber: '',
+  makeDefault: false,
+}
+
+function toInput(f: FormState): AddressInput {
+  return {
+    firstName: f.firstName,
+    lastName: f.lastName,
+    address1: f.address1,
+    address2: f.address2,
+    company: f.company,
+    city: f.city,
+    zoneCode: f.zoneCode,
+    countryCode: f.countryCode,
+    zip: f.zip,
+    phoneNumber: f.phoneNumber,
+  }
+}
+
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
+function countryName(code: string | null): string {
+  if (!code) return ''
+  try {
+    return regionNames.of(code) ?? code
+  } catch {
+    return code
+  }
 }
 
 export function AddressesPage() {
-  const {
-    customer,
-    isAuthenticated,
-    isLoading,
-    createAddress,
-    updateAddress,
-    deleteAddress,
-    setDefaultAddress,
-  } = useCustomerAuth()
+  return (
+    <AccountGate signedOutMessage="Please sign in to manage your addresses.">
+      <AddressesContent />
+    </AccountGate>
+  )
+}
+
+function AddressesContent() {
+  const { data } = useAddresses()
+  const createAddress = useCreateAddress()
+  const updateAddress = useUpdateAddress()
+  const deleteAddress = useDeleteAddress()
+  const countries = useMemo(() => getCountryOptions(), [])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
-  const [formData, setFormData] = useState<MailingAddressInput>(EMPTY_ADDRESS)
+  const [formData, setFormData] = useState<FormState>(EMPTY_FORM)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const startEdit = useCallback((address: ShopifyMailingAddress) => {
-    setEditingId(address.id)
-    setIsCreating(false)
-    setFormData({
-      firstName: address.firstName,
-      lastName: address.lastName,
-      address1: address.address1,
-      address2: address.address2 ?? '',
-      company: address.company ?? '',
-      city: address.city,
-      province: address.province,
-      country: address.country,
-      zip: address.zip,
-      phone: address.phone,
-    })
-  }, [])
+  const addresses = data?.addresses ?? []
+  const defaultAddressId = data?.defaultAddressId ?? null
+
+  const startEdit = useCallback(
+    (address: Address) => {
+      setEditingId(address.id)
+      setIsCreating(false)
+      setFormData({
+        firstName: address.firstName ?? '',
+        lastName: address.lastName ?? '',
+        address1: address.address1 ?? '',
+        address2: address.address2 ?? '',
+        company: address.company ?? '',
+        city: address.city ?? '',
+        zoneCode: address.zoneCode ?? '',
+        countryCode: address.countryCode ?? '',
+        zip: address.zip ?? '',
+        phoneNumber: address.phoneNumber ?? '',
+        makeDefault: address.id === defaultAddressId,
+      })
+    },
+    [defaultAddressId],
+  )
 
   const startCreate = useCallback(() => {
     setIsCreating(true)
     setEditingId(null)
-    setFormData(EMPTY_ADDRESS)
+    setFormData(EMPTY_FORM)
   }, [])
 
   const cancelForm = useCallback(() => {
     setIsCreating(false)
     setEditingId(null)
-    setFormData(EMPTY_ADDRESS)
+    setFormData(EMPTY_FORM)
   }, [])
 
   const handleSubmit = useCallback(
@@ -73,10 +132,14 @@ export function AddressesPage() {
       setIsSubmitting(true)
       try {
         if (editingId) {
-          await updateAddress(editingId, formData)
+          await updateAddress.mutateAsync({
+            id: editingId,
+            address: toInput(formData),
+            defaultAddress: formData.makeDefault,
+          })
           toast.success('Address updated')
         } else {
-          await createAddress(formData)
+          await createAddress.mutateAsync({ address: toInput(formData), defaultAddress: formData.makeDefault })
           toast.success('Address added')
         }
         cancelForm()
@@ -92,7 +155,7 @@ export function AddressesPage() {
   const handleDelete = useCallback(
     async (id: string) => {
       try {
-        await deleteAddress(id)
+        await deleteAddress.mutateAsync(id)
         toast.success('Address removed')
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Failed to delete address.')
@@ -101,54 +164,6 @@ export function AddressesPage() {
     [deleteAddress],
   )
 
-  const handleSetDefault = useCallback(
-    async (id: string) => {
-      try {
-        await setDefaultAddress(id)
-        toast.success('Default address updated')
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to set default address.')
-      }
-    },
-    [setDefaultAddress],
-  )
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: 'oklch(0.60 0.11 78)', borderTopColor: 'transparent' }}
-          />
-          <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground">
-            Loading...
-          </span>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated || !customer) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl tracking-widest mb-4">ACCOUNT REQUIRED</h1>
-          <p className="text-muted-foreground mb-6">
-            Please sign in to manage your addresses.
-          </p>
-          <Link to="/shop">
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 tracking-widest">
-              CONTINUE SHOPPING
-            </Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const addresses = customer.addresses.edges.map((e) => e.node)
-  const defaultAddressId = customer.defaultAddress?.id
   const showForm = isCreating || !!editingId
 
   return (
@@ -225,19 +240,26 @@ export function AddressesPage() {
                 />
                 <Input
                   placeholder="Province/State"
-                  value={formData.province}
-                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                  value={formData.zoneCode}
+                  onChange={(e) => setFormData({ ...formData, zoneCode: e.target.value })}
                   className="bg-card/50 border-gold/30"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  placeholder="Country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                <select
+                  aria-label="Country"
+                  value={formData.countryCode}
+                  onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
                   required
-                  className="bg-card/50 border-gold/30"
-                />
+                  className="h-9 w-full rounded-md border border-gold/30 bg-card/50 px-3 text-sm"
+                >
+                  <option value="">Country</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
                 <Input
                   placeholder="Postal/Zip code"
                   value={formData.zip}
@@ -247,10 +269,21 @@ export function AddressesPage() {
               </div>
               <Input
                 placeholder="Phone (optional)"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 className="bg-card/50 border-gold/30"
               />
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="makeDefault"
+                  checked={formData.makeDefault}
+                  onCheckedChange={(checked) => setFormData({ ...formData, makeDefault: checked === true })}
+                />
+                <label htmlFor="makeDefault" className="text-sm text-muted-foreground">
+                  Make this my default address
+                </label>
+              </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2">
                 <Button
@@ -303,11 +336,11 @@ export function AddressesPage() {
                   <p className="text-sm text-muted-foreground">{address.address2}</p>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  {address.city}, {address.province} {address.zip}
+                  {address.city}, {address.zoneCode} {address.zip}
                 </p>
-                <p className="text-sm text-muted-foreground">{address.country}</p>
-                {address.phone && (
-                  <p className="text-sm text-muted-foreground mt-1">{address.phone}</p>
+                <p className="text-sm text-muted-foreground">{countryName(address.countryCode)}</p>
+                {address.phoneNumber && (
+                  <p className="text-sm text-muted-foreground mt-1">{address.phoneNumber}</p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-2 mt-4">
@@ -319,16 +352,6 @@ export function AddressesPage() {
                   >
                     <PencilSimple className="mr-1 h-3 w-3" /> EDIT
                   </Button>
-                  {defaultAddressId !== address.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSetDefault(address.id)}
-                      className="border-gold/30 hover:bg-accent/10 text-xs tracking-widest"
-                    >
-                      SET DEFAULT
-                    </Button>
-                  )}
                   <Button
                     variant="ghost"
                     size="sm"

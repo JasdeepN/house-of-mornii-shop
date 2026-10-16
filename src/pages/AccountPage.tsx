@@ -1,48 +1,25 @@
 import { Link } from 'react-router-dom'
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { useCustomerProfile, useOrders } from '@/lib/customer'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { Button } from '@/components/ui/button'
 import { Package, AddressBook, UserCircle } from '@phosphor-icons/react'
+import { AccountGate } from './account/AccountGate'
+import { formatDate, formatMoney, gidTail, humanStatus } from './account/format'
 
 export function AccountPage() {
-  const { customer, isAuthenticated, isLoading } = useCustomerAuth()
+  return (
+    <AccountGate signedOutMessage="Please sign in to access your account details.">
+      <AccountOverview />
+    </AccountGate>
+  )
+}
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: 'oklch(0.60 0.11 78)', borderTopColor: 'transparent' }}
-          />
-          <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground">
-            Loading...
-          </span>
-        </div>
-      </div>
-    )
-  }
+function AccountOverview() {
+  const { data: profile } = useCustomerProfile()
+  const { data: ordersData } = useOrders()
 
-  if (!isAuthenticated || !customer) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl tracking-widest mb-4">ACCOUNT REQUIRED</h1>
-          <p className="text-muted-foreground mb-6">
-            Please sign in to access your account details.
-          </p>
-          <Link to="/shop">
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 tracking-widest">
-              CONTINUE SHOPPING
-            </Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const firstName = customer.firstName ?? 'Valued'
-  const recentOrders = customer.orders.edges.slice(0, 3)
+  const firstName = profile?.firstName ?? 'Valued'
+  const recentOrders = (ordersData?.pages[0]?.orders ?? []).slice(0, 3)
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -101,25 +78,21 @@ export function AccountPage() {
               </Link>
             </div>
             <div className="space-y-4">
-              {recentOrders.map(({ node: order }) => (
+              {recentOrders.map((order) => (
                 <Link
                   key={order.id}
-                  to={`/account/orders/${order.orderNumber}`}
+                  to={`/account/orders/${gidTail(order.id)}`}
                   className="flex items-center justify-between p-4 rounded border border-border/30 hover:border-accent/50 transition-colors block"
                 >
                   <div>
                     <p className="tracking-widest font-medium">{order.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(order.processedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
+                      {formatDate(order.processedAt)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{order.totalPrice.amount} {order.totalPrice.currencyCode}</p>
-                    <p className="text-sm text-muted-foreground capitalize">{order.financialStatus}</p>
+                    <p className="font-medium">{formatMoney(order.totalPrice)}</p>
+                    <p className="text-sm text-muted-foreground capitalize">{humanStatus(order.financialStatus)}</p>
                   </div>
                 </Link>
               ))}

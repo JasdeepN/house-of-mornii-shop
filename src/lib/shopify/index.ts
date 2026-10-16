@@ -12,19 +12,6 @@ export {
   CART_LINES_ADD_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_LINES_REMOVE_MUTATION,
-  CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION,
-  CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION,
-  CUSTOMER_ACCESS_TOKEN_DELETE_MUTATION,
-  CUSTOMER_ACCESS_TOKEN_RENEW_MUTATION,
-  CUSTOMER_CREATE_MUTATION,
-  CUSTOMER_RECOVER_MUTATION,
-  CUSTOMER_RESET_MUTATION,
-  CUSTOMER_UPDATE_MUTATION,
-  CUSTOMER_QUERY,
-  CUSTOMER_ADDRESS_CREATE_MUTATION,
-  CUSTOMER_ADDRESS_UPDATE_MUTATION,
-  CUSTOMER_ADDRESS_DELETE_MUTATION,
-  CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION,
 } from './queries'
 export {
   flattenEdges,
@@ -36,15 +23,6 @@ export {
   type ShopifyCartLine,
   type ShopifyImage,
   type ShopifyMoney,
-} from './types'
-export type {
-  ShopifyCustomer,
-  ShopifyCustomerAccessToken,
-  ShopifyCustomerUserError,
-  ShopifyMailingAddress,
-  CustomerCreateInput,
-  CustomerUpdateInput,
-  MailingAddressInput,
 } from './types'
 export {
   TOKEN_GATED_FIELDS,

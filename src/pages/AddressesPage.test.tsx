@@ -1,69 +1,56 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AddressesPage } from './AddressesPage'
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import {
+  useCustomerSession,
+  useAddresses,
+  useCreateAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+  CustomerUserError,
+} from '@/lib/customer'
 import { toast } from 'sonner'
-import type { ShopifyCustomer, ShopifyMailingAddress } from '@/lib/shopify'
 
-vi.mock('@/context/CustomerAuthContext', () => ({
-  useCustomerAuth: vi.fn(),
-}))
-
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}))
-
-const mockedUseCustomerAuth = useCustomerAuth as unknown as ReturnType<typeof vi.fn>
-
-const ADDRESS_1: ShopifyMailingAddress = {
-  id: 'gid://shopify/MailingAddress/1',
-  firstName: 'Jane',
-  lastName: 'Doe',
-  address1: '123 Main St',
-  address2: null,
-  company: null,
-  city: 'Ottawa',
-  province: 'ON',
-  country: 'Canada',
-  zip: 'K1A 0A1',
-  phone: '',
-}
-
-const ADDRESS_2: ShopifyMailingAddress = {
-  id: 'gid://shopify/MailingAddress/2',
-  firstName: 'Jane',
-  lastName: 'Doe',
-  address1: '456 Second Ave',
-  address2: null,
-  company: null,
-  city: 'Toronto',
-  province: 'ON',
-  country: 'Canada',
-  zip: 'M5V 2T6',
-  phone: '',
-}
-
-function customerWithAddresses(
-  addresses: ShopifyMailingAddress[],
-  defaultAddressId: string | null = null,
-): ShopifyCustomer {
-  return {
-    id: 'gid://shopify/Customer/1',
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: 'jane@example.com',
-    phone: null,
-    acceptsMarketing: false,
-    defaultAddress: defaultAddressId ? { id: defaultAddressId } : null,
-    addresses: { edges: addresses.map((node) => ({ node })) },
-    orders: { edges: [], pageInfo: { hasNextPage: false, endCursor: null } },
+vi.mock('@/lib/customer', () => {
+  class CustomerUserError extends Error {
+    constructor(errors: { message: string }[]) {
+      super(errors[0]?.message)
+    }
   }
-}
+  return {
+    useCustomerSession: vi.fn(),
+    useAddresses: vi.fn(),
+    useCreateAddress: vi.fn(),
+    useUpdateAddress: vi.fn(),
+    useDeleteAddress: vi.fn(),
+    CustomerUserError,
+  }
+})
+const open = vi.fn()
+vi.mock('@/context/SignInDialogContext', () => ({ useSignInDialog: () => ({ open }) }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }))
+
+const create = vi.fn()
+const update = vi.fn()
+const remove = vi.fn()
+
+const addr = (n: number, city: string) => ({
+  id: `gid://shopify/CustomerAddress/${n}`,
+  firstName: 'Jane',
+  lastName: 'Doe',
+  company: null,
+  address1: `${n} Main St`,
+  address2: null,
+  city,
+  zoneCode: 'ON',
+  zip: 'K1A 0A1',
+  countryCode: 'CA',
+  phoneNumber: null,
+  formatted: [],
+})
+const A1 = addr(1, 'Ottawa')
+const A2 = addr(2, 'Toronto')
 
 function renderPage() {
   return render(
@@ -73,187 +60,98 @@ function renderPage() {
   )
 }
 
-function buildAuthValue(overrides: Partial<ReturnType<typeof useCustomerAuth>> = {}) {
-  return {
-    customer: null,
-    accessToken: null,
-    isAuthenticated: false,
-    isLoading: false,
-    lastError: null,
-    login: vi.fn(),
-    register: vi.fn(),
-    logout: vi.fn(),
-    initiatePasswordRecovery: vi.fn(),
-    resetPassword: vi.fn(),
-    updateProfile: vi.fn(),
-    refreshAccessToken: vi.fn(),
-    createAddress: vi.fn(),
-    updateAddress: vi.fn(),
-    deleteAddress: vi.fn(),
-    setDefaultAddress: vi.fn(),
-    ...overrides,
-  }
-}
-
 describe('AddressesPage', () => {
   beforeEach(() => {
-    mockedUseCustomerAuth.mockReset()
-    vi.mocked(toast.success).mockClear()
-    vi.mocked(toast.error).mockClear()
+    vi.clearAllMocks()
+    vi.mocked(useCustomerSession).mockReturnValue({
+      session: { status: 'signed-in', customer: { id: 'c', name: 'J', email: 'j@x.com' } },
+    } as never)
+    vi.mocked(useAddresses).mockReturnValue({
+      data: { addresses: [A1, A2], defaultAddressId: A1.id },
+    } as never)
+    create.mockResolvedValue(undefined)
+    update.mockResolvedValue(undefined)
+    remove.mockResolvedValue(undefined)
+    vi.mocked(useCreateAddress).mockReturnValue({ mutateAsync: create, isPending: false } as never)
+    vi.mocked(useUpdateAddress).mockReturnValue({ mutateAsync: update, isPending: false } as never)
+    vi.mocked(useDeleteAddress).mockReturnValue({ mutateAsync: remove, isPending: false } as never)
   })
 
-  it('renders a loading state when isLoading is true', () => {
-    mockedUseCustomerAuth.mockReturnValue(buildAuthValue({ isLoading: true }))
+  it('opens the sign-in dialog when signed out', () => {
+    vi.mocked(useCustomerSession).mockReturnValue({ session: { status: 'signed-out' } } as never)
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+    expect(open).toHaveBeenCalled()
+  })
+
+  it('shows loading while the session loads', () => {
+    vi.mocked(useCustomerSession).mockReturnValue({ session: { status: 'loading' } } as never)
     renderPage()
     expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
 
-  it('renders the auth-guard when logged out', () => {
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({ isAuthenticated: false, customer: null }),
-    )
+  it('lists addresses and marks only the default', () => {
     renderPage()
-    expect(screen.getByText('ACCOUNT REQUIRED')).toBeInTheDocument()
-    expect(screen.getByText('Please sign in to manage your addresses.')).toBeInTheDocument()
+    expect(screen.getByText('1 Main St')).toBeInTheDocument()
+    expect(screen.getByText('2 Main St')).toBeInTheDocument()
+    expect(screen.getAllByText('DEFAULT')).toHaveLength(1)
   })
 
-  it('renders the empty-state when there are zero addresses', () => {
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([]),
-      }),
-    )
+  it('orders countries with Canada and United States first', () => {
     renderPage()
-    expect(screen.getByText("You haven't added any addresses yet.")).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: /add address/i })[0])
+    const select = screen.getByLabelText('Country') as HTMLSelectElement
+    const codes = Array.from(select.options).map((o) => o.value)
+    expect(codes.slice(0, 3)).toEqual(['', 'CA', 'US'])
+    expect(within(select).getByRole('option', { name: 'Canada' })).toBeInTheDocument()
+    expect(codes).toContain('AF')
   })
 
-  it('renders the address list from context, marking the default address', () => {
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([ADDRESS_1, ADDRESS_2], ADDRESS_1.id),
-      }),
-    )
+  it('adds an address with countryCode and the default flag', async () => {
     renderPage()
-
-    expect(screen.getByText('123 Main St')).toBeInTheDocument()
-    expect(screen.getByText('456 Second Ave')).toBeInTheDocument()
-    expect(screen.getByText('DEFAULT')).toBeInTheDocument()
-    // SET DEFAULT button should only appear for the non-default address
-    expect(screen.getAllByRole('button', { name: /set default/i })).toHaveLength(1)
-  })
-
-  it('opens the add-address form and calls createAddress on submit', async () => {
-    const createAddress = vi.fn().mockResolvedValue(undefined)
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([]),
-        createAddress,
-      }),
-    )
-    renderPage()
-
-    const addButtons = screen.getAllByRole('button', { name: /add address/i })
-    fireEvent.click(addButtons[0])
-    expect(screen.getByText('NEW ADDRESS')).toBeInTheDocument()
-
-    fireEvent.change(screen.getByPlaceholderText('Address line 1'), {
-      target: { value: '789 Third St' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('City'), { target: { value: 'Ottawa' } })
-    fireEvent.change(screen.getByPlaceholderText('Country'), { target: { value: 'Canada' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /add address/i })[0])
+    fireEvent.change(screen.getByPlaceholderText('Address line 1'), { target: { value: '9 New Rd' } })
+    fireEvent.change(screen.getByPlaceholderText('City'), { target: { value: 'Halifax' } })
+    fireEvent.change(screen.getByPlaceholderText('Province/State'), { target: { value: 'NS' } })
+    fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'CA' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /default/i }))
     fireEvent.click(screen.getByRole('button', { name: /save address/i }))
-
-    await waitFor(() =>
-      expect(createAddress).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address1: '789 Third St',
-          city: 'Ottawa',
-          country: 'Canada',
-        }),
-      ),
-    )
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Address added'))
+    await waitFor(() => expect(create).toHaveBeenCalled())
+    const vars = create.mock.calls[0][0]
+    expect(vars.defaultAddress).toBe(true)
+    expect(vars.address).toMatchObject({ address1: '9 New Rd', city: 'Halifax', zoneCode: 'NS', countryCode: 'CA' })
+    expect(toast.success).toHaveBeenCalledWith('Address added')
   })
 
-  it('opens the edit form pre-filled and calls updateAddress on submit', async () => {
-    const updateAddress = vi.fn().mockResolvedValue(undefined)
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([ADDRESS_1]),
-        updateAddress,
-      }),
-    )
+  it('edits an address, preselecting its default flag', async () => {
     renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: /edit/i }))
-    expect(screen.getByText('EDIT ADDRESS')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Address line 1')).toHaveValue('123 Main St')
-
-    fireEvent.change(screen.getByPlaceholderText('City'), { target: { value: 'Gatineau' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /edit/i })[1])
+    fireEvent.change(screen.getByPlaceholderText('City'), { target: { value: 'Kingston' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /default/i }))
     fireEvent.click(screen.getByRole('button', { name: /save address/i }))
-
-    await waitFor(() =>
-      expect(updateAddress).toHaveBeenCalledWith(
-        ADDRESS_1.id,
-        expect.objectContaining({ city: 'Gatineau' }),
-      ),
-    )
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Address updated'))
+    await waitFor(() => expect(update).toHaveBeenCalled())
+    const vars = update.mock.calls[0][0]
+    expect(vars.id).toBe(A2.id)
+    expect(vars.defaultAddress).toBe(true)
+    expect(vars.address).toMatchObject({ city: 'Kingston', countryCode: 'CA' })
+    expect(toast.success).toHaveBeenCalledWith('Address updated')
   })
 
-  it('calls deleteAddress when the delete button is clicked', async () => {
-    const deleteAddress = vi.fn().mockResolvedValue(undefined)
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([ADDRESS_1]),
-        deleteAddress,
-      }),
-    )
+  it('removes an address', async () => {
     renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
-
-    await waitFor(() => expect(deleteAddress).toHaveBeenCalledWith(ADDRESS_1.id))
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Address removed'))
+    fireEvent.click(screen.getAllByRole('button', { name: /delete/i })[0])
+    await waitFor(() => expect(remove).toHaveBeenCalledWith(A1.id))
+    expect(toast.success).toHaveBeenCalledWith('Address removed')
   })
 
-  it('calls setDefaultAddress when SET DEFAULT is clicked', async () => {
-    const setDefaultAddress = vi.fn().mockResolvedValue(undefined)
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([ADDRESS_1, ADDRESS_2], ADDRESS_1.id),
-        setDefaultAddress,
-      }),
-    )
+  it("shows Shopify's message when an address is rejected", async () => {
+    create.mockRejectedValue(new CustomerUserError([{ field: null, message: 'Zip is invalid' }] as never))
     renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: /set default/i }))
-
-    await waitFor(() => expect(setDefaultAddress).toHaveBeenCalledWith(ADDRESS_2.id))
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Default address updated'))
-  })
-
-  it('shows an error toast when deleteAddress rejects', async () => {
-    const deleteAddress = vi.fn().mockRejectedValue(new Error('Failed to delete address. Please try again.'))
-    mockedUseCustomerAuth.mockReturnValue(
-      buildAuthValue({
-        isAuthenticated: true,
-        customer: customerWithAddresses([ADDRESS_1]),
-        deleteAddress,
-      }),
-    )
-    renderPage()
-
-    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith('Failed to delete address. Please try again.'),
-    )
+    fireEvent.click(screen.getAllByRole('button', { name: /add address/i })[0])
+    fireEvent.change(screen.getByPlaceholderText('Address line 1'), { target: { value: '9 New Rd' } })
+    fireEvent.change(screen.getByPlaceholderText('City'), { target: { value: 'Halifax' } })
+    fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'CA' } })
+    fireEvent.click(screen.getByRole('button', { name: /save address/i }))
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Zip is invalid'))
   })
 })

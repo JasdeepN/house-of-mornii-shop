@@ -8,7 +8,6 @@ import { BrandLockup } from '@/components/BrandLockup'
 import { useCart } from '@/context/CartContext'
 import { SearchBar } from '@/components/SearchBar'
 import { useTheme } from '@/hooks/useTheme'
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
 import { CustomerMenu } from '@/components/CustomerMenu'
 
 const navLinks = [
@@ -18,13 +17,12 @@ const navLinks = [
   { label: 'CONTACT', href: '/contact' },
 ]
 
-export function Header({ onLoginClick }: { onLoginClick?: () => void } = {}) {
+export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const { itemCount, openCart } = useCart()
   const { theme, toggleTheme } = useTheme()
-  const { isAuthenticated } = useCustomerAuth()
 
   // Debounce navigation to prevent rapid state updates
   const navigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -146,8 +144,8 @@ export function Header({ onLoginClick }: { onLoginClick?: () => void } = {}) {
               </nav>
 
                <div className="flex items-center gap-3">
-                {/* Customer auth menu */}
-                <CustomerMenu onLoginClick={onLoginClick} />
+                {/* Customer menu */}
+                <CustomerMenu />
                 
                 {/* Theme toggle — desktop */}
                 <button

@@ -1,46 +1,22 @@
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { useOrders } from '@/lib/customer'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
+import { AccountGate } from './account/AccountGate'
+import { formatDate, formatMoney, gidTail, humanStatus } from './account/format'
 
 export function OrdersPage() {
-  const { customer, isAuthenticated, isLoading } = useCustomerAuth()
+  return (
+    <AccountGate signedOutMessage="Please sign in to view your orders.">
+      <OrdersList />
+    </AccountGate>
+  )
+}
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: 'oklch(0.60 0.11 78)', borderTopColor: 'transparent' }}
-          />
-          <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground">
-            Loading...
-          </span>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated || !customer) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl tracking-widest mb-4">ACCOUNT REQUIRED</h1>
-          <p className="text-muted-foreground mb-6">
-            Please sign in to view your orders.
-          </p>
-          <Link to="/shop">
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 tracking-widest">
-              CONTINUE SHOPPING
-            </Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const orders = customer.orders.edges.map((e) => e.node)
+function OrdersList() {
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useOrders()
+  // The API returns Orders newest first; pages are appended in order.
+  const orders = data?.pages.flatMap((p) => p.orders) ?? []
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -64,37 +40,26 @@ export function OrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <Link
-                key={order.id}
-                to={`/account/orders/${order.orderNumber}`}
-                className="block"
-              >
+              <Link key={order.id} to={`/account/orders/${gidTail(order.id)}`} className="block">
                 <div className="glass-panel p-6 golden-glow hover:scale-[1.01] transition-transform">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg tracking-widest font-medium">{order.name}</h3>
                         <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${
-                          order.financialStatus === 'paid'
+                          order.financialStatus === 'PAID'
                             ? 'bg-emerald-500/20 text-emerald-400'
                             : 'bg-amber-500/20 text-amber-400'
                         }`}>
-                          {order.financialStatus}
+                          {humanStatus(order.financialStatus)}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Placed on {new Date(order.processedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {order.lineItems.edges.length} item{order.lineItems.edges.length !== 1 ? 's' : ''}
+                        Placed on {formatDate(order.processedAt)}
                       </p>
                     </div>
                     <div className="text-right md:text-left">
-                      <p className="text-xl font-medium">{order.totalPrice.amount} {order.totalPrice.currencyCode}</p>
+                      <p className="text-xl font-medium">{formatMoney(order.totalPrice)}</p>
                       <Button
                         variant="outline"
                         className="mt-2 border-gold/30 hover:bg-accent/10 text-sm tracking-widest"
@@ -106,6 +71,18 @@ export function OrdersPage() {
                 </div>
               </Link>
             ))}
+            {hasNextPage && (
+              <div className="text-center pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="border-gold/30 hover:bg-accent/10 tracking-widest"
+                >
+                  {isFetchingNextPage ? 'LOADING...' : 'LOAD MORE'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
