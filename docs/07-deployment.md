@@ -181,12 +181,15 @@ The project includes configuration files in `public/` for proper routing and sec
 
 ### GitHub Actions Workflow
 
-The project uses `.github/workflows/e2e.yml` for automated testing:
+End-to-end tests (see [16 - End-to-End Tests](./16-end-to-end-tests.md)):
 
-**Nightly E2E Tests:**
-- Runs every day at 04:00 UTC
-- Executes against production deployment URL
-- Reports results via GitHub Actions
+**After every `dev` deploy** (`deploy-site.yml`):
+- Runs both tiers against https://dev.houseofmornii.com
+- Uploads the Playwright report and traces as artifacts
+
+**Manual runs** (`.github/workflows/e2e.yml`):
+- Choose the tier (`read-only` or `all`) and the base URL
+- `all` places real Orders and signs in, so it runs only against dev
 
 **PR Verification:**
 - Lint check on push
@@ -230,7 +233,7 @@ flowchart LR
 - [ ] Mobile responsive layout verified
 - [ ] SEO meta tags correct (check page source)
 - [ ] Analytics tracking active (if configured)
-- [ ] E2E tests pass against production URL
+- [ ] E2E read-only tier passes against the production URL
 
 ## Rollback Procedure
 
