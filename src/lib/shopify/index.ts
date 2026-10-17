@@ -1,6 +1,5 @@
 export { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE, StorefrontError, validateQueryMode } from './client'
 export type { StorefrontMode, StorefrontErrorCategory } from './client'
-export { adminProxyFetch } from './admin-proxy'
 export { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } from './hooks'
 export {
   COLLECTIONS_QUERY,

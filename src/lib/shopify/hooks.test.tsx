@@ -18,11 +18,6 @@ vi.mock('./client', () => ({
   shopifyFetch: (...args: unknown[]) => shopifyFetch(...args),
 }))
 
-vi.mock('./admin-proxy', () => ({
-  adminProxyFetch: vi.fn(),
-  ADMIN_PROXY_ENABLED: false,
-}))
-
 // Must import AFTER mock setup
 const { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } = await import('./hooks')
 

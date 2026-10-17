@@ -1,9 +1,9 @@
 // workers/shopify-proxy.test.ts — Vitest coverage for the Shopify Automation
-// Worker: HMAC verification, mutation-block guard, webhook dispatch, and
+// Worker: HMAC verification, removed-route not-found, webhook dispatch, and
 // backup snapshot key/serialization shape.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import worker, { MUTATION_PATTERN, runScheduledBackup, type WorkerEnv } from './shopify-proxy'
+import worker, { runScheduledBackup, type WorkerEnv } from './shopify-proxy'
 import { verifyShopifyWebhook, dispatchWebhookTopic } from './webhook'
 import { BACKUP_RESOURCES } from './backup-queries'
 
@@ -16,7 +16,6 @@ function baseEnv(overrides: Partial<WorkerEnv> = {}): WorkerEnv {
     SHOPIFY_ADMIN_ACCESS_TOKEN: ADMIN_TOKEN,
     SHOPIFY_WEBHOOK_SECRET: WEBHOOK_SECRET,
     SHOPIFY_STORE_DOMAIN: STORE_DOMAIN,
-    ALLOWED_ORIGIN: 'https://houseofmornii.com',
     ...overrides,
   }
 }
@@ -37,73 +36,19 @@ async function signBody(secret: string, body: string): Promise<string> {
   return btoa(binary)
 }
 
-describe('MUTATION_PATTERN', () => {
-  it('matches mutation operations', () => {
-    expect(MUTATION_PATTERN.test('mutation { productCreate { id } }')).toBe(true)
-    expect(MUTATION_PATTERN.test('MUTATION createOrder { id }')).toBe(true)
-  })
-
-  it('does not match read queries', () => {
-    expect(MUTATION_PATTERN.test('query { products(first: 1) { nodes { id } } }')).toBe(false)
-  })
-})
-
-describe('POST /api/shopify/admin — mutation guard', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  it('rejects mutation queries with 403', async () => {
-    const request = new Request('https://worker.example/api/shopify/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'https://houseofmornii.com' },
-      body: JSON.stringify({ query: 'mutation { productCreate { id } }' }),
-    })
-
-    const response = await worker.fetch(request, baseEnv())
-    expect(response.status).toBe(403)
-    const data = await response.json()
-    expect(data.error).toMatch(/not permitted/i)
-  })
-
-  it('forwards read queries to the Admin API', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ data: { products: { nodes: [] } } }), { status: 200 })
-    )
-
-    const request = new Request('https://worker.example/api/shopify/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'https://houseofmornii.com' },
-      body: JSON.stringify({ query: 'query { products(first: 1) { nodes { id } } }' }),
-    })
-
-    const response = await worker.fetch(request, baseEnv())
-    expect(response.status).toBe(200)
-    expect(fetchSpy).toHaveBeenCalledWith(
-      expect.stringContaining('/admin/api/2026-01/graphql.json'),
-      expect.objectContaining({ method: 'POST' })
-    )
-  })
-
-  it('returns 500 when admin token is not configured', async () => {
+describe('POST /api/shopify/admin — removed route', () => {
+  it('gets the router not-found response', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
     const request = new Request('https://worker.example/api/shopify/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: 'query { products(first: 1) { nodes { id } } }' }),
     })
 
-    const response = await worker.fetch(request, baseEnv({ SHOPIFY_ADMIN_ACCESS_TOKEN: undefined }))
-    expect(response.status).toBe(500)
-  })
-
-  it('handles CORS preflight', async () => {
-    const request = new Request('https://worker.example/api/shopify/admin', {
-      method: 'OPTIONS',
-      headers: { Origin: 'https://houseofmornii.com' },
-    })
     const response = await worker.fetch(request, baseEnv())
-    expect(response.status).toBe(204)
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://houseofmornii.com')
+    expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({ error: 'Not found' })
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 })
 

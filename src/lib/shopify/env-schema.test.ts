@@ -4,7 +4,6 @@ import { validateEnv } from './env-schema'
 describe('env-schema', () => {
   const originalDomain = process.env.VITE_SHOPIFY_STORE_DOMAIN
   const originalToken = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN
-  const originalProxy = process.env.VITE_SHOPIFY_ADMIN_PROXY_ENABLED
 
   beforeEach(() => {
     vi.resetModules()
@@ -21,9 +20,6 @@ describe('env-schema', () => {
       vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', originalToken)
     } else {
       vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', '')
-    }
-    if (originalProxy !== undefined) {
-      vi.stubEnv('VITE_SHOPIFY_ADMIN_PROXY_ENABLED', originalProxy)
     }
   })
 
@@ -87,7 +83,6 @@ describe('env-schema', () => {
     it('accepts optional env vars without errors', async () => {
       vi.stubEnv('VITE_SHOPIFY_STORE_DOMAIN', 'test-store.myshopify.com')
       vi.stubEnv('VITE_SHOPIFY_STOREFRONT_TOKEN', 'test-token')
-      vi.stubEnv('VITE_SHOPIFY_ADMIN_PROXY_ENABLED', 'true')
 
       const { validateEnv } = await import('./env-schema')
       const result = validateEnv()
