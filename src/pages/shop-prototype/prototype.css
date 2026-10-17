@@ -57,6 +57,37 @@ body[data-proto-palette="champagne"] {
 body[data-proto-palette="champagne"]::after { background-image: none !important; background-color: var(--p-page); }
 body[data-proto-palette="champagne"]::before { opacity: 0 !important; }
 
+/* Stakeholder pick (#22): the header and footer in the accent teal, champagne text, logo gold for accents.
+   Preview only: #23 builds this properly. */
+body[data-proto-palette="champagne"] header.glass-panel,
+body[data-proto-palette="champagne"] footer.glass-panel {
+  --p-gold-on-teal: oklch(0.800 0.100 76);
+  --glass-panel-bg: var(--p-teal);
+  --glass-panel-border: transparent;
+  --foreground: var(--p-on-teal);
+  --muted-foreground: oklch(0.924 0.027 85.7);
+  --accent: var(--p-gold-on-teal);
+  --accent-foreground: var(--p-teal);
+  --border: oklch(0.941 0.020 74.7 / 0.22);
+  --input: oklch(0.941 0.020 74.7 / 0.35);
+  --ring: var(--p-gold-on-teal);
+  /* Tailwind's colour utilities read --color-*, resolved at :root, so redefine those here too */
+  --color-background: var(--p-teal);
+  --color-foreground: var(--p-on-teal);
+  --color-muted-foreground: oklch(0.924 0.027 85.7);
+  --color-accent: var(--p-gold-on-teal);
+  --color-accent-foreground: var(--p-teal);
+  --color-border: oklch(0.941 0.020 74.7 / 0.22);
+  --color-input: oklch(0.941 0.020 74.7 / 0.35);
+  --color-ring: var(--p-gold-on-teal);
+  background: var(--p-teal) !important;
+  color: var(--p-on-teal);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body[data-proto-palette="champagne"] header.glass-panel .brand-title { color: var(--p-on-teal) !important; }
+body[data-proto-palette="champagne"] header.glass-panel .brand-name { color: var(--p-gold-on-teal) !important; }
+
 .proto-shop { font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.55; color: var(--p-ink); padding: 96px 0 120px; }
 @media (max-width: 760px) { .proto-shop { font-size: 16px; } }
 .proto-shop a { color: inherit; }
