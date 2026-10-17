@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 import { requireEnv } from './env'
 
 const CHECKOUT_ORIGIN = 'https://checkout-dev.houseofmornii.com'
@@ -115,11 +115,17 @@ export async function fillAddressAndPay(page: Page, opts: { email?: string; pay:
 
   const card = (title: string, name: string | RegExp) =>
     page.frameLocator(`iframe[title*="${title}" i]`).getByRole('textbox', { name })
-  const cardNumber = card('Card number', 'Card number')
-  await cardNumber.fill('1', { timeout: 240_000 })
-  await card('Expiration', /Expiration/).fill('12/30')
-  await card('Security', 'Security code').fill('123')
-  await card('Name on card', 'Name on card').fill('Test Customer')
+  // Shopify's card fields validate keystrokes, so type them; a fill() shows the text but stays "empty".
+  const type = async (input: ReturnType<typeof card>, value: string, timeout = 30_000) => {
+    await input.click({ timeout })
+    await input.clear()
+    await input.pressSequentially(value, { delay: 60 })
+    await input.press('Tab')
+  }
+  await type(card('Card number', 'Card number'), '1', 240_000)
+  await type(card('Expiration', /Expiration/), '1230')
+  await type(card('Security', 'Security code'), '123')
+  await type(card('Name on card', 'Name on card'), 'Test Customer')
   const payNow = page.getByRole('button', { name: /pay now/i })
   await payNow.waitFor({ timeout: 30_000 })
   if (opts.pay) await payNow.click()
@@ -132,11 +138,15 @@ export interface Confirmation {
 
 /** On the thank-you page, reads the Order name ("#1001") and the confirmation number. */
 export async function readConfirmation(page: Page): Promise<Confirmation> {
-  await page.waitForURL(/thank-you|orders\//, { waitUntil: 'commit', timeout: 180_000 })
-  await page.getByText(/confirmation|order #|thank you/i).first().waitFor({ timeout: 90_000 })
-  const text = await page.locator('body').innerText()
-  return {
-    orderName: text.match(/Order\s+(#\d+)/i)?.[1] ?? text.match(/(#\d{4,})/)?.[1] ?? null,
-    confirmationNumber: text.match(/Confirmation\s*#?\s*([A-Z0-9]{6,})/i)?.[1] ?? null,
-  }
+  // Payment shows "Processing…" for a while; poll until the page names the Order, wherever Shopify puts it.
+  let result: Confirmation = { orderName: null, confirmationNumber: null }
+  await expect(async () => {
+    const text = await page.locator('body').innerText()
+    result = {
+      orderName: text.match(/Order\s+(#\d+)/i)?.[1] ?? null,
+      confirmationNumber: text.match(/Confirmation\s*(?:#|number)?\s*:?\s*([A-Z0-9]{6,})/i)?.[1] ?? null,
+    }
+    expect(result.orderName ?? result.confirmationNumber, 'the thank-you page names the Order').toBeTruthy()
+  }).toPass({ timeout: 240_000, intervals: [3_000] })
+  return result
 }

@@ -12,7 +12,7 @@ import {
 } from '../support/checkout'
 import {
   waitForOrder,
-  findOrderByConfirmation,
+  waitForOrderByConfirmation,
   findRecentOrders,
   orderMismatches,
   cancelAndArchiveOrder,
@@ -29,6 +29,7 @@ test('the signed-in Customer buys the One Variant Product and sees the Order', a
   await useTestCustomerSession(context)
   const startedAt = new Date(Date.now() - 60_000).toISOString()
   let orderId: string | null = null
+  let paid = false
 
   try {
     await unlockCheckout(page)
@@ -45,13 +46,15 @@ test('the signed-in Customer buys the One Variant Product and sees the Order', a
       test.info().annotations.push({ type: 'note', description: 'Shopify did not prefill the email; filled it' })
     }
     await fillAddressAndPay(page, { email: prefilled ? undefined : TEST_CUSTOMER_EMAIL, pay: true })
+    paid = true
 
     const confirmation = await readConfirmation(page)
     expect(confirmation.orderName ?? confirmation.confirmationNumber, 'thank-you page shows an Order').toBeTruthy()
 
+    // Phones show only the confirmation number; desktop also shows the Order name.
     const order = confirmation.orderName
-      ? await waitForOrder(confirmation.orderName)
-      : await findOrderByConfirmation(confirmation.confirmationNumber!)
+      ? await waitForOrder(confirmation.orderName, 120_000)
+      : await waitForOrderByConfirmation(confirmation.confirmationNumber!)
     expect(order, 'Admin finds the Order').not.toBeNull()
     orderId = order!.id
     expect(
@@ -68,7 +71,14 @@ test('the signed-in Customer buys the One Variant Product and sees the Order', a
     // Clean-up always runs when an Order was created, even when the page never named it.
     const ids = new Set<string>()
     if (orderId) ids.add(orderId)
-    else for (const o of await findRecentOrders(TEST_CUSTOMER_EMAIL, startedAt).catch(() => [])) ids.add(o.id)
+    else if (paid) {
+      // Payment may still be processing when a later step fails: give the Order time to appear.
+      const deadline = Date.now() + 120_000
+      while (ids.size === 0 && Date.now() < deadline) {
+        for (const o of await findRecentOrders(TEST_CUSTOMER_EMAIL, startedAt)) ids.add(o.id)
+        if (ids.size === 0) await new Promise((resolve) => setTimeout(resolve, 5_000))
+      }
+    }
     for (const id of ids) await cancelAndArchiveOrder(id)
   }
 })

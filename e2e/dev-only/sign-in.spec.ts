@@ -62,7 +62,7 @@ test.describe("signed in with the saved session", () => {
         .filter({ has: page.locator("div.rounded-full") });
       await expect(menu).toBeVisible();
       await menu.click();
-      await expect(page.getByRole("link", { name: "Orders" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Orders", exact: true })).toBeVisible();
       await expect(
         page.getByRole("button", { name: "Sign out" }),
       ).toBeVisible();

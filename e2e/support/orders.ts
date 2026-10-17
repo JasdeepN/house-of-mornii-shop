@@ -133,6 +133,16 @@ export async function findOrderByConfirmation(confirmation: string): Promise<Adm
   return data.orders.nodes[0] ?? null
 }
 
+/** Admin search lags a fresh Order by a minute or so; polls findOrderByConfirmation until it appears. */
+export async function waitForOrderByConfirmation(confirmation: string, timeoutMs = 120_000): Promise<AdminOrder | null> {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    const order = await findOrderByConfirmation(confirmation)
+    if (order || Date.now() > deadline) return order
+    await new Promise((r) => setTimeout(r, 3000))
+  }
+}
+
 /** Open Orders for an email created since a time: the clean-up fallback when the page gave no Order name. */
 export async function findRecentOrders(email: string, sinceIso: string): Promise<AdminOrder[]> {
   const data = await adminGraphql<{ orders: { nodes: AdminOrder[] } }>(
