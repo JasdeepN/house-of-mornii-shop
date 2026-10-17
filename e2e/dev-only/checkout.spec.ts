@@ -34,10 +34,12 @@ test('the signed-in Customer buys the One Variant Product and sees the Order', a
   try {
     await unlockCheckout(page)
     await addProductToBag(page, TEST_PRODUCTS.oneVariant.handle)
-    const href = await checkoutLinkHref(page)
-    // Our part: a signed-in Customer's checkout link asks Shopify to recognise them.
-    const checkoutUrl = new URL(href)
-    expect(checkoutUrl.searchParams.get('sso')).toBe('silent')
+    await checkoutLinkHref(page)
+    // Our part: a signed-in Customer's checkout link asks Shopify to recognise them. The page learns
+    // about the Customer session a moment after it loads, so wait for the link to gain sso=silent.
+    const checkoutLink = page.getByRole('link', { name: /proceed to checkout/i })
+    await expect(checkoutLink).toHaveAttribute('href', /[?&]sso=silent(&|$)/, { timeout: 15_000 })
+    const checkoutUrl = new URL((await checkoutLink.getAttribute('href'))!)
 
     // Shopify's silent sign-in runs through shopify.com, whose bot check stops automated browsers
     // from data centres, so the test opens checkout without it and enters the Customer's email;
