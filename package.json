@@ -5,6 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "node --require ./scripts/set-chokidar-polling.js vite",
+        "prototype:shop": "node --require ./scripts/set-chokidar-polling.js node_modules/vite/bin/vite.js --port 5174 --strictPort",
         "kill": "fuser -k 5000/tcp",
         "build": "tsc -b --noCheck && vite build",
         "lint": "eslint .",
