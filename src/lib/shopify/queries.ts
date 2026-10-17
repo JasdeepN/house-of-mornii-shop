@@ -25,7 +25,7 @@ const PRODUCT_CARD_FRAGMENT = `
     }
     tags
     vendor
-    # PROTOTYPE (shop variants): Product type, real compare-at price and a second image
+    # Product type, compare-at price and a second image for listing cards
     productType
     compareAtPriceRange { minVariantPrice { amount currencyCode } }
     images(first: 2) { edges { node { ...ImageFields } } }
@@ -173,6 +173,8 @@ export const PRODUCT_BY_HANDLE_QUERY = `
       }
       tags
       vendor
+      productType
+      compareAtPriceRange { minVariantPrice { amount currencyCode } }
       collections(first: 1) {
         edges {
           node {

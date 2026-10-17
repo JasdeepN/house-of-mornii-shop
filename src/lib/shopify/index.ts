@@ -1,11 +1,27 @@
 export { shopifyFetch, IS_CONFIGURED, STOREFRONT_MODE, StorefrontError, validateQueryMode } from './client'
 export type { StorefrontMode, StorefrontErrorCategory } from './client'
-export { useCollections, useCollection, useProduct, useProducts, useRelatedProducts } from './hooks'
 export {
-  COLLECTIONS_QUERY,
-  COLLECTION_BY_HANDLE_QUERY,
-  PRODUCT_BY_HANDLE_QUERY,
-  PRODUCTS_QUERY,
+  useCollections,
+  useProduct,
+  useProductListing,
+  useRelatedProducts,
+  type ProductListing,
+  type ProductListingOptions,
+} from './hooks'
+export {
+  PRODUCT_SORTS,
+  parseProductSort,
+  formatDisplayPrice,
+  defaultVariant,
+  variantWithOption,
+  type DisplayPrice,
+  type Variant,
+  type ProductSummary,
+  type Product,
+  type CollectionSummary,
+  type ProductSort,
+} from './catalog'
+export {
   CART_CREATE_MUTATION,
   CART_QUERY,
   CART_LINES_ADD_MUTATION,
@@ -15,9 +31,6 @@ export {
 export {
   flattenEdges,
   formatMoney,
-  type ShopifyProduct,
-  type ShopifyProductVariant,
-  type ShopifyCollection,
   type ShopifyCart,
   type ShopifyCartLine,
   type ShopifyImage,

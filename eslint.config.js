@@ -41,7 +41,7 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/lib/shopify/**', 'src/lib/customer/**', '**/*.test.{ts,tsx}'],
+    ignores: ['src/lib/shopify/**', 'src/lib/customer/**', 'src/test/**', '**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',

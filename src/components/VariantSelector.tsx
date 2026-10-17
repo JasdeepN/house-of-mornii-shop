@@ -1,10 +1,11 @@
-import type { ShopifyProduct, ShopifyProductVariant } from '@/lib/shopify'
+import type { Product, Variant } from '@/lib/shopify'
+import { variantWithOption } from '@/lib/shopify'
 import { cn } from '@/lib/utils'
 
 interface VariantSelectorProps {
-  product: ShopifyProduct
-  selectedVariant: ShopifyProductVariant | null
-  onVariantChange: (variant: ShopifyProductVariant) => void
+  product: Product
+  selectedVariant: Variant | null
+  onVariantChange: (variant: Variant) => void
 }
 
 export function VariantSelector({
@@ -12,15 +13,13 @@ export function VariantSelector({
   selectedVariant,
   onVariantChange,
 }: VariantSelectorProps) {
-  const variants = product.variants.edges.map((e) => e.node)
-
   // If only one variant (default), don't render selector
-  if (variants.length <= 1) return null
+  if (product.variants.length <= 1) return null
 
   return (
     <div className="flex flex-col gap-4">
       {product.options.map((option) => (
-        <div key={option.id} className="flex flex-col gap-2">
+        <div key={option.name} className="flex flex-col gap-2">
           <label
             className="text-xs tracking-[0.3em] uppercase"
             style={{ color: 'oklch(0.72 0.05 78)' }}
@@ -33,19 +32,14 @@ export function VariantSelector({
                 (o) => o.name === option.name && o.value === value
               )
 
-              // Find the variant matching this selection
-              const matchingVariant = variants.find((v) =>
-                v.selectedOptions.some(
-                  (o) => o.name === option.name && o.value === value
-                )
-              )
-              const isAvailable = matchingVariant?.availableForSale ?? false
+              const candidate = variantWithOption(product, selectedVariant, option.name, value)
+              const isAvailable = candidate?.availableForSale ?? false
 
               return (
                 <button
                   key={value}
                   onClick={() => {
-                    if (matchingVariant) onVariantChange(matchingVariant)
+                    if (candidate) onVariantChange(candidate)
                   }}
                   disabled={!isAvailable}
                   className={cn(

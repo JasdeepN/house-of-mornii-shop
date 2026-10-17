@@ -41,7 +41,6 @@ export interface ShopifyProduct {
   tags?: string[]
   vendor: string
   collections?: { edges: { node: { handle: string; title: string } }[] }
-  // PROTOTYPE (shop variants)
   productType?: string
   compareAtPriceRange?: { minVariantPrice: ShopifyMoney }
 }

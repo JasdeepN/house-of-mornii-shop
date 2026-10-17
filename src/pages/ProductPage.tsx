@@ -2,8 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import DOMPurify from 'dompurify'
-import { useProduct, useRelatedProducts, formatMoney, flattenEdges } from '@/lib/shopify'
-import type { ShopifyProductVariant } from '@/lib/shopify'
+import { useProduct, useRelatedProducts, formatMoney, formatDisplayPrice, defaultVariant } from '@/lib/shopify'
+import type { Variant } from '@/lib/shopify'
 import { useErrorHandler } from '@/lib/errorHandler'
 import { ProductGallery } from '@/components/ProductGallery'
 import { VariantSelector } from '@/components/VariantSelector'
@@ -47,7 +47,7 @@ export function ProductPage() {
   const { handle } = useParams()
   const { data: product, isLoading, error } = useProduct(handle ?? '')
   const errorDisplay = useErrorHandler(error)
-  const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null)
   const [showStickyATC, setShowStickyATC] = useState(false)
   const atcRef = useRef<HTMLDivElement>(null)
 
@@ -66,15 +66,11 @@ export function ProductPage() {
   // Set initial variant once product loads
   const activeVariant = useMemo(() => {
     if (selectedVariant) return selectedVariant
-    if (!product) return null
-    const variants = product.variants.edges.map((e) => e.node)
-    return variants[0] ?? null
+    return product ? defaultVariant(product) : null
   }, [product, selectedVariant])
 
   // Parent collection — used to add a real middle breadcrumb level instead of skipping straight to the product
-  const primaryCollection = useMemo(() => {
-    return product?.collections?.edges[0]?.node ?? null
-  }, [product])
+  const primaryCollection = product?.primaryCollection ?? null
 
   // SEO — dynamic per product
   useSEO({
@@ -90,25 +86,13 @@ export function ProductPage() {
       trackViewItem({
         id: product.id,
         name: product.title,
-        price: product.priceRange.minVariantPrice.amount,
-        currency: product.priceRange.minVariantPrice.currencyCode,
+        price: product.price.min.amount,
+        currency: product.price.min.currencyCode,
       })
     }
   }, [product?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const images = useMemo(() => {
-    if (!product) return []
-    return flattenEdges(product.images)
-  }, [product])
-
-  // Related products — from the product's primary collection
-  const collectionHandle = useMemo(() => {
-    if (!product) return undefined
-    const cols = (product as { collections?: { edges: { node: { handle: string; title: string } }[] } }).collections?.edges
-    return cols?.[0]?.node?.handle as string | undefined
-  }, [product])
-
-  const { products: relatedProducts } = useRelatedProducts(collectionHandle, product?.id)
+  const { products: relatedProducts } = useRelatedProducts(product)
 
   if (isLoading) {
     return (
@@ -214,7 +198,6 @@ export function ProductPage() {
   }
 
   const compareAtPrice = activeVariant?.compareAtPrice
-  const price = activeVariant?.price
 
   return (
     <div className="min-h-screen pt-28 pb-16">
@@ -247,7 +230,7 @@ export function ProductPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: luxuryEase }}
           >
-            <ProductGallery images={images} title={product.title} />
+            <ProductGallery images={product.images} title={product.title} />
           </motion.div>
 
           {/* Product Info */}
@@ -272,21 +255,19 @@ export function ProductPage() {
             </h1>
 
             {/* Price */}
-            {price && (
-              <div className="flex items-baseline gap-3">
-                <span
-                  className="text-2xl tracking-wider"
-                  style={{ color: 'oklch(0.60 0.11 78)' }}
-                >
-                  {formatMoney(price)}
+            <div className="flex items-baseline gap-3">
+              <span
+                className="text-2xl tracking-wider"
+                style={{ color: 'oklch(0.60 0.11 78)' }}
+              >
+                {activeVariant ? formatMoney(activeVariant.price) : formatDisplayPrice(product.price)}
+              </span>
+              {compareAtPrice && (
+                <span className="text-base text-muted-foreground line-through">
+                  {formatMoney(compareAtPrice)}
                 </span>
-                {compareAtPrice && (
-                  <span className="text-base text-muted-foreground line-through">
-                    {formatMoney(compareAtPrice)}
-                  </span>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Variant Selector */}
             <VariantSelector

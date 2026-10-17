@@ -1,148 +1,187 @@
-// React Query hooks for Shopify data fetching
-// Uses Storefront API for all operations.
-// Cart operations always use Storefront API.
+// Catalog hooks: React Query over the Storefront API, mapped to the Catalog module's domain shapes.
 
-import { useQuery } from '@tanstack/react-query'
+import { useCallback, useMemo } from 'react'
+import { useInfiniteQuery, useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { shopifyFetch } from './client'
+import {
+  shopifySortFor,
+  toCollectionSummary,
+  toProduct,
+  toProductSummary,
+  type CollectionSummary,
+  type Product,
+  type ProductSort,
+  type ProductSummary,
+} from './catalog'
 import {
   COLLECTIONS_QUERY,
   COLLECTION_BY_HANDLE_QUERY,
   PRODUCT_BY_HANDLE_QUERY,
   PRODUCTS_QUERY,
 } from './queries'
-
 import type { ShopifyCollection, ShopifyProduct } from './types'
+
+const FIVE_MINUTES = 5 * 60 * 1000
+const TWO_MINUTES = 2 * 60 * 1000
+
+interface Connection {
+  edges: { node: ShopifyProduct }[]
+  pageInfo: { hasNextPage: boolean; endCursor: string | null }
+}
 
 // ─── Collections ─────────────────────────────────────────────────────────────
 
-interface CollectionsResponse {
-  collections: {
-    edges: { node: ShopifyCollection }[]
-  }
-}
-
-export function useCollections() {
+export function useCollections(): UseQueryResult<CollectionSummary[], Error> {
   return useQuery({
     queryKey: ['collections'],
     queryFn: async () => {
-      const data = await shopifyFetch<CollectionsResponse>(COLLECTIONS_QUERY)
-      return data.collections.edges.map((e) => e.node)
+      const data = await shopifyFetch<{ collections: { edges: { node: ShopifyCollection }[] } }>(COLLECTIONS_QUERY)
+      return data.collections.edges.map((e) => toCollectionSummary(e.node))
     },
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-// ─── Single Collection with Products ─────────────────────────────────────────
-
-interface CollectionByHandleResponse {
-  collection: ShopifyCollection | null
-}
-
-// Map ProductSortKeys → ProductCollectionSortKeys where they differ
-const COLLECTION_SORT_KEY_MAP: Record<string, string> = {
-  CREATED_AT: 'CREATED',
-}
-
-export function useCollection(handle: string, first = 12, sortKey?: string, reverse = false, after?: string) {
-  // Translate sort keys that differ between Product and ProductCollection enums
-  const collectionSortKey = sortKey
-    ? COLLECTION_SORT_KEY_MAP[sortKey] ?? sortKey
-    : undefined
-
-  return useQuery({
-    queryKey: ['collection', handle, first, collectionSortKey, reverse, after],
-    queryFn: async () => {
-      // Token mode only — tokenless removed per Shopify best practices
-      const data = await shopifyFetch<CollectionByHandleResponse>(
-        COLLECTION_BY_HANDLE_QUERY,
-        { handle, first, sortKey: collectionSortKey, reverse, after: after || undefined },
-      )
-      return data.collection
-    },
-    enabled: !!handle,
-    staleTime: 5 * 60 * 1000,
+    staleTime: FIVE_MINUTES,
   })
 }
 
 // ─── Single Product ──────────────────────────────────────────────────────────
 
-interface ProductByHandleResponse {
-  product:
-    | (ShopifyProduct & {
-        collections?: { edges: { node: { handle: string; title: string } }[] }
-      })
-    | null
-}
-
-export function useProduct(handle: string) {
+export function useProduct(handle: string): UseQueryResult<Product | null, Error> {
   return useQuery({
     queryKey: ['product', handle],
     queryFn: async () => {
-      // Token mode only — tokenless removed per Shopify best practices
-      const data = await shopifyFetch<ProductByHandleResponse>(
-        PRODUCT_BY_HANDLE_QUERY,
-        { handle },
-      )
-      return data.product
+      const data = await shopifyFetch<{ product: ShopifyProduct | null }>(PRODUCT_BY_HANDLE_QUERY, { handle })
+      return data.product ? toProduct(data.product) : null
     },
     enabled: !!handle,
-    staleTime: 2 * 60 * 1000,
+    staleTime: TWO_MINUTES,
   })
 }
 
-// ─── All Products (for /shop page) ──────────────────────────────────────────
+// ─── Product listings ────────────────────────────────────────────────────────
 
-interface ProductsResponse {
-  products: {
-    edges: { node: ShopifyProduct; cursor: string }[]
-    pageInfo: { hasNextPage: boolean; endCursor: string | null }
+export interface ProductListingOptions {
+  /** A Collection handle; omit (or '') to list every Product. */
+  collection?: string
+  /** Omit for the listing's own order: best-selling for all Products, the Collection's order for a Collection. */
+  sort?: ProductSort
+  /** Search text; applies only when `collection` is omitted. */
+  query?: string
+  /** Products per page; default 12. */
+  pageSize?: number
+  /** Default true; false fetches nothing. */
+  enabled?: boolean
+}
+
+export interface ProductListing {
+  /** Every page loaded so far, in order, without duplicate ids. The same array until the data changes. */
+  products: ProductSummary[]
+  /** The Collection being listed, once loaded; null for all Products or when not found. */
+  collection: CollectionSummary | null
+  /** True when `collection` was given, the first page loaded, and Shopify has no such Collection. */
+  notFound: boolean
+  /** True while the first page loads. */
+  isLoading: boolean
+  error: Error | null
+  hasMore: boolean
+  isLoadingMore: boolean
+  /** Loads the next page; does nothing while a page is loading or when there is none. */
+  loadMore: () => void
+}
+
+interface ListingPage {
+  collection: CollectionSummary | null
+  products: ProductSummary[]
+  hasNextPage: boolean
+  endCursor: string | null
+}
+
+function toPage(collection: CollectionSummary | null, connection: Connection | null): ListingPage {
+  return {
+    collection,
+    products: connection ? connection.edges.map((e) => toProductSummary(e.node)) : [],
+    hasNextPage: connection?.pageInfo.hasNextPage ?? false,
+    endCursor: connection?.pageInfo.endCursor ?? null,
   }
 }
 
-export function useProducts(
-  sortKey = 'BEST_SELLING',
-  reverse = false,
-  query?: string,
-  first = 12,
-  after?: string,
-) {
-  return useQuery({
-    queryKey: ['products', sortKey, reverse, query, first, after],
-    queryFn: async () => {
-      // Token mode only — tokenless removed per Shopify best practices
-      const data = await shopifyFetch<ProductsResponse>(
-        PRODUCTS_QUERY,
-        {
-          first,
-          sortKey,
-          reverse,
-          query: query || undefined,
-          after: after || undefined,
-        },
-      )
-      return data.products
+export function useProductListing(options: ProductListingOptions = {}): ProductListing {
+  const { collection, sort, query, pageSize = 12, enabled = true } = options
+
+  const result = useInfiniteQuery({
+    queryKey: ['product-listing', collection || null, sort ?? null, collection ? null : query || null, pageSize],
+    enabled,
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }): Promise<ListingPage> => {
+      if (collection) {
+        const data = await shopifyFetch<{
+          collection: (Omit<ShopifyCollection, 'products'> & { products: Connection }) | null
+        }>(COLLECTION_BY_HANDLE_QUERY, {
+          handle: collection,
+          first: pageSize,
+          ...shopifySortFor(sort, 'collection'),
+          after: pageParam,
+        })
+        const c = data.collection
+        return toPage(c ? toCollectionSummary(c) : null, c ? c.products : null)
+      }
+      const data = await shopifyFetch<{ products: Connection }>(PRODUCTS_QUERY, {
+        first: pageSize,
+        ...shopifySortFor(sort, 'products'),
+        query: query || undefined,
+        after: pageParam,
+      })
+      return toPage(null, data.products)
     },
-    staleTime: 5 * 60 * 1000,
+    getNextPageParam: (last) => (last.hasNextPage ? (last.endCursor ?? undefined) : undefined),
+    staleTime: FIVE_MINUTES,
   })
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = result
+
+  const products = useMemo(() => {
+    const seen = new Set<string>()
+    const all: ProductSummary[] = []
+    for (const page of data?.pages ?? []) {
+      for (const p of page.products) {
+        if (!seen.has(p.id)) {
+          seen.add(p.id)
+          all.push(p)
+        }
+      }
+    }
+    return all
+  }, [data])
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const firstPage = data?.pages[0]
+  return {
+    products,
+    collection: firstPage?.collection ?? null,
+    notFound: !!collection && !!firstPage && firstPage.collection === null,
+    isLoading: result.isLoading,
+    error: result.error,
+    hasMore: !!hasNextPage,
+    isLoadingMore: isFetchingNextPage,
+    loadMore,
+  }
 }
 
 // ─── Related Products ────────────────────────────────────────────────────────
 
 export function useRelatedProducts(
-  collectionHandle: string | undefined,
-  excludeProductId?: string,
-) {
-  const { data: collection } = useCollection(collectionHandle ?? '', 8)
-
-  const products = collection
-    ? collection.products.edges
-        .map((e) => e.node)
-        .filter((p) => p.id !== excludeProductId)
-        .slice(0, 4)
-    : []
-
-  return {
-    products,
-    isLoading: !collection && !!collectionHandle,
-  }
+  product: Product | null | undefined,
+  limit = 4,
+): { products: ProductSummary[]; isLoading: boolean } {
+  const listing = useProductListing({
+    collection: product?.primaryCollection?.handle,
+    pageSize: limit + 4,
+    enabled: !!product?.primaryCollection,
+  })
+  const products = useMemo(
+    () => listing.products.filter((p) => p.id !== product?.id).slice(0, limit),
+    [listing.products, product?.id, limit],
+  )
+  return { products, isLoading: listing.isLoading }
 }

@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom'
 import { LoadMore, Photo, Price, SortSelect, TYPES, Tag, priceOf, useTypeFilter, type ShopVariantProps } from './shared'
 
-export function VariantB({ products, loading, sortKey, reverse, onSort, onQuickAdd, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
+export function VariantB({ products, loading, sort, onSort, onQuickAdd, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
   const { type, setType, counts, visible } = useTypeFilter(products)
   return (
     <>
@@ -23,7 +23,7 @@ export function VariantB({ products, loading, sortKey, reverse, onSort, onQuickA
               </button>
             ))}
           </div>
-          <SortSelect sortKey={sortKey} reverse={reverse} onSort={onSort} label={false} />
+          <SortSelect sort={sort} onSort={onSort} label={false} />
         </div>
       </div>
       {loading ? (
