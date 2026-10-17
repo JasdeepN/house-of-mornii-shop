@@ -30,3 +30,113 @@ export async function unlockCheckout(page: Page): Promise<void> {
   await page.goto(`${CHECKOUT_ORIGIN}/password`, { waitUntil: 'domcontentloaded' })
   await passStorePassword(page)
 }
+
+/** Adds a Product to the Bag from its Product page and waits until the Bag holds it. */
+export async function addProductToBag(page: Page, handle: string): Promise<void> {
+  await page.goto(`/products/${handle}`)
+  const add = page.getByRole('button', { name: /add to bag/i })
+  await add.click()
+  // The Cart id is stored once the first mutation lands; "ADDING..." clears when the mutation ends.
+  await page.waitForFunction(() => !!localStorage.getItem('hom-cart-id'), undefined, { timeout: 30_000 })
+  await page.getByRole('button', { name: /adding/i }).waitFor({ state: 'detached', timeout: 30_000 })
+}
+
+/** Opens the Bag page and returns the Proceed to Checkout link's href. */
+export async function checkoutLinkHref(page: Page): Promise<string> {
+  await page.goto('/cart')
+  const link = page.getByRole('link', { name: /proceed to checkout/i })
+  await link.waitFor({ timeout: 30_000 })
+  const href = await link.getAttribute('href')
+  if (!href) throw new Error('Proceed to Checkout has no href')
+  return href
+}
+
+export interface ShippingAddress {
+  firstName: string
+  lastName: string
+  address1: string
+  city: string
+  province: string
+  postalCode: string
+  country: string
+  phone: string
+}
+
+export const TEST_ADDRESS: ShippingAddress = {
+  firstName: 'Test',
+  lastName: 'Customer',
+  address1: '1 Front St W',
+  city: 'Toronto',
+  province: 'Ontario',
+  postalCode: 'M5J 2X6',
+  country: 'Canada',
+  phone: '4165550100',
+}
+
+const field = (page: Page, name: string) => page.locator(`[name=${name}]:not([aria-hidden])`)
+
+/**
+ * Waits for Shopify's checkout form (about 25 to 50s after the first navigation) and returns the
+ * email the form carries: prefilled by sso=silent for a signed-in Customer, empty for a guest.
+ */
+export async function waitForCheckoutForm(page: Page): Promise<string> {
+  await page.waitForURL(/checkouts/, { waitUntil: 'commit', timeout: 90_000 })
+  const email = page.locator('input[name=email]')
+  await email.waitFor({ timeout: 120_000 })
+  return email.inputValue()
+}
+
+/**
+ * Fills the address, then the Bogus Gateway card (number 1 approves) and clicks Pay now.
+ * The dev store ships only to the United States, so the Canadian address is used when the
+ * country list offers Canada and a New York address otherwise.
+ *
+ * The Payment section renders about 2 minutes after the form (the shipping method is chosen
+ * automatically: its "Enter your shipping address" notice stays stale), so waits are generous.
+ * With pay=false it stops with every card field filled and the Pay now button visible.
+ */
+export async function fillAddressAndPay(page: Page, opts: { email?: string; pay: boolean }): Promise<void> {
+  if (opts.email) await page.locator('input[name=email]').fill(opts.email)
+  const countries = await page.locator('select[name=countryCode] option').allInnerTexts()
+  const canada = countries.includes('Canada')
+  const a = canada
+    ? { ...TEST_ADDRESS }
+    : { ...TEST_ADDRESS, address1: '350 5th Ave', city: 'New York', province: 'New York', postalCode: '10118', country: 'United States', phone: '2125550100' }
+  await page.locator('select[name=countryCode]').selectOption({ label: a.country })
+  await field(page, 'firstName').fill(a.firstName)
+  await field(page, 'lastName').fill(a.lastName)
+  await field(page, 'address1').pressSequentially(a.address1, { delay: 20 })
+  await page.keyboard.press('Escape')
+  await field(page, 'city').fill(a.city)
+  await field(page, 'zone').selectOption({ label: a.province })
+  await field(page, 'postalCode').fill(a.postalCode)
+  await field(page, 'phone').fill(a.phone)
+  await field(page, 'phone').blur()
+
+  const card = (title: string, name: string | RegExp) =>
+    page.frameLocator(`iframe[title*="${title}" i]`).getByRole('textbox', { name })
+  const cardNumber = card('Card number', 'Card number')
+  await cardNumber.fill('1', { timeout: 240_000 })
+  await card('Expiration', /Expiration/).fill('12/30')
+  await card('Security', 'Security code').fill('123')
+  await card('Name on card', 'Name on card').fill('Test Customer')
+  const payNow = page.getByRole('button', { name: /pay now/i })
+  await payNow.waitFor({ timeout: 30_000 })
+  if (opts.pay) await payNow.click()
+}
+
+export interface Confirmation {
+  orderName: string | null
+  confirmationNumber: string | null
+}
+
+/** On the thank-you page, reads the Order name ("#1001") and the confirmation number. */
+export async function readConfirmation(page: Page): Promise<Confirmation> {
+  await page.waitForURL(/thank-you|orders\//, { waitUntil: 'commit', timeout: 180_000 })
+  await page.getByText(/confirmation|order #|thank you/i).first().waitFor({ timeout: 90_000 })
+  const text = await page.locator('body').innerText()
+  return {
+    orderName: text.match(/Order\s+(#\d+)/i)?.[1] ?? text.match(/(#\d{4,})/)?.[1] ?? null,
+    confirmationNumber: text.match(/Confirmation\s*#?\s*([A-Z0-9]{6,})/i)?.[1] ?? null,
+  }
+}
