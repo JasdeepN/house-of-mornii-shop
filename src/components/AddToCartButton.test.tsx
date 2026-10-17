@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test/utils'
 import { AddToCartButton } from './AddToCartButton'
 
-const addToCart = vi.fn(() => Promise.resolve())
+const addToCart = vi.fn<(variantId: string) => Promise<boolean>>()
 const trackAddToCart = vi.fn()
 
 vi.mock('@/context/CartContext', async () => {
@@ -22,7 +22,7 @@ vi.mock('@/lib/analytics', () => ({
 
 describe('AddToCartButton', () => {
   beforeEach(() => {
-    addToCart.mockClear()
+    addToCart.mockReset().mockResolvedValue(true)
     trackAddToCart.mockClear()
   })
 
@@ -52,5 +52,40 @@ describe('AddToCartButton', () => {
     await waitFor(() => {
       expect(addToCart).toHaveBeenCalledWith('gid://shopify/ProductVariant/1')
     })
+  })
+
+  const renderButton = () =>
+    renderWithProviders(
+      <AddToCartButton
+        variantId="gid://shopify/ProductVariant/1"
+        availableForSale
+        productTitle="Aria Pendant"
+        productPrice="89.00"
+        currencyCode="CAD"
+      />,
+    )
+
+  it('is enabled again and reads "Add to bag" after a successful add', async () => {
+    const user = userEvent.setup()
+    renderButton()
+
+    await user.click(screen.getByTestId('add-to-cart'))
+
+    await waitFor(() => expect(screen.getByTestId('add-to-cart')).toBeEnabled())
+    expect(screen.getByTestId('add-to-cart')).toHaveTextContent(/add to bag/i)
+    expect(trackAddToCart).toHaveBeenCalledTimes(1)
+  })
+
+  it('is enabled again after a failed add, and does not track it', async () => {
+    addToCart.mockResolvedValue(false)
+    const user = userEvent.setup()
+    renderButton()
+
+    await user.click(screen.getByTestId('add-to-cart'))
+
+    await waitFor(() => expect(addToCart).toHaveBeenCalled())
+    await waitFor(() => expect(screen.getByTestId('add-to-cart')).toBeEnabled())
+    expect(screen.getByTestId('add-to-cart')).toHaveTextContent(/add to bag/i)
+    expect(trackAddToCart).not.toHaveBeenCalled()
   })
 })

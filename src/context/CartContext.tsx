@@ -27,7 +27,7 @@ interface CartContextValue {
   isCartOpen: boolean
   setCartOpen: (open: boolean) => void
   openCart: () => void
-  addToCart: (variantId: string, quantity?: number) => Promise<void>
+  addToCart: (variantId: string, quantity?: number) => Promise<boolean>
   updateLineItem: (lineId: string, quantity: number) => Promise<void>
   removeLineItem: (lineId: string) => Promise<void>
   clearCart: () => void
@@ -71,7 +71,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               action: 'restoreCart',
               error: error instanceof Error ? error.message : String(error),
             })
-            toast.error('Failed to load your cart. Please refresh the page.')
+            toast.error('Failed to load your bag. Please refresh the page.')
             localStorage.removeItem(CART_ID_KEY)
           })
           .finally(() => setIsLoading(false))
@@ -81,7 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         action: 'restoreCart',
         error: error instanceof Error ? error.message : String(error),
       })
-      toast.error('Failed to load your cart. Please refresh the page.')
+      toast.error('Failed to load your bag. Please refresh the page.')
       // Reset to empty cart state on localStorage error
     }
   }, [])
@@ -89,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // ── Add to Cart ──────────────────────────────────────────────────────────
 
   const addToCart = useCallback(
-    async (variantId: string, quantity = 1) => {
+    async (variantId: string, quantity = 1): Promise<boolean> => {
       setIsLoading(true)
       try {
         if (!cart) {
@@ -119,10 +119,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           setCart(data.cartLinesAdd.cart)
         }
-        toast.success('Added to cart')
+        toast.success('Added to bag')
         setCartOpen(true)
+        return true
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Failed to add item')
+        return false
       } finally {
         setIsLoading(false)
       }
@@ -184,7 +186,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (!data.cartLinesRemove.cart) {
           localStorage.removeItem(CART_ID_KEY)
         }
-        toast.success('Removed from cart')
+        toast.success('Removed from bag')
       } catch (err) {
         toast.error(
           err instanceof Error ? err.message : 'Failed to remove item',

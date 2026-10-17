@@ -150,7 +150,7 @@ function FlyoutLineItem({
               onClick={() => removeLineItem(line.id)}
               disabled={isLoading}
               className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
-              aria-label={`Remove ${variant.product.title} from cart`}
+              aria-label={`Remove ${variant.product.title} from bag`}
             >
               <Trash size={14} weight="bold" />
             </button>
@@ -210,7 +210,7 @@ export function CartFlyout() {
         ) : (
           <>
             {/* Line items */}
-            <ScrollArea className="flex-1 px-6" role="list" aria-label="Cart items">
+            <ScrollArea className="flex-1 px-6" role="list" aria-label="Bag items">
               {lines.map((line) => (
                 <FlyoutLineItem
                   key={line.id}

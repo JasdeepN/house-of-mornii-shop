@@ -17,8 +17,8 @@ A named, curated group of Products.
 _Avoid_: Category, line, range
 
 **Cart**:
-The set of Variants a shopper intends to buy in one browser, kept until checkout.
-_Avoid_: Basket, bag
+The set of Variants a Shopper intends to buy in one browser, kept until checkout. Shoppers see it called their **Bag**; everywhere else it is the Cart.
+_Avoid_: Basket; "bag" anywhere but the words Shoppers read
 
 **Cart line**:
 One Variant and its quantity within a Cart.

@@ -2,8 +2,6 @@ import { useProduct, formatMoney } from '@/lib/shopify'
 import type { ProductSummary, Variant } from '@/lib/shopify'
 import { useCart } from '@/context/CartContext'
 import { trackAddToCart } from '@/lib/analytics'
-import { logger } from '@/lib/logger'
-import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface QuickAddDialogProps {
@@ -18,6 +16,9 @@ export function QuickAddDialog({ product, open, onOpenChange }: QuickAddDialogPr
   const { data, isLoading, error } = useProduct(open ? product.handle : '')
 
   const choose = async (variant: Variant) => {
+    onOpenChange(false)
+    const added = await addToCart(variant.id)
+    if (!added) return
     trackAddToCart({
       id: variant.id,
       name: product.title,
@@ -25,14 +26,7 @@ export function QuickAddDialog({ product, open, onOpenChange }: QuickAddDialogPr
       quantity: 1,
       currency: variant.price.currencyCode,
     })
-    onOpenChange(false)
-    try {
-      await addToCart(variant.id)
-      openCart()
-    } catch {
-      logger.error('Failed to add item to cart', { component: 'QuickAddDialog', variantId: variant.id, action: 'addToCart' })
-      toast.error('Failed to add item. Please try again.')
-    }
+    openCart()
   }
 
   return (
