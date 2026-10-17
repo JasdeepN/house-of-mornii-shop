@@ -1,44 +1,69 @@
-name: E2E Smoke Tests
+name: E2E
 
 on:
-  # Nightly against the production domain
-  # schedule:
-  #   - cron: '0 4 * * *'
-  # Manual trigger for on-demand runs
   workflow_dispatch:
     inputs:
       base_url:
-        description: 'Base URL to run tests against (defaults to production)'
+        description: 'Base URL to test'
         required: false
-        default: 'https://houseofmornii.com'
+        default: 'https://dev.houseofmornii.com'
+      tier:
+        description: 'Which tier to run. "all" places real Orders and signs in, so it runs only against dev.'
+        required: false
+        type: choice
+        options:
+          - read-only
+          - all
+        default: read-only
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    environment: dev
+    env:
+      E2E_BASE_URL: ${{ inputs.base_url }}
+      TIER: ${{ inputs.tier }}
     steps:
+      - name: Refuse the dev-only tier outside dev
+        run: |
+          origin=$(printf '%s' "$E2E_BASE_URL" | sed -E 's#^(https?://[^/?#]+).*#\1#')
+          if [ "$TIER" = "all" ] && [ "$origin" != "https://dev.houseofmornii.com" ]; then
+            echo "::error::Tier 'all' places Orders and signs in; it runs only against https://dev.houseofmornii.com (got $E2E_BASE_URL)"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
+      - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
+        run: |
+          if [ "$TIER" = "all" ]; then
+            npm run test:e2e
+          else
+            npm run test:e2e:read-only
+          fi
         env:
-          # Point at production (or the manually specified URL)
-          E2E_BASE_URL: ${{ inputs.base_url || 'https://houseofmornii.com' }}
-          # Not needed when testing against a deployed URL (no build happens here)
-          # The deployed site already has the Shopify credentials baked in.
-        run: npm run test:e2e
+          CI: "true"
+          VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
+          VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
+          E2E_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
+          E2E_STORE_PASSWORD: ${{ secrets.E2E_STORE_PASSWORD }}
+          E2E_CUSTOMER_SESSION: ${{ secrets.E2E_CUSTOMER_SESSION }}
+          E2E_SHOPIFY_CLIENT_ID: ${{ secrets.E2E_SHOPIFY_CLIENT_ID }}
+          E2E_SHOPIFY_CLIENT_SECRET: ${{ secrets.E2E_SHOPIFY_CLIENT_SECRET }}
 
       - name: Upload Playwright report
         if: always()
@@ -47,6 +72,7 @@ jobs:
           name: playwright-report-${{ github.run_id }}
           path: playwright-report/
           retention-days: 14
+          if-no-files-found: ignore
 
       - name: Upload test results
         if: always()
@@ -54,4 +80,5 @@ jobs:
         with:
           name: playwright-results-${{ github.run_id }}
           path: test-results/
-          retention-days: 7
+          retention-days: 14
+          if-no-files-found: ignore

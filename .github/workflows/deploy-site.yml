@@ -60,3 +60,57 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.151.1"
           command: deploy -c ${{ env.SITE_CONFIG }}
+
+      # Dev only: prove the deployed build with the end-to-end suite.
+      - name: Wait for dev.houseofmornii.com to serve this build
+        if: github.ref_name == 'dev'
+        run: |
+          entry=$(grep -oE '/assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -n 1)
+          if [ -z "$entry" ]; then
+            echo "::error::Could not find the entry script in dist/index.html"
+            exit 1
+          fi
+          echo "Waiting for $entry"
+          for attempt in $(seq 1 40); do
+            if curl -fsS "https://dev.houseofmornii.com/?cb=$attempt" | grep -qF "$entry"; then
+              echo "Serving the new build"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "::error::dev.houseofmornii.com did not serve $entry within 4 minutes"
+          exit 1
+
+      - name: Install Playwright Chromium
+        if: github.ref_name == 'dev'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run end-to-end tests
+        if: github.ref_name == 'dev'
+        run: npm run test:e2e
+        env:
+          CI: "true"
+          E2E_BASE_URL: https://dev.houseofmornii.com
+          E2E_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
+          E2E_STORE_PASSWORD: ${{ secrets.E2E_STORE_PASSWORD }}
+          E2E_CUSTOMER_SESSION: ${{ secrets.E2E_CUSTOMER_SESSION }}
+          E2E_SHOPIFY_CLIENT_ID: ${{ secrets.E2E_SHOPIFY_CLIENT_ID }}
+          E2E_SHOPIFY_CLIENT_SECRET: ${{ secrets.E2E_SHOPIFY_CLIENT_SECRET }}
+
+      - name: Upload Playwright report
+        if: always() && github.ref_name == 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always() && github.ref_name == 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ github.run_id }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: ignore
