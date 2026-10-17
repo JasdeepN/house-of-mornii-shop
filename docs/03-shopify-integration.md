@@ -165,29 +165,34 @@ interface ShopifyCart {
 
 ### Hooks (`@/lib/shopify/hooks`)
 
-TanStack Query hooks wrapping the client:
+TanStack Query hooks wrapping the client. They return the Catalog module's domain shapes (`ProductSummary`, `Product`, `CollectionSummary`; rules in `catalog.ts`), never raw Storefront edges. Catalog reads use the Storefront API only ([ADR 0003](./adr/0003-catalog-reads-use-the-storefront-api-only.md)).
 
 ```typescript
 // Collections
 const { data: collections } = useCollections()
-const { data: collection } = useCollection('everyday', 12, 'PRICE')
 
-// Products
+// One Product by handle (null when not found)
 const { data: product } = useProduct('aria-pendant')
-const { data: products } = useProducts('BEST_SELLING', false, 'gold', 12)
 
-// Related products (uses product's collections to find similar items)
-const { data: related } = useRelatedProducts(handle)
+// Paginated listing: all Products, a Collection, or a search
+const { products, collection, hasMore, loadMore } = useProductListing({
+  collection: 'everyday', // omit for all Products
+  sort: 'price-asc',      // a ProductSort; omit for the listing's own order
+  pageSize: 12,
+})
+
+// Related Products (from the Product's primary Collection)
+const { products: related } = useRelatedProducts(product)
 ```
 
 **Query Configuration:**
 | Hook | Query Key | Default staleTime |
 |------|-----------|-------------------|
 | `useCollections()` | `['collections']` | 5 minutes |
-| `useCollection()` | `['collection', handle, first, sortKey, reverse, after]` | 5 minutes |
 | `useProduct()` | `['product', handle]` | 2 minutes |
-| `useProducts()` | `['products', sortKey, reverse, query, first, after]` | 5 minutes |
-| `useRelatedProducts()` | `['relatedProducts', handle]` | 5 minutes |
+| `useProductListing()` | `['product-listing', collection, sort, query, pageSize]` (infinite query) | 5 minutes |
+
+`useRelatedProducts()` has no key of its own; it reads a `useProductListing` for the Product's primary Collection.
 
 ## GraphQL Queries
 
@@ -332,7 +337,7 @@ Fixture data mirroring the Shopify API structure is retained for unit tests only
 ```mermaid
 sequenceDiagram
     participant Component as React Component
-    participant Hook as useProduct/useCollection/etc.
+    participant Hook as useProduct/useProductListing/etc.
     participant Client as shopifyFetch
     participant Shopify as Storefront API
 

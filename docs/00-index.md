@@ -13,7 +13,7 @@ Welcome to the House of Mornii Shop application documentation. This documentatio
 | [05 - Styling System](./05-styling-system.md) | Tailwind CSS 4, design tokens, OKLCH colors, animations |
 | [06 - Testing](./06-testing.md) | Vitest setup, Playwright E2E, testing patterns |
 | [07 - Deployment](./07-deployment.md) | Environment variables, Cloudflare Pages, CI/CD |
-| [08 - Shopify Automation Worker](./08-shopify-automation-worker.md) | Cloudflare Worker: Admin proxy, webhooks, scheduled backups |
+| [08 - Shopify Automation Worker](./08-shopify-automation-worker.md) | Cloudflare Worker: webhooks, scheduled backups |
 | [09 - Error Handling](./09-error-handling.md) | StorefrontError, error categories, page-level error patterns |
 | [10 - Newsletter Integration](./10-newsletter-integration.md) | Provider-neutral newsletter architecture and provider research |
 | [11 - Shopify Admin Reference](./11-shopify-admin-reference.md) | Admin management guide and dev store setup checklist |
@@ -57,7 +57,7 @@ graph LR
 ### For Shopify Integration Work
 
 1. **[03 - Shopify Integration](./03-shopify-integration.md)** - API modes, queries, mutations
-2. **[08 - Shopify Automation Worker](./08-shopify-automation-worker.md)** - Admin proxy, webhooks, backups
+2. **[08 - Shopify Automation Worker](./08-shopify-automation-worker.md)** - Webhooks, backups
 3. **[09 - Error Handling](./09-error-handling.md)** - Error categories and page patterns
 4. **[04 - State Management](./04-state-management.md)** - Cart persistence patterns
 

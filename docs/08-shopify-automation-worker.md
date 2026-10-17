@@ -2,24 +2,23 @@
 
 ## Overview
 
-The Cloudflare Worker at `workers/shopify-proxy.ts` provides three server-side automation capabilities alongside the storefront frontend:
+The Cloudflare Worker at `workers/shopify-proxy.ts` provides two server-side automation capabilities alongside the storefront frontend:
 
-1. **Read-only Admin API proxy** — browser-facing route for Admin API reads (mutation-blocked)
-2. **Webhook receiver** — HMAC-verified Shopify webhook ingress
-3. **Scheduled backup** — daily Cron export of products/collections/orders to R2
+1. **Webhook receiver** — HMAC-verified Shopify webhook ingress
+2. **Scheduled backup** — daily Cron export of products/collections/orders to R2
 
 The Admin token (`SHOPIFY_ADMIN_ACCESS_TOKEN`) and webhook secret (`SHOPIFY_WEBHOOK_SECRET`) are stored as Cloudflare Worker secrets — never `VITE_`-prefixed, never in the repo.
+
+The Worker no longer proxies the Admin API: the storefront reads the Catalog through the Storefront API only ([ADR 0003](./adr/0003-catalog-reads-use-the-storefront-api-only.md)).
 
 ## Architecture
 
 ```
 Browser (React SPA)
-  ├── shopifyFetch() → Storefront API (direct, public token)
-  └── adminProxyFetch() → POST /api/shopify/admin → Cloudflare Worker → Admin API (read-only)
+  └── shopifyFetch() → Storefront API (direct, public token)
 
 Cloudflare Worker (workers/shopify-proxy.ts)
   ├── fetch()
-  │   ├── POST /api/shopify/admin   → Read-only Admin proxy (mutation-blocked)
   │   └── POST /api/shopify/webhook → HMAC-verified webhook receiver
   └── scheduled() — Cron "0 3 * * *"
       └── Export products + collections + orders → R2 + KV index
@@ -29,7 +28,6 @@ Cloudflare Worker (workers/shopify-proxy.ts)
 
 | Route/Trigger | Purpose | Guard |
 |---|---|---|
-| `POST /api/shopify/admin` | Read-only Admin API proxy | `MUTATION_PATTERN` blocks mutations (403); CORS allowlist via `ALLOWED_ORIGIN` |
 | `POST /api/shopify/webhook` | Webhook receiver (`orders/create`, `inventory_levels/update`) | HMAC-SHA256 verification via Web Crypto, constant-time compare, 401 on mismatch |
 | `scheduled()` — Cron `0 3 * * *` | Daily backup export to R2 | try/catch with structured `console.error`; aborts cleanly if Admin token or R2 binding missing |
 
@@ -100,7 +98,7 @@ mutation {
    ```
    Copy the returned KV namespace `id` into `wrangler.toml`'s `[[kv_namespaces]]` block.
 
-2. Set non-secret vars in `wrangler.toml` (`SHOPIFY_STORE_DOMAIN`, `ALLOWED_ORIGIN`) to production values.
+2. Set non-secret vars in `wrangler.toml` (`SHOPIFY_STORE_DOMAIN`) to production values.
 
 3. Provision Worker secrets out-of-band:
    ```bash
