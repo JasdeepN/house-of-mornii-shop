@@ -54,6 +54,14 @@ describe('CartPage checkout link', () => {
     expect(href).toBe('https://checkout.houseofmornii.com/cart/c/abc?key=k1')
   })
 
+  it('makes no free-shipping or returns claim', () => {
+    render(<MemoryRouter><CartPage /></MemoryRouter>)
+    expect(screen.queryByText(/free shipping/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/easy returns/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/authenticity/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Secure Checkout')).toBeInTheDocument()
+  })
+
   it('adds sso=silent when signed in', () => {
     status = 'signed-in'
     render(<MemoryRouter><CartPage /></MemoryRouter>)

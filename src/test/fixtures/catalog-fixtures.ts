@@ -46,3 +46,36 @@ export function fixtureProductWithPrices(
   }
   return toProduct(priced)
 }
+
+/** A listing entry for `listingOf`: its type and whether it can be bought. */
+export interface ListingEntry {
+  id: string
+  /** Product type; '' for none. */
+  type: string
+  available: boolean
+  /** Variant count; default 1 (add), 2 or more gives a choose button. */
+  variants?: number
+}
+
+/**
+ * A listing of Product summaries with chosen types and availability, in the order given, for
+ * page tests. Each Product is built through the Catalog mappers so `quickAdd` follows the real rules.
+ */
+export function listingOf(entries: ListingEntry[]): ProductSummary[] {
+  const [base] = getFixtureProducts()
+  return entries.map(({ id, type, available, variants = 1 }) => {
+    const variantNode = (n: number) => ({
+      id: `${id}-v${n}`,
+      availableForSale: available,
+    })
+    return toProductSummary({
+      ...base,
+      id,
+      handle: id,
+      title: `Product ${id}`,
+      availableForSale: available,
+      productType: type,
+      variants: { edges: Array.from({ length: variants }, (_, n) => ({ node: variantNode(n + 1) })) },
+    })
+  })
+}

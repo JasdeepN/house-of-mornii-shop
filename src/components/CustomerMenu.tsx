@@ -35,7 +35,7 @@ export function CustomerMenu() {
         variant="ghost"
         size="icon"
         onClick={openSignIn}
-        className="p-2 hover:text-accent transition-colors"
+        className="p-2 text-foreground hover:bg-primary-hover hover:text-foreground transition-colors"
         aria-label="Sign in"
       >
         <User size={22} weight="bold" />
@@ -57,11 +57,7 @@ export function CustomerMenu() {
         aria-expanded={isOpen}
       >
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
-          style={{
-            background: 'oklch(0.60 0.11 78)',
-            color: 'oklch(0.15 0.02 210)',
-          }}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-accent text-accent-foreground"
         >
           {initials}
         </div>
@@ -69,15 +65,9 @@ export function CustomerMenu() {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-56 rounded-lg shadow-2xl border z-[100] overflow-hidden"
-          style={{
-            background: 'oklch(0.18 0.03 210 / 0.95)',
-            backdropFilter: 'blur(16px) saturate(170%) contrast(115%)',
-            borderColor: 'oklch(0.60 0.11 78 / 0.25)',
-            color: 'oklch(0.92 0.01 78)',
-          }}
+          className="on-page absolute right-0 mt-2 w-56 rounded-sm shadow-lg border border-border bg-card z-[100] overflow-hidden"
         >
-          <div className="px-3 py-2 text-sm border-b" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
+          <div className="px-3 py-2 text-sm border-b border-border">
             <p className="font-medium tracking-wide">
               {label}
             </p>
@@ -90,30 +80,30 @@ export function CustomerMenu() {
             <Link
               to="/account"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <User className="h-4 w-4" /> Details
             </Link>
             <Link
               to="/account/orders"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <Scroll className="h-4 w-4" /> Orders
             </Link>
             <Link
               to="/account/addresses"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <AddressBook className="h-4 w-4" /> Addresses
             </Link>
           </div>
 
-          <div className="border-t py-1" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
+          <div className="border-t border-border py-1">
             <button
               onClick={signOut}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <SignOut className="h-4 w-4" /> Sign out
             </button>

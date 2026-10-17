@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultVariant,
   formatDisplayPrice,
+  PRODUCT_SORTS,
+  parseListingFilters,
   parseProductSort,
   shopifySortFor,
   toCollectionSummary,
@@ -9,8 +11,11 @@ import {
   toProductSummary,
   toVariant,
   variantWithOption,
+  viewListing,
+  withListingFilters,
   type DisplayPrice,
 } from './catalog'
+import { listingOf } from '@/test/fixtures/catalog-fixtures'
 import type { ShopifyImage, ShopifyMoney, ShopifyProduct, ShopifyProductVariant } from './types'
 
 const cad = (amount: string): ShopifyMoney => ({ amount, currencyCode: 'CAD' })
@@ -60,24 +65,34 @@ function rawProduct(over: Partial<ShopifyProduct> = {}): ShopifyProduct {
   }
 }
 
+describe('PRODUCT_SORTS', () => {
+  it('lists the six sorts in order with exact labels', () => {
+    expect(PRODUCT_SORTS).toEqual([
+      { value: 'recommended', label: 'Recommended' },
+      { value: 'newest', label: 'Newest' },
+      { value: 'price-asc', label: 'Price low to high' },
+      { value: 'price-desc', label: 'Price high to low' },
+      { value: 'title-asc', label: 'Name A\u2013Z' },
+      { value: 'title-desc', label: 'Name Z\u2013A' },
+    ])
+  })
+})
+
 describe('parseProductSort', () => {
-  it('accepts known sorts and rejects everything else', () => {
-    expect(parseProductSort('price-asc')).toBe('price-asc')
-    expect(parseProductSort('title-asc')).toBe('title-asc')
-    for (const bad of [null, undefined, '', 'BEST_SELLING', 'junk']) {
-      expect(parseProductSort(bad)).toBeUndefined()
+  it('accepts known sorts', () => {
+    for (const { value } of PRODUCT_SORTS) expect(parseProductSort(value)).toBe(value)
+  })
+  it('falls back to recommended for missing or unknown values, including the old best-selling', () => {
+    for (const bad of [null, undefined, '', 'BEST_SELLING', 'best-selling', 'junk']) {
+      expect(parseProductSort(bad)).toBe('recommended')
     }
   })
 })
 
 describe('shopifySortFor', () => {
-  it('uses each listing own order when no sort is chosen', () => {
-    expect(shopifySortFor(undefined, 'products')).toEqual({ sortKey: 'BEST_SELLING', reverse: false })
-    expect(shopifySortFor(undefined, 'collection')).toEqual({ sortKey: 'COLLECTION_DEFAULT', reverse: false })
-  })
-  it('maps best-selling for both targets', () => {
-    expect(shopifySortFor('best-selling', 'products')).toEqual({ sortKey: 'BEST_SELLING', reverse: false })
-    expect(shopifySortFor('best-selling', 'collection')).toEqual({ sortKey: 'BEST_SELLING', reverse: false })
+  it('recommended is best-selling for Products and the default order for a Collection', () => {
+    expect(shopifySortFor('recommended', 'products')).toEqual({ sortKey: 'BEST_SELLING', reverse: false })
+    expect(shopifySortFor('recommended', 'collection')).toEqual({ sortKey: 'COLLECTION_DEFAULT', reverse: false })
   })
   it('uses CREATED_AT for Products and CREATED for a Collection', () => {
     expect(shopifySortFor('newest', 'products')).toEqual({ sortKey: 'CREATED_AT', reverse: true })
@@ -87,6 +102,120 @@ describe('shopifySortFor', () => {
     expect(shopifySortFor('price-asc', 'products')).toEqual({ sortKey: 'PRICE', reverse: false })
     expect(shopifySortFor('price-desc', 'collection')).toEqual({ sortKey: 'PRICE', reverse: true })
     expect(shopifySortFor('title-asc', 'products')).toEqual({ sortKey: 'TITLE', reverse: false })
+    expect(shopifySortFor('title-desc', 'collection')).toEqual({ sortKey: 'TITLE', reverse: true })
+  })
+})
+
+describe('listing filters in the URL', () => {
+  it('reads type, available=1 and sort', () => {
+    expect(parseListingFilters(new URLSearchParams('type=Necklace&available=1&sort=price-asc'))).toEqual({
+      type: 'Necklace',
+      hideSoldOut: true,
+      sort: 'price-asc',
+    })
+  })
+  it('defaults to all types, sold out shown, recommended', () => {
+    expect(parseListingFilters(new URLSearchParams(''))).toEqual({ type: null, hideSoldOut: false, sort: 'recommended' })
+    expect(parseListingFilters(new URLSearchParams('type=&available=0&sort=best-selling'))).toEqual({
+      type: null,
+      hideSoldOut: false,
+      sort: 'recommended',
+    })
+  })
+  it('round-trips through withListingFilters', () => {
+    const filters = { type: 'Earrings', hideSoldOut: true, sort: 'title-desc' as const }
+    expect(parseListingFilters(withListingFilters(new URLSearchParams(), filters))).toEqual(filters)
+  })
+  it('leaves defaults out, removes reverse and keeps unrelated params', () => {
+    const params = new URLSearchParams('q=gold&reverse=true&type=Old&available=1&sort=newest')
+    const out = withListingFilters(params, { type: null, hideSoldOut: false, sort: 'recommended' })
+    expect(out.toString()).toBe('q=gold')
+    expect(params.get('type')).toBe('Old')
+  })
+  it('writes non-default values', () => {
+    const out = withListingFilters(new URLSearchParams('q=gold&reverse=1'), {
+      type: 'Set',
+      hideSoldOut: true,
+      sort: 'newest',
+    })
+    expect(out.get('type')).toBe('Set')
+    expect(out.get('available')).toBe('1')
+    expect(out.get('sort')).toBe('newest')
+    expect(out.get('q')).toBe('gold')
+    expect(out.has('reverse')).toBe(false)
+  })
+})
+
+describe('viewListing', () => {
+  const list = listingOf([
+    { id: 'a', type: 'Necklace', available: true },
+    { id: 'b', type: 'Earrings', available: false },
+    { id: 'c', type: 'Necklace', available: false },
+    { id: 'd', type: '', available: true },
+    { id: 'e', type: 'Earrings', available: true },
+  ])
+  const ids = (v: { products: { id: string }[] }) => v.products.map((p) => p.id)
+
+  it('shows every Product in order with typed counts A-Z and a total', () => {
+    const v = viewListing(list, { type: null, hideSoldOut: false })
+    expect(ids(v)).toEqual(['a', 'b', 'c', 'd', 'e'])
+    expect(v.types).toEqual([
+      { type: 'Earrings', count: 2 },
+      { type: 'Necklace', count: 2 },
+    ])
+    expect(v.total).toBe(5)
+  })
+  it('counts respect Hide sold out', () => {
+    const v = viewListing(list, { type: null, hideSoldOut: true })
+    expect(ids(v)).toEqual(['a', 'd', 'e'])
+    expect(v.types).toEqual([
+      { type: 'Earrings', count: 1 },
+      { type: 'Necklace', count: 1 },
+    ])
+    expect(v.total).toBe(3)
+  })
+  it('filters by type while counts stay across types', () => {
+    const v = viewListing(list, { type: 'Necklace', hideSoldOut: true })
+    expect(ids(v)).toEqual(['a'])
+    expect(v.total).toBe(3)
+    expect(v.types).toHaveLength(2)
+  })
+  it('counts empty-type Products only in total', () => {
+    const v = viewListing(list, { type: null, hideSoldOut: false })
+    expect(v.types.reduce((n, t) => n + t.count, 0)).toBe(4)
+    expect(v.types.some((t) => t.type === '')).toBe(false)
+  })
+  it('gives no Products for a type that is not present', () => {
+    const v = viewListing(list, { type: 'Ring', hideSoldOut: false })
+    expect(v.products).toEqual([])
+    expect(v.total).toBe(5)
+  })
+})
+
+describe('quickAdd', () => {
+  const edges = (...nodes: { id: string; availableForSale: boolean }[]) => ({ edges: nodes.map((node) => ({ node })) })
+  const card = (over: Partial<ShopifyProduct>) => rawProduct(over)
+  it('is sold-out when the Product is not available for sale', () => {
+    const raw = card({ availableForSale: false, variants: edges({ id: 'v1', availableForSale: false }) as never })
+    expect(toProductSummary(raw).quickAdd).toEqual({ kind: 'sold-out' })
+  })
+  it('adds the only Variant', () => {
+    const raw = card({ variants: edges({ id: 'v9', availableForSale: true }) as never })
+    expect(toProductSummary(raw).quickAdd).toEqual({ kind: 'add', variantId: 'v9' })
+  })
+  it('lets the Shopper choose among several Variants', () => {
+    const raw = card({ variants: edges({ id: 'v1', availableForSale: true }, { id: 'v2', availableForSale: true }) as never })
+    expect(toProductSummary(raw).quickAdd).toEqual({ kind: 'choose' })
+  })
+  it('chooses when the data has no Variants', () => {
+    expect(toProductSummary(card({ variants: { edges: [] } })).quickAdd).toEqual({ kind: 'choose' })
+  })
+  it('toProduct applies the same rules over its full Variant list', () => {
+    expect(toProduct(rawProduct()).quickAdd).toEqual({ kind: 'choose' })
+    expect(toProduct(rawProduct({ variants: { edges: [{ node: rawVariant('only', 'S', 'Gold') }] } })).quickAdd).toEqual({
+      kind: 'add',
+      variantId: 'only',
+    })
   })
 })
 

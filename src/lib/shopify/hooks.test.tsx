@@ -94,6 +94,33 @@ describe('useProductListing', () => {
     expect(shopifyFetch).toHaveBeenCalledTimes(2)
   })
 
+  it('with all: true fetches every page, staying loading until the last arrives', async () => {
+    let release: (v: unknown) => void = () => {}
+    shopifyFetch
+      .mockResolvedValueOnce({ products: connection([p1, p2], 'cur-1', true) })
+      .mockImplementationOnce(() => new Promise((resolve) => { release = resolve }))
+    const { result } = renderHook(() => useProductListing({ all: true }), { wrapper: createWrapper() })
+    await waitFor(() => expect(shopifyFetch).toHaveBeenCalledTimes(2))
+    expect(result.current.isLoading).toBe(true)
+    expect(shopifyFetch.mock.calls[0][1]).toMatchObject({ first: 250 })
+    expect(shopifyFetch.mock.calls[1][1]).toMatchObject({ after: 'cur-1' })
+    act(() => release({ products: connection([p3], null, false) }))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.products.map((p) => p.id)).toEqual([p1.id, p2.id, p3.id])
+    expect(result.current.hasMore).toBe(false)
+  })
+
+  it('with all: true honours an explicit pageSize and stops on an error', async () => {
+    shopifyFetch
+      .mockResolvedValueOnce({ products: connection([p1], 'cur-1', true) })
+      .mockRejectedValueOnce(new Error('boom'))
+    const { result } = renderHook(() => useProductListing({ all: true, pageSize: 1 }), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.error?.message).toBe('boom'))
+    expect(shopifyFetch.mock.calls[0][1]).toMatchObject({ first: 1 })
+    expect(shopifyFetch).toHaveBeenCalledTimes(2)
+    expect(result.current.isLoading).toBe(false)
+  })
+
   it('drops duplicate ids across pages', async () => {
     shopifyFetch
       .mockResolvedValueOnce({ products: connection([p1, p2], 'cur-1', true) })
@@ -103,6 +130,13 @@ describe('useProductListing', () => {
     act(() => result.current.loadMore())
     await waitFor(() => expect(result.current.products).toHaveLength(3))
     expect(result.current.products.map((p) => p.id)).toEqual([p1.id, p2.id, p4.id])
+  })
+
+  it('defaults to the recommended sort', async () => {
+    shopifyFetch.mockResolvedValue({ products: connection([p1], null, false) })
+    const { result } = renderHook(() => useProductListing(), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(shopifyFetch.mock.calls[0][1]).toMatchObject({ sortKey: 'BEST_SELLING', reverse: false })
   })
 
   it('sends CREATED_AT reverse for newest across all Products', async () => {

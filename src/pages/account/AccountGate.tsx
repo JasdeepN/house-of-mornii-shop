@@ -8,8 +8,7 @@ export function LoadingState() {
     <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div
-          className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: 'oklch(0.60 0.11 78)', borderTopColor: 'transparent' }}
+          className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
         />
         <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground">Loading...</span>
       </div>

@@ -52,8 +52,7 @@ export function AboutPage() {
                   variants={wordVariants}
                   initial="hidden"
                   animate="visible"
-                  className={word === 'Mornii' ? 'font-script text-5xl lg:text-6xl xl:text-7xl' : ''}
-                  style={word === 'Mornii' ? { color: 'oklch(0.60 0.11 78)' } : undefined}
+                  className={word === 'Mornii' ? 'font-script text-5xl lg:text-6xl xl:text-7xl text-primary' : ''}
                 >
                   {word}
                 </motion.span>
@@ -146,8 +145,7 @@ export function AboutPage() {
             className="text-center mt-16"
           >
             <p
-              className="text-lg tracking-[0.25em] font-semibold"
-              style={{ color: 'oklch(0.60 0.11 78)' }}
+              className="text-lg tracking-[0.25em] font-semibold text-foreground"
             >
               REGAL · RADIANT · MODERN
             </p>

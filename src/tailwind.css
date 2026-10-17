@@ -1,62 +1,78 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* Mornii Display: self-hosted Noto Serif Display (OFL, see src/assets/fonts/OFL.txt) */
+@font-face {
+	font-family: 'Mornii Display';
+	src: url('./assets/fonts/nsd-400-normal.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Mornii Display';
+	src: url('./assets/fonts/nsd-400-italic.woff2') format('woff2');
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+
+/* The one theme: champagne and teal, light only. Dark mode comes after launch. */
 :root {
-	--background: oklch(0.15 0.02 210);
-	--foreground: oklch(0.95 0.05 85);
+	/* Page values kept under --page-* so surfaces inside the teal bars can restore them (.on-page) */
+	--page-background: oklch(0.924 0.027 78.2);
+	--page-foreground: oklch(0.335 0.045 193.0);
+	--page-muted-foreground: oklch(0.502 0.020 145.3);
+	--page-accent: oklch(0.336 0.054 200.5);
+	--page-accent-foreground: oklch(0.941 0.020 74.7);
+	--page-border: oklch(0.846 0.027 80.2);
+	--page-input: oklch(0.846 0.027 80.2);
 
-	--card: oklch(0.22 0.03 210);
-	--card-foreground: oklch(0.92 0.02 85);
+	--background: var(--page-background);
+	--foreground: var(--page-foreground);
 
-	--popover: oklch(0.22 0.03 210);
-	--popover-foreground: oklch(0.92 0.02 85);
+	--card: oklch(0.941 0.020 74.7);
+	--card-foreground: oklch(0.335 0.045 193.0);
 
-	--primary: oklch(0.45 0.08 210);
-	--primary-foreground: oklch(1 0 0);
+	--popover: oklch(0.941 0.020 74.7);
+	--popover-foreground: oklch(0.335 0.045 193.0);
 
-	--secondary: oklch(0.30 0.03 210);
-	--secondary-foreground: oklch(0.95 0.05 85);
+	--primary: oklch(0.336 0.054 200.5);
+	--primary-foreground: oklch(0.941 0.020 74.7);
+	--primary-hover: oklch(0.409 0.061 199.7);
 
-	--muted: oklch(0.25 0.02 210);
-	--muted-foreground: oklch(0.65 0.03 210);
+	--secondary: oklch(0.894 0.032 78.1);
+	--secondary-foreground: oklch(0.335 0.045 193.0);
 
-	--accent: oklch(0.60 0.11 78);
-	--accent-foreground: oklch(0.12 0.02 210);
+	--muted: oklch(0.894 0.032 78.1);
+	--muted-foreground: var(--page-muted-foreground);
+
+	--accent: var(--page-accent);
+	--accent-foreground: var(--page-accent-foreground);
 
 	--destructive: oklch(0.55 0.20 25);
 	--destructive-foreground: oklch(1 0 0);
 
-	--border: oklch(0.35 0.04 210);
-	--input: oklch(0.35 0.04 210);
-	--ring: oklch(0.60 0.11 78);
+	--border: var(--page-border);
+	--input: var(--page-input);
+	--ring: oklch(0.336 0.054 200.5);
 
-	--gold: oklch(0.60 0.11 78);
-	--gold-bright: oklch(0.68 0.13 80);
-	--teal-deep: oklch(0.45 0.08 210);
-	--slate-dark: oklch(0.20 0.02 210);
+	--gold: oklch(0.649 0.077 83.8);
+	--gold-on-teal: oklch(0.800 0.100 76);
 
 	--radius: 1rem;
 
-	/* Glass panel tokens (dark-first, adapted to OKLCH palette) */
+	/* Glass panel tokens: near-transparent page colour with a rule border */
 	--glass-blur-sm: 8px;
 	--glass-blur-md: 16px;
 	--glass-blur-lg: 26px;
-	--glass-saturate: 170%;
-	--glass-contrast: 115%;
-	--glass-panel-bg: linear-gradient(
-		135deg,
-		oklch(0.45 0.08 210 / 0.18) 0%,
-		oklch(0.15 0.02 210 / 0.42) 100%
-	);
-	--glass-panel-border: oklch(1 0 0 / 0.12);
-	--glass-highlight: oklch(1 0 0 / 0.35);
-	--glass-shadow:
-		0 10px 42px -12px oklch(0 0 0 / 0.55),
-		0 4px 16px oklch(0 0 0 / 0.35);
-	--glass-shadow-hover:
-		0 15px 50px -12px oklch(0 0 0 / 0.65),
-		0 8px 24px oklch(0 0 0 / 0.45),
-		0 0 0 1px oklch(0.60 0.11 78 / 0.18);
+	--glass-saturate: 100%;
+	--glass-contrast: 100%;
+	--glass-panel-bg: color-mix(in oklch, var(--background) 92%, transparent);
+	--glass-panel-border: var(--border);
+	--glass-highlight: transparent;
+	--glass-shadow: 0 1px 0 var(--border);
+	--glass-shadow-hover: 0 1px 0 var(--border);
 	--glass-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
 	--card-perspective: 1000px;
 
@@ -71,60 +87,6 @@
 	--frame-shadow-warm: oklch(0.50 0.09 65);
 }
 
-/* ===== Light mode Tailwind semantic color overrides ===== */
-body[data-theme="light"] {
-	--background: oklch(0.96 0.005 85);
-	--foreground: oklch(0.15 0.02 78);
-
-	--card: oklch(0.97 0.005 85);
-	--card-foreground: oklch(0.15 0.02 78);
-
-	--popover: oklch(0.97 0.005 85);
-	--popover-foreground: oklch(0.15 0.02 78);
-
-	--primary: oklch(0.55 0.12 78);
-	--primary-foreground: oklch(0.98 0.005 85);
-
-	--secondary: oklch(0.90 0.008 85);
-	--secondary-foreground: oklch(0.25 0.02 78);
-
-	--muted: oklch(0.92 0.008 85);
-	--muted-foreground: oklch(0.42 0.02 78);
-
-	--accent: oklch(0.60 0.11 78);
-	--accent-foreground: oklch(0.12 0.02 210);
-
-	--destructive: oklch(0.55 0.20 25);
-	--destructive-foreground: oklch(1 0 0);
-
-	--border: oklch(0.85 0.01 85);
-	--input: oklch(0.97 0.005 85);
-	--ring: oklch(0.55 0.12 78);
-
-	--gold: oklch(0.60 0.11 78);
-	--gold-bright: oklch(0.68 0.13 80);
-	--teal-deep: oklch(0.45 0.08 210);
-	--slate-dark: oklch(0.20 0.02 210);
-
-	/* Glass panel tokens (light mode) */
-	--glass-panel-bg: linear-gradient(
-		160deg,
-		oklch(0.96 0.01 80 / 0.55) 0%,
-		oklch(0.93 0.015 210 / 0.35) 35%,
-		oklch(0.92 0.01 80 / 0.45) 65%,
-		oklch(0.94 0.02 78 / 0.25) 100%
-	);
-	--glass-panel-border: oklch(0.60 0.11 78 / 0.18);
-	--glass-highlight: oklch(1 0 0 / 0.50);
-	--glass-shadow:
-		0 12px 48px -16px oklch(0.28 0.03 210 / 0.14),
-		0 4px 18px oklch(0.28 0.03 210 / 0.08);
-	--glass-shadow-hover:
-		0 18px 56px -14px oklch(0.28 0.03 210 / 0.20),
-		0 8px 24px oklch(0.28 0.03 210 / 0.12),
-		0 0 0 1px oklch(0.60 0.11 78 / 0.24);
-}
-
 @theme {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
@@ -134,6 +96,7 @@ body[data-theme="light"] {
 	--color-popover-foreground: var(--popover-foreground);
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
+	--color-primary-hover: var(--primary-hover);
 	--color-secondary: var(--secondary);
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-muted: var(--muted);
@@ -147,9 +110,7 @@ body[data-theme="light"] {
 	--color-ring: var(--ring);
 
 	--color-gold: var(--gold);
-	--color-gold-bright: var(--gold-bright);
-	--color-teal-deep: var(--teal-deep);
-	--color-slate-dark: var(--slate-dark);
+	--color-gold-on-teal: var(--gold-on-teal);
 
 	--radius-sm: calc(var(--radius) * 0.5);
 	--radius-md: var(--radius);
@@ -158,6 +119,6 @@ body[data-theme="light"] {
 	--radius-2xl: calc(var(--radius) * 3);
 	--radius-full: 9999px;
 
-	--font-heading: 'Cinzel', serif;
-	--font-body: 'Cormorant Garamond', serif;
+	--font-heading: 'Mornii Display', Georgia, 'Times New Roman', serif;
+	--font-body: Arial, Helvetica, sans-serif;
 }

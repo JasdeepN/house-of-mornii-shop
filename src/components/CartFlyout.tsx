@@ -12,7 +12,6 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { FreeShippingBar } from '@/components/FreeShippingBar'
 import { useCallback, useRef, useEffect } from 'react'
 import { checkoutLink, isValidCheckoutUrl } from '@/lib/cart'
 import { useCustomerSession } from '@/lib/customer'
@@ -74,7 +73,6 @@ function FlyoutLineItem({
     <div
       data-testid="cart-item"
       className="flex gap-3 py-4 border-b"
-      style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}
       role="listitem"
       aria-label={`${variant.product.title}, quantity ${line.quantity}`}
     >
@@ -88,8 +86,7 @@ function FlyoutLineItem({
           />
         ) : (
           <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: 'oklch(0.20 0.03 210)' }}
+            className="w-full h-full flex items-center justify-center bg-secondary"
           >
             <ShoppingBag size={16} className="text-muted-foreground" />
           </div>
@@ -145,15 +142,14 @@ function FlyoutLineItem({
           {/* Price + Remove */}
           <div className="flex items-center gap-2">
             <span
-              className="text-xs tracking-wider"
-              style={{ color: 'oklch(0.60 0.11 78)' }}
+              className="text-xs tracking-wider text-foreground"
             >
               {formatMoney(line.cost.totalAmount)}
             </span>
             <button
               onClick={() => removeLineItem(line.id)}
               disabled={isLoading}
-              className="text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-40"
+              className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
               aria-label={`Remove ${variant.product.title} from cart`}
             >
               <Trash size={14} weight="bold" />
@@ -177,22 +173,15 @@ export function CartFlyout() {
       <SheetContent
         data-testid="cart-flyout"
         side="right"
-        className="flex flex-col w-full sm:max-w-[420px] p-0"
-        style={{
-          background: 'oklch(0.16 0.03 210 / 0.97)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderLeft: '1px solid oklch(1 0 0 / 0.10)',
-        }}
+        className="flex flex-col w-full sm:max-w-[420px] p-0 bg-background border-l border-border"
       >
         {/* Header */}
-        <SheetHeader className="px-6 pt-6 pb-4 border-b" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
+        <SheetHeader className="px-6 pt-6 pb-4 border-b">
           <SheetTitle className="text-lg tracking-[0.15em] flex items-center gap-3">
             Your Bag
             {itemCount > 0 && (
               <span
-                className="text-[11px] tracking-widest font-normal"
-                style={{ color: 'oklch(0.60 0.11 78)' }}
+                className="text-[11px] tracking-widest font-normal text-foreground"
               >
                 ({itemCount} {itemCount === 1 ? 'item' : 'items'})
               </span>
@@ -213,8 +202,7 @@ export function CartFlyout() {
             <Link
               to="/collections"
               onClick={() => setCartOpen(false)}
-              className="text-xs tracking-[0.2em] uppercase transition-colors hover:text-accent hover:underline underline-offset-4"
-              style={{ color: 'oklch(0.75 0.05 78)' }}
+              className="text-xs tracking-[0.2em] uppercase transition-colors hover:text-accent hover:underline underline-offset-4 text-muted-foreground"
             >
               BROWSE COLLECTIONS →
             </Link>
@@ -233,15 +221,12 @@ export function CartFlyout() {
             </ScrollArea>
 
             {/* Footer */}
-            <SheetFooter className="px-6 pt-4 pb-6 border-t flex-col gap-3" style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}>
-              <FreeShippingBar subtotalAmount={cart.cost.subtotalAmount.amount} className="w-full mb-1" />
-
+            <SheetFooter className="px-6 pt-4 pb-6 border-t flex-col gap-3">
               {/* Subtotal */}
               <div className="flex items-center justify-between w-full">
                 <span className="text-sm tracking-widest">SUBTOTAL</span>
                 <span
-                  className="text-sm tracking-wider font-semibold"
-                  style={{ color: 'oklch(0.60 0.11 78)' }}
+                  className="text-sm tracking-wider font-semibold text-foreground"
                 >
                   {formatMoney(cart.cost.subtotalAmount)}
                 </span>
@@ -258,11 +243,7 @@ export function CartFlyout() {
                   href={checkoutLink(cart.checkoutUrl, signedIn)}
                   className={`block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
                     isLoading ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'
-                  }`}
-                  style={{
-                    background: 'oklch(0.60 0.11 78)',
-                    color: 'oklch(0.15 0.02 210)',
-                  }}
+                  } bg-primary text-primary-foreground hover:bg-primary-hover`}
                 >
                   PROCEED TO CHECKOUT
                 </a>
@@ -270,11 +251,7 @@ export function CartFlyout() {
                 <div
                   data-testid="checkout-button"
                   aria-disabled="true"
-                  className="block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none"
-                  style={{
-                    background: 'oklch(0.60 0.11 78)',
-                    color: 'oklch(0.15 0.02 210)',
-                  }}
+                  className="block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none bg-primary text-primary-foreground hover:bg-primary-hover"
                 >
                   PROCEED TO CHECKOUT
                 </div>

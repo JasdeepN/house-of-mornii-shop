@@ -46,6 +46,8 @@ export interface ProductSummary {
   /** The Product's images in order, else the featured image alone, else []. Listings carry at most two. */
   images: ShopifyImage[]
   price: DisplayPrice
+  /** What the quick-add button does: add the only Variant, let the Shopper choose among several, or nothing when sold out. */
+  quickAdd: { kind: 'add'; variantId: string } | { kind: 'choose' } | { kind: 'sold-out' }
 }
 
 /** A Product with everything its page needs. */
@@ -67,37 +69,35 @@ export interface CollectionSummary {
 
 // ─── Sorting ──────────────────────────────────────────────────────────────────
 
-export type ProductSort = 'best-selling' | 'newest' | 'price-asc' | 'price-desc' | 'title-asc'
+export type ProductSort = 'recommended' | 'newest' | 'price-asc' | 'price-desc' | 'title-asc' | 'title-desc'
 
 /** Sort options in the order listings offer them. */
 export const PRODUCT_SORTS: readonly { value: ProductSort; label: string }[] = [
-  { value: 'best-selling', label: 'Best Selling' },
+  { value: 'recommended', label: 'Recommended' },
   { value: 'newest', label: 'Newest' },
-  { value: 'price-asc', label: 'Price: Low → High' },
-  { value: 'price-desc', label: 'Price: High → Low' },
-  { value: 'title-asc', label: 'A–Z' },
+  { value: 'price-asc', label: 'Price low to high' },
+  { value: 'price-desc', label: 'Price high to low' },
+  { value: 'title-asc', label: 'Name A\u2013Z' },
+  { value: 'title-desc', label: 'Name Z\u2013A' },
 ]
 
-/** Reads a sort from a URL value; undefined when the value is missing or unknown. */
-export function parseProductSort(value: string | null | undefined): ProductSort | undefined {
-  return PRODUCT_SORTS.find((s) => s.value === value)?.value
+/** Reads a sort from a URL value; a missing or unknown value (including the retired 'best-selling') is 'recommended'. */
+export function parseProductSort(value: string | null | undefined): ProductSort {
+  return PRODUCT_SORTS.find((s) => s.value === value)?.value ?? 'recommended'
 }
 
 /**
- * Shopify sort arguments for a listing. `undefined` means the listing's own order:
- * best-selling for all Products, the Collection's order (COLLECTION_DEFAULT) for a Collection.
- * Product queries take ProductSortKeys (newest is CREATED_AT); Collection queries take
- * ProductCollectionSortKeys (newest is CREATED).
+ * Shopify sort arguments for a listing. Recommended is best-selling for all Products and the
+ * Collection's own order (COLLECTION_DEFAULT) for a Collection. Product queries take ProductSortKeys
+ * (newest is CREATED_AT); Collection queries take ProductCollectionSortKeys (newest is CREATED).
  */
 export function shopifySortFor(
-  sort: ProductSort | undefined,
+  sort: ProductSort,
   target: 'products' | 'collection',
 ): { sortKey: string; reverse: boolean } {
   switch (sort) {
-    case undefined:
+    case 'recommended':
       return { sortKey: target === 'collection' ? 'COLLECTION_DEFAULT' : 'BEST_SELLING', reverse: false }
-    case 'best-selling':
-      return { sortKey: 'BEST_SELLING', reverse: false }
     case 'newest':
       return { sortKey: target === 'collection' ? 'CREATED' : 'CREATED_AT', reverse: true }
     case 'price-asc':
@@ -106,6 +106,78 @@ export function shopifySortFor(
       return { sortKey: 'PRICE', reverse: true }
     case 'title-asc':
       return { sortKey: 'TITLE', reverse: false }
+    case 'title-desc':
+      return { sortKey: 'TITLE', reverse: true }
+  }
+}
+
+// ─── Listing filters ──────────────────────────────────────────────────────────
+
+export interface ListingFilters {
+  /** A Product type to show, or null for every type. */
+  type: string | null
+  /** True hides sold-out Products. */
+  hideSoldOut: boolean
+  sort: ProductSort
+}
+
+/** Reads `type`, `available=1` and `sort` from a page address. */
+export function parseListingFilters(params: URLSearchParams): ListingFilters {
+  return {
+    type: params.get('type') || null,
+    hideSoldOut: params.get('available') === '1',
+    sort: parseProductSort(params.get('sort')),
+  }
+}
+
+/**
+ * A copy of `params` with these filters written in, defaults left out: no `type` for all types, no
+ * `available` unless hiding sold out, no `sort` for recommended. Removes the legacy `reverse` param;
+ * keeps every other param.
+ */
+export function withListingFilters(params: URLSearchParams, filters: ListingFilters): URLSearchParams {
+  const next = new URLSearchParams(params)
+  next.delete('reverse')
+  next.delete('type')
+  next.delete('available')
+  next.delete('sort')
+  if (filters.type) next.set('type', filters.type)
+  if (filters.hideSoldOut) next.set('available', '1')
+  if (filters.sort !== 'recommended') next.set('sort', filters.sort)
+  return next
+}
+
+export interface TypeCount {
+  type: string
+  count: number
+}
+
+export interface ListingView {
+  /** The Products to show, in listing order. */
+  products: ProductSummary[]
+  /** Each non-empty Product type among the Products that pass Hide sold out, with its count, A–Z by type. */
+  types: TypeCount[]
+  /** How many Products pass Hide sold out, across every type (the "All" count). */
+  total: number
+}
+
+/** What a listing shows for these filters. Sorting is not applied here; the listing arrives sorted. */
+export function viewListing(
+  products: ProductSummary[],
+  filters: Pick<ListingFilters, 'type' | 'hideSoldOut'>,
+): ListingView {
+  const passing = filters.hideSoldOut ? products.filter((p) => p.availableForSale) : products
+  const counts = new Map<string, number>()
+  for (const p of passing) {
+    if (p.productType) counts.set(p.productType, (counts.get(p.productType) ?? 0) + 1)
+  }
+  const types = [...counts]
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => a.type.localeCompare(b.type))
+  return {
+    products: filters.type === null ? passing : passing.filter((p) => p.productType === filters.type),
+    types,
+    total: passing.length,
   }
 }
 
@@ -165,6 +237,16 @@ function toDisplayPrice(raw: ShopifyProduct): DisplayPrice {
   }
 }
 
+/** Sold out wins; else a single Variant is added directly; otherwise the Shopper chooses. */
+function quickAddFor(
+  availableForSale: boolean,
+  variants: { id: string }[],
+): ProductSummary['quickAdd'] {
+  if (!availableForSale) return { kind: 'sold-out' }
+  if (variants.length === 1) return { kind: 'add', variantId: variants[0].id }
+  return { kind: 'choose' }
+}
+
 export function toProductSummary(raw: ShopifyProduct): ProductSummary {
   const listed = raw.images?.edges.map((e) => e.node) ?? []
   return {
@@ -179,6 +261,10 @@ export function toProductSummary(raw: ShopifyProduct): ProductSummary {
     featuredImage: raw.featuredImage,
     images: listed.length > 0 ? listed : raw.featuredImage ? [raw.featuredImage] : [],
     price: toDisplayPrice(raw),
+    quickAdd: quickAddFor(
+      raw.availableForSale,
+      (raw.variants?.edges ?? []).map((e) => e.node),
+    ),
   }
 }
 
@@ -188,7 +274,7 @@ export function toProduct(raw: ShopifyProduct): Product {
     ...toProductSummary(raw),
     descriptionHtml: raw.descriptionHtml ?? '',
     options: raw.options.map(({ name, values }) => ({ name, values })),
-    variants: raw.variants.edges.map((e) => toVariant(e.node)),
+    variants: raw.variants.edges.map((e) => toVariant(e.node as ShopifyProductVariant)),
     primaryCollection: collection ? { handle: collection.handle, title: collection.title } : null,
   }
 }

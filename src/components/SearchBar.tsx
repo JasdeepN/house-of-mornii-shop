@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, type UIEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Command } from 'cmdk'
 import { MagnifyingGlass, X } from '@phosphor-icons/react'
@@ -73,7 +74,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
           key={product.id}
           value={product.handle}
           onSelect={() => onSelect(product.handle)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-sm cursor-pointer transition-colors hover:bg-white/5 data-[selected=true]:bg-white/5"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-sm cursor-pointer transition-colors hover:bg-secondary data-[selected=true]:bg-secondary"
         >
           {product.featuredImage && (
             <img
@@ -84,7 +85,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm tracking-wider truncate">{product.title}</p>
-            <p className="text-xs tracking-wider" style={{ color: 'oklch(0.60 0.11 78)' }}>
+            <p className="text-xs tracking-wider text-muted-foreground">
               {formatDisplayPrice(product.price)}
             </p>
           </div>
@@ -105,7 +106,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
           <button
             type="button"
             onClick={loadMore}
-            className="w-full rounded-sm border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground dark:hover:border-primary/60"
+            className="w-full rounded-sm border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
             LOAD MORE RESULTS
           </button>
@@ -162,26 +163,21 @@ export function SearchBar({ onClose }: SearchBarProps) {
       </button>
 
       {/* Command palette overlay */}
-      {open && (
+      {open && createPortal(
         <div
-          className="fixed inset-0 z-70"
-          style={{ background: 'oklch(0 0 0 / 0.55)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-70 bg-foreground/40"
+          style={{ backdropFilter: 'blur(4px)' }}
           onClick={clearSearch}
         >
           <div
-            className="fixed top-[15vh] left-1/2 -translate-x-1/2 w-[90vw] max-w-lg rounded-sm overflow-hidden"
-            style={{
-              background: 'oklch(0.14 0.03 210)',
-              border: '1px solid oklch(1 0 0 / 0.14)',
-              boxShadow: '0 16px 64px oklch(0 0 0 / 0.6)',
-            }}
+            className="fixed top-[15vh] left-1/2 -translate-x-1/2 w-[90vw] max-w-lg rounded-sm overflow-hidden bg-card text-foreground border border-border shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-expanded={open}
             aria-controls="search-results"
           >
             <Command shouldFilter={false}>
-              <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid oklch(1 0 0 / 0.10)' }}>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <MagnifyingGlass size={18} className="text-muted-foreground" />
                 <Command.Input
                   id="search-input"
@@ -192,7 +188,7 @@ export function SearchBar({ onClose }: SearchBarProps) {
                     setSanitizedQuery(sanitized)
                   }}
                   placeholder="Search products..."
-                  className="flex-1 bg-transparent outline-none text-sm tracking-wider placeholder:text-muted-foreground/50"
+                  className="flex-1 bg-transparent outline-none text-sm tracking-wider placeholder:text-muted-foreground"
                   aria-label="Search products"
                   autoFocus
                 />
@@ -217,15 +213,16 @@ export function SearchBar({ onClose }: SearchBarProps) {
                 </Command.List>
               )}
 
-              <div className="px-4 py-2 text-[10px] tracking-widest text-muted-foreground/50 uppercase" style={{ borderTop: '1px solid oklch(1 0 0 / 0.08)' }}>
-                <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ border: '1px solid oklch(1 0 0 / 0.15)' }}>Ctrl</kbd>
+              <div className="px-4 py-2 text-[10px] tracking-widest text-muted-foreground uppercase border-t border-border">
+                <kbd className="px-1 py-0.5 rounded text-[10px] border border-border">Ctrl</kbd>
                 {' + '}
-                <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ border: '1px solid oklch(1 0 0 / 0.15)' }}>K</kbd>
+                <kbd className="px-1 py-0.5 rounded text-[10px] border border-border">K</kbd>
                 {' to toggle search'}
               </div>
             </Command>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

@@ -1,29 +1,18 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect } from 'react'
 
-type Theme = 'dark' | 'light'
+type Theme = 'light'
 
-const STORAGE_KEY = 'hom-theme-preference'
-const SYSTEM_PREFERENCE = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-
-function getInitialTheme(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY) as Theme | null
-  return stored || SYSTEM_PREFERENCE
-}
-
+/**
+ * The storefront is light only (champagne and teal). Dark mode comes after launch.
+ * The interface is kept so callers compile; stored preferences are ignored.
+ */
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme)
-
-  // Sync theme with DOM + localStorage on mount/change
   useEffect(() => {
-    document.body.setAttribute('data-theme', theme)
-    try {
-      localStorage.setItem(STORAGE_KEY, theme)
-    } catch { /* storage unavailable */ }
-  }, [theme])
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+    document.body.setAttribute('data-theme', 'light')
   }, [])
+
+  const theme: Theme = 'light'
+  const toggleTheme = () => {}
 
   return { theme, toggleTheme }
 }

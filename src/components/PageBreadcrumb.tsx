@@ -39,7 +39,7 @@ export function PageBreadcrumb({ items, className = '', centered = false }: Page
             <span key={item.label} className="flex items-center gap-2">
               {i > 0 && <span>/</span>}
               {isLast ? (
-                <span style={{ color: 'oklch(0.60 0.11 78)' }}>{item.label}</span>
+                <span className="text-foreground">{item.label}</span>
               ) : item.to ? (
                 <Link to={item.to} className="hover:text-accent transition-colors">
                   {item.label}

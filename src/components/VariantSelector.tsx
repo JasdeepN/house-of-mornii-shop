@@ -21,8 +21,7 @@ export function VariantSelector({
       {product.options.map((option) => (
         <div key={option.name} className="flex flex-col gap-2">
           <label
-            className="text-xs tracking-[0.3em] uppercase"
-            style={{ color: 'oklch(0.72 0.05 78)' }}
+            className="text-xs tracking-[0.3em] uppercase text-muted-foreground"
           >
             {option.name}
           </label>

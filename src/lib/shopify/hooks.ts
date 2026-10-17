@@ -1,6 +1,6 @@
 // Catalog hooks: React Query over the Storefront API, mapped to the Catalog module's domain shapes.
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useInfiniteQuery, useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { shopifyFetch } from './client'
 import {
@@ -61,12 +61,17 @@ export function useProduct(handle: string): UseQueryResult<Product | null, Error
 export interface ProductListingOptions {
   /** A Collection handle; omit (or '') to list every Product. */
   collection?: string
-  /** Omit for the listing's own order: best-selling for all Products, the Collection's order for a Collection. */
+  /** Default 'recommended': best-selling for all Products, the Collection's order for a Collection. */
   sort?: ProductSort
   /** Search text; applies only when `collection` is omitted. */
   query?: string
-  /** Products per page; default 12. */
+  /** Products per page; default 12, or 250 (Shopify's maximum) when `all` is true. */
   pageSize?: number
+  /**
+   * Load the whole listing: keep fetching the next page until there is none. `isLoading` stays true
+   * until the last page has arrived and `hasMore` is false once done. Fetching stops on an error.
+   */
+  all?: boolean
   /** Default true; false fetches nothing. */
   enabled?: boolean
 }
@@ -104,10 +109,11 @@ function toPage(collection: CollectionSummary | null, connection: Connection | n
 }
 
 export function useProductListing(options: ProductListingOptions = {}): ProductListing {
-  const { collection, sort, query, pageSize = 12, enabled = true } = options
+  const { collection, sort = 'recommended', query, all = false, enabled = true } = options
+  const pageSize = options.pageSize ?? (all ? 250 : 12)
 
   const result = useInfiniteQuery({
-    queryKey: ['product-listing', collection || null, sort ?? null, collection ? null : query || null, pageSize],
+    queryKey: ['product-listing', collection || null, sort, collection ? null : query || null, pageSize],
     enabled,
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam }): Promise<ListingPage> => {
@@ -151,6 +157,12 @@ export function useProductListing(options: ProductListingOptions = {}): ProductL
     return all
   }, [data])
 
+  const loadingAll = all && enabled && !result.error && (result.isLoading || !!hasNextPage)
+
+  useEffect(() => {
+    if (loadingAll && hasNextPage && !isFetchingNextPage) void fetchNextPage()
+  }, [loadingAll, hasNextPage, isFetchingNextPage, fetchNextPage])
+
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
@@ -160,7 +172,7 @@ export function useProductListing(options: ProductListingOptions = {}): ProductL
     products,
     collection: firstPage?.collection ?? null,
     notFound: !!collection && !!firstPage && firstPage.collection === null,
-    isLoading: result.isLoading,
+    isLoading: result.isLoading || loadingAll,
     error: result.error,
     hasMore: !!hasNextPage,
     isLoadingMore: isFetchingNextPage,

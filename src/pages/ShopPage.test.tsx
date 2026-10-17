@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import { useLocation } from 'react-router-dom'
 import { renderWithProviders, userEvent } from '@/test/utils'
-import { getFixtureCollection, getFixtureCollections, getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
+import { getEdgeCaseProducts, getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
 import { ShopPage } from './ShopPage'
 
 const trackViewItemList = vi.fn()
@@ -25,111 +26,176 @@ vi.mock('@/lib/shopify/client', async () => {
   }
 })
 
-const products = getFixtureProducts()
-const edges = (list: typeof products) => list.map((node) => ({ node, cursor: `cursor-${node.handle}` }))
+const soldOut = getEdgeCaseProducts().find((p) => p.handle === 'sold-out-product')!
+const products = [...getFixtureProducts(), soldOut]
 
-function productsPage(list: typeof products, endCursor: string | null = null) {
-  return { products: { edges: edges(list), pageInfo: { hasNextPage: endCursor !== null, endCursor } } }
+function productsPage(list: typeof products) {
+  return {
+    products: {
+      edges: list.map((node) => ({ node, cursor: `cursor-${node.handle}` })),
+      pageInfo: { hasNextPage: false, endCursor: null },
+    },
+  }
 }
 
 function productsCalls() {
   return shopifyFetch.mock.calls.filter(([query]) => String(query).includes('query Products'))
 }
 
+function Probe() {
+  const location = useLocation()
+  return <p data-testid="search">{location.search}</p>
+}
+
+function renderShop(url = '/shop') {
+  return renderWithProviders(
+    <>
+      <ShopPage />
+      <Probe />
+    </>,
+    { initialEntries: [url] },
+  )
+}
+
+const sidebar = () => screen.getByRole('complementary', { name: 'Filters' })
+
 describe('ShopPage', () => {
   beforeEach(() => {
     trackViewItemList.mockReset()
     shopifyFetch.mockReset()
-    shopifyFetch.mockImplementation(async (query: string, variables?: Record<string, unknown>) => {
-      if (query.includes('query Collections')) {
-        return { collections: { edges: getFixtureCollections().map((node) => ({ node })) } }
-      }
-      if (query.includes('query CollectionByHandle')) {
-        return { collection: getFixtureCollection(String(variables?.handle)) }
-      }
-      if (query.includes('query Products')) return productsPage(products.slice(0, 2))
+    shopifyFetch.mockImplementation(async (query: string) => {
+      if (query.includes('query Products')) return productsPage(products)
       throw new Error(`Unexpected query: ${query}`)
     })
   })
 
-  it('renders Products and the Collection chips', async () => {
-    renderWithProviders(<ShopPage />, { initialEntries: ['/shop'] })
+  it('lists every Product and the Types with their counts', async () => {
+    renderShop()
 
+    expect(await screen.findByRole('heading', { level: 1, name: 'Shop' })).toBeInTheDocument()
     expect(await screen.findByText(products[0].title)).toBeInTheDocument()
-    expect(screen.getByText(products[1].title)).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Everyday' })).toBeInTheDocument()
-    expect(screen.getByText(/Sort: Best Selling/)).toBeInTheDocument()
+    const types = within(sidebar())
+    expect(types.getByRole('button', { name: /^All\s*13$/ })).toBeInTheDocument()
+    expect(types.getByRole('button', { name: /^Necklace\s*4$/ })).toBeInTheDocument()
+    expect(types.getByRole('button', { name: /^Earrings\s*4$/ })).toBeInTheDocument()
+    expect(screen.getByText('13 products')).toBeInTheDocument()
   })
 
-  it('sends the sort from ?sort=price-desc', async () => {
-    renderWithProviders(<ShopPage />, { initialEntries: ['/shop?sort=price-desc'] })
+  it('has no Collection chips and loads the whole listing', async () => {
+    renderShop('/shop?collection=everyday')
 
-    expect(await screen.findByText(products[0].title)).toBeInTheDocument()
-    expect(productsCalls()[0][1]).toMatchObject({ sortKey: 'PRICE', reverse: true, first: 12 })
-    expect(screen.getByText(/Sort: Price: High/)).toBeInTheDocument()
+    await screen.findByText(products[0].title)
+    expect(screen.queryByRole('button', { name: 'Everyday' })).not.toBeInTheDocument()
+    expect(productsCalls()[0][1]).toMatchObject({ first: 250 })
+    expect(screen.getByText('13 products')).toBeInTheDocument()
   })
 
-  it('falls back to the default sort for a legacy ?sort=BEST_SELLING&reverse=true URL', async () => {
-    renderWithProviders(<ShopPage />, { initialEntries: ['/shop?sort=BEST_SELLING&reverse=true'] })
-
-    expect(await screen.findByText(products[0].title)).toBeInTheDocument()
-    expect(productsCalls()[0][1]).toMatchObject({ sortKey: 'BEST_SELLING', reverse: false })
-    expect(screen.getByText(/Sort: Best Selling/)).toBeInTheDocument()
-  })
-
-  it('loads the next page with the first page endCursor and appends', async () => {
-    shopifyFetch.mockImplementation(async (query: string, variables?: Record<string, unknown>) => {
-      if (query.includes('query Collections')) return { collections: { edges: [] } }
-      if (variables?.after === 'end-1') return productsPage(products.slice(2, 3))
-      return productsPage(products.slice(0, 2), 'end-1')
-    })
+  it('writes ?type= and shows only that Type', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<ShopPage />, { initialEntries: ['/shop'] })
-
-    await user.click(await screen.findByRole('button', { name: 'LOAD MORE' }))
-
-    expect(await screen.findByText(products[2].title)).toBeInTheDocument()
-    expect(screen.getByText(products[0].title)).toBeInTheDocument()
-    expect(productsCalls()[1][1]).toMatchObject({ after: 'end-1' })
-    expect(screen.queryByRole('button', { name: 'LOAD MORE' })).not.toBeInTheDocument()
-  })
-
-  it('lists a Collection through CollectionByHandle when the filter is set', async () => {
-    renderWithProviders(<ShopPage />, { initialEntries: ['/shop?collection=everyday'] })
-
-    expect(await screen.findByText('Aria Pendant')).toBeInTheDocument()
-    expect(productsCalls()).toHaveLength(0)
-    const call = shopifyFetch.mock.calls.find(([q]) => String(q).includes('query CollectionByHandle'))
-    expect(call?.[1]).toMatchObject({ handle: 'everyday', first: 12 })
-  })
-
-  it('writes the sort to the URL and drops reverse, deleting it for best-selling', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<ShopPage />, { initialEntries: ['/shop?sort=price-asc'] })
+    renderShop()
     await screen.findByText(products[0].title)
 
-    await user.click(screen.getByRole('button', { name: 'Newest' }))
-    await waitFor(() => {
-      expect(productsCalls().slice(-1)[0]?.[1]).toMatchObject({ sortKey: 'CREATED_AT', reverse: true })
-    })
+    await user.click(within(sidebar()).getByRole('button', { name: /^Ring/ }))
 
-    await user.click(screen.getByRole('button', { name: 'Best Selling' }))
+    expect(screen.getByTestId('search')).toHaveTextContent('?type=Ring')
+    expect(screen.getByText('1 products')).toBeInTheDocument()
+    expect(screen.queryByText(products[0].title)).not.toBeInTheDocument()
+    expect(within(sidebar()).getByRole('button', { name: /^Ring/ })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('reads the Type from the address', async () => {
+    renderShop('/shop?type=Necklace')
+
+    await screen.findByText('4 products')
+    expect(screen.getByText(products[0].title)).toBeInTheDocument()
+  })
+
+  it('Hide sold out writes available=1 and hides sold-out Products', async () => {
+    const user = userEvent.setup()
+    renderShop()
+    await screen.findByText(soldOut.title)
+
+    await user.click(within(sidebar()).getByRole('checkbox', { name: 'Hide sold out' }))
+
+    expect(screen.getByTestId('search')).toHaveTextContent('?available=1')
+    expect(screen.queryByText(soldOut.title)).not.toBeInTheDocument()
+    expect(screen.getByText('12 products')).toBeInTheDocument()
+    expect(within(sidebar()).getByRole('button', { name: /^Necklace\s*3$/ })).toBeInTheDocument()
+  })
+
+  it('writes ?sort=price-desc and sends PRICE reverse', async () => {
+    const user = userEvent.setup()
+    renderShop()
+    await screen.findByText(products[0].title)
+
+    await user.click(within(sidebar()).getByRole('button', { name: 'Price high to low' }))
+
+    expect(screen.getByTestId('search')).toHaveTextContent('?sort=price-desc')
     await waitFor(() => {
-      expect(productsCalls().slice(-1)[0]?.[1]).toMatchObject({ sortKey: 'BEST_SELLING', reverse: false })
+      expect(productsCalls().slice(-1)[0][1]).toMatchObject({ sortKey: 'PRICE', reverse: true })
     })
   })
 
-  it('tracks view_item_list once per load and not again on a rerender', async () => {
-    const { rerender } = renderWithProviders(<ShopPage />, { initialEntries: ['/shop'] })
+  it('leaves sort out of the address for Recommended', async () => {
+    const user = userEvent.setup()
+    renderShop('/shop?sort=price-asc')
+    await screen.findByText(products[0].title)
+
+    await user.click(within(sidebar()).getByRole('button', { name: 'Recommended' }))
+
+    expect(screen.getByTestId('search')).toBeEmptyDOMElement()
+    await waitFor(() => {
+      expect(productsCalls().slice(-1)[0][1]).toMatchObject({ sortKey: 'BEST_SELLING', reverse: false })
+    })
+  })
+
+  it('falls back to Recommended for a legacy ?sort=BEST_SELLING&reverse=true address', async () => {
+    renderShop('/shop?sort=BEST_SELLING&reverse=true')
+
+    await screen.findByText(products[0].title)
+    expect(productsCalls()[0][1]).toMatchObject({ sortKey: 'BEST_SELLING', reverse: false })
+    expect(within(sidebar()).getByRole('button', { name: 'Recommended' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('shows Clear filters when the filters leave nothing, and clears Type and Hide sold out', async () => {
+    shopifyFetch.mockImplementation(async () => productsPage([soldOut]))
+    const user = userEvent.setup()
+    renderShop('/shop?type=Necklace&available=1&sort=newest')
+
+    expect(await screen.findByText('No Products match these filters')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+
+    expect(await screen.findByText(soldOut.title)).toBeInTheDocument()
+    expect(screen.getByTestId('search')).toHaveTextContent(/^\?sort=newest$/)
+  })
+
+  it('shows the service-error message', async () => {
+    shopifyFetch.mockRejectedValue(new Error('Network request failed'))
+    renderShop()
+
+    expect(await screen.findByText(/unable|network|connect|try again/i)).toBeInTheDocument()
+  })
+
+  it('tracks the first 12 shown Products once and not again on a rerender', async () => {
+    const { rerender } = renderShop()
 
     await screen.findByText(products[0].title)
     await waitFor(() => expect(trackViewItemList).toHaveBeenCalledTimes(1))
-    expect(trackViewItemList).toHaveBeenCalledWith('Shop All', [
-      { id: products[0].id, name: products[0].title, price: products[0].priceRange.minVariantPrice.amount },
-      { id: products[1].id, name: products[1].title, price: products[1].priceRange.minVariantPrice.amount },
-    ])
+    const [name, items] = trackViewItemList.mock.calls[0]
+    expect(name).toBe('Shop All')
+    expect(items).toHaveLength(12)
+    expect(items[0]).toEqual({
+      id: products[0].id,
+      name: products[0].title,
+      price: products[0].priceRange.minVariantPrice.amount,
+    })
 
-    rerender(<ShopPage />)
+    rerender(
+      <>
+        <ShopPage />
+        <Probe />
+      </>,
+    )
     expect(trackViewItemList).toHaveBeenCalledTimes(1)
   })
 })

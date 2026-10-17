@@ -60,6 +60,10 @@ describe('queries', () => {
       expect(PRODUCTS_QUERY).toContain('$query')
     })
 
+    it('card fragment carries two Variants with id and availability for quick-add', () => {
+      expect(PRODUCTS_QUERY).toMatch(/variants\(first: 2\) \{ edges \{ node \{ id availableForSale \} \} \}/)
+    })
+
     it('PRODUCTS_QUERY contains ProductCardFields fragment', () => {
       expect(PRODUCTS_QUERY).toContain('ProductCardFields')
     })
