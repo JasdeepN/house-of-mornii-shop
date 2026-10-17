@@ -274,6 +274,50 @@ describe('Cart operations (token mode, shopifyFetch mocked)', () => {
     expect(result.current.itemCount).toBe(0)
   })
 
+  it('addToCart resolves true on success', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper: createWrapper() })
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: makeCart([makeLine(variantId, 1)]), userErrors: [] },
+    })
+
+    let added: boolean | undefined
+    await act(async () => {
+      added = await result.current.addToCart(variantId)
+    })
+
+    expect(added).toBe(true)
+  })
+
+  it('addToCart resolves false when Shopify returns userErrors', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper: createWrapper() })
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
+    shopifyFetch.mockResolvedValueOnce({
+      cartCreate: { cart: null, userErrors: [{ message: 'Sold out' }] },
+    })
+
+    let added: boolean | undefined
+    await act(async () => {
+      added = await result.current.addToCart(variantId)
+    })
+
+    expect(added).toBe(false)
+    expect(result.current.cart).toBeNull()
+  })
+
+  it('addToCart resolves false when the request fails', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper: createWrapper() })
+    const variantId = getFixtureProducts()[0].variants.edges[0].node.id
+    shopifyFetch.mockRejectedValueOnce(new Error('network'))
+
+    let added: boolean | undefined
+    await act(async () => {
+      added = await result.current.addToCart(variantId)
+    })
+
+    expect(added).toBe(false)
+  })
+
   it('cart cost reflects correct subtotal', async () => {
     const { result } = renderHook(() => useCart(), {
       wrapper: createWrapper(),

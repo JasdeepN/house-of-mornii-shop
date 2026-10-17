@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { ShoppingBag, Spinner } from '@phosphor-icons/react'
 import { useCart } from '@/context/CartContext'
 import { trackAddToCart } from '@/lib/analytics'
-import { logger } from '@/lib/logger'
-import { toast } from 'sonner'
 
 interface AddToCartButtonProps {
   variantId: string
@@ -29,22 +27,18 @@ export function AddToCartButton({
 
   const handleClick = async () => {
     setIsAdding(true)
-    trackAddToCart({
-      id: variantId,
-      name: productTitle,
-      price: productPrice,
-      quantity: 1,
-      currency: currencyCode,
-    })
     try {
-      await addToCart(variantId)
-    } catch (err) {
-      logger.error('Failed to add item to cart', {
-        component: 'AddToCartButton',
-        variantId,
-        action: 'addToCart',
-      })
-      toast.error('Failed to add item. Please try again.')
+      const added = await addToCart(variantId)
+      if (added) {
+        trackAddToCart({
+          id: variantId,
+          name: productTitle,
+          price: productPrice,
+          quantity: 1,
+          currency: currencyCode,
+        })
+      }
+    } finally {
       setIsAdding(false)
     }
   }

@@ -2,12 +2,10 @@ import { memo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Plus } from '@phosphor-icons/react'
-import { toast } from 'sonner'
 import type { ProductSummary } from '@/lib/shopify'
 import { formatMoney, formatDisplayPrice } from '@/lib/shopify'
 import { useCart } from '@/context/CartContext'
 import { trackAddToCart } from '@/lib/analytics'
-import { logger } from '@/lib/logger'
 import { luxuryEase, viewportOnce } from '@/lib/animations'
 import { QuickAddDialog } from '@/components/QuickAddDialog'
 
@@ -54,6 +52,8 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
       return
     }
     if (quickAdd.kind !== 'add') return
+    const added = await addToCart(quickAdd.variantId)
+    if (!added) return
     trackAddToCart({
       id: quickAdd.variantId,
       name: product.title,
@@ -61,13 +61,7 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
       quantity: 1,
       currency: price.min.currencyCode,
     })
-    try {
-      await addToCart(quickAdd.variantId)
-      openCart()
-    } catch {
-      logger.error('Failed to add item to cart', { component: 'ProductCard', variantId: quickAdd.variantId, action: 'addToCart' })
-      toast.error('Failed to add item. Please try again.')
-    }
+    openCart()
   }
 
   return (

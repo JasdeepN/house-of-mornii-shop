@@ -6,6 +6,12 @@ import { fixtureProductWithPrices, listingOf } from '@/test/fixtures/catalog-fix
 
 const addToCart = vi.fn()
 const openCart = vi.fn()
+const trackAddToCart = vi.fn()
+
+vi.mock('@/lib/analytics', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/analytics')>('@/lib/analytics')
+  return { ...actual, trackAddToCart: (...args: unknown[]) => trackAddToCart(...args) }
+})
 
 vi.mock('@/context/CartContext', () => ({
   useCart: () => ({ addToCart, openCart }),
@@ -17,8 +23,9 @@ vi.mock('./QuickAddDialog', () => ({
 
 describe('ProductCard', () => {
   beforeEach(() => {
-    addToCart.mockReset().mockResolvedValue(undefined)
+    addToCart.mockReset().mockResolvedValue(true)
     openCart.mockReset()
+    trackAddToCart.mockReset()
   })
 
   it('shows "From" the lowest price for a range, with no fake compare-at (#25)', () => {
@@ -79,6 +86,27 @@ describe('ProductCard', () => {
 
     expect(addToCart).toHaveBeenCalledWith('a-v1')
     expect(openCart).toHaveBeenCalled()
+  })
+
+  it('tracks the quick add and opens the Cart only when the add succeeds', async () => {
+    const [product] = listingOf([{ id: 'a', type: '', available: true }])
+    renderWithRouter(<ProductCard product={product} />)
+
+    await userEvent.click(screen.getByRole('button', { name: `Quick add ${product.title}` }))
+
+    expect(trackAddToCart).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not track or open the Cart when the quick add fails', async () => {
+    addToCart.mockResolvedValue(false)
+    const [product] = listingOf([{ id: 'a', type: '', available: true }])
+    renderWithRouter(<ProductCard product={product} />)
+
+    await userEvent.click(screen.getByRole('button', { name: `Quick add ${product.title}` }))
+
+    expect(addToCart).toHaveBeenCalledWith('a-v1')
+    expect(trackAddToCart).not.toHaveBeenCalled()
+    expect(openCart).not.toHaveBeenCalled()
   })
 
   it('opens the picker when the Product has several Variants', async () => {

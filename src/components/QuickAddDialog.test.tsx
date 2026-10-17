@@ -8,6 +8,12 @@ import { getFixtureProduct } from '@/test/fixtures/shopify-fixtures'
 const shopifyFetch = vi.fn()
 const addToCart = vi.fn()
 const openCart = vi.fn()
+const trackAddToCart = vi.fn()
+
+vi.mock('@/lib/analytics', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/analytics')>('@/lib/analytics')
+  return { ...actual, trackAddToCart: (...args: unknown[]) => trackAddToCart(...args) }
+})
 
 vi.mock('@/lib/shopify/client', async () => {
   const actual = await vi.importActual<typeof import('@/lib/shopify/client')>('@/lib/shopify/client')
@@ -42,8 +48,9 @@ function twoVariants() {
 describe('QuickAddDialog', () => {
   beforeEach(() => {
     shopifyFetch.mockReset().mockResolvedValue({ product: twoVariants() })
-    addToCart.mockReset().mockResolvedValue(undefined)
+    addToCart.mockReset().mockResolvedValue(true)
     openCart.mockReset()
+    trackAddToCart.mockReset()
   })
 
   it('lists the Variants and disables a sold-out one', async () => {
@@ -65,6 +72,25 @@ describe('QuickAddDialog', () => {
     expect(addToCart).toHaveBeenCalledWith('v-small')
     await vi.waitFor(() => expect(openCart).toHaveBeenCalled())
     expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('tracks the add and opens the Cart only when the add succeeds', async () => {
+    addToCart.mockResolvedValue(false)
+    renderWithRouter(<QuickAddDialog product={summary} open onOpenChange={() => {}} />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /Small/ }))
+
+    await vi.waitFor(() => expect(addToCart).toHaveBeenCalledWith('v-small'))
+    expect(trackAddToCart).not.toHaveBeenCalled()
+    expect(openCart).not.toHaveBeenCalled()
+  })
+
+  it('tracks a successful add', async () => {
+    renderWithRouter(<QuickAddDialog product={summary} open onOpenChange={() => {}} />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /Small/ }))
+
+    await vi.waitFor(() => expect(trackAddToCart).toHaveBeenCalledTimes(1))
   })
 
   it('shows an error when the Product fails to load', async () => {
