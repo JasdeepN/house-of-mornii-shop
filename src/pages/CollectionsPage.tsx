@@ -1,17 +1,10 @@
 import { useCollections } from '@/lib/shopify'
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { useSEO } from '@/hooks/useSEO'
-import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
-import {
-  BaroqueCard,
-  BaroqueCardHeader,
-  BaroqueCardTitle,
-  BaroqueCardDescription,
-  BaroqueCardContent,
-} from '@/components/BaroqueCard'
+import { fadeSlideUp, luxuryEase } from '@/lib/animations'
+import { CollectionCard } from '@/components/CollectionCard'
 
 export function CollectionsPage() {
   const { data: collections, isLoading, error } = useCollections()
@@ -73,55 +66,9 @@ export function CollectionsPage() {
         )}
 
         {collections && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {collections.map((collection, index) => (
-              <Link
-                key={collection.id}
-                to={`/collections/${collection.handle}`}
-                className="block h-full"
-                data-testid="collection-card"
-              >
-                <BaroqueCard
-                  className="h-full cursor-pointer"
-                  animate
-                  noGlow
-                  hoverable
-                  style={{ animationDelay: `${index * 150}ms` }}
-                >
-                  <BaroqueCardHeader withDivider>
-                    <BaroqueCardTitle className="text-xl md:text-2xl">
-                      {collection.title}
-                    </BaroqueCardTitle>
-                    {collection.description && (
-                      <BaroqueCardDescription>
-                        {collection.description}
-                      </BaroqueCardDescription>
-                    )}
-                  </BaroqueCardHeader>
-
-                  <BaroqueCardContent>
-                    {collection.image ? (
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm mx-auto">
-                        <img
-                          src={`${collection.image.url}&width=600`}
-                          alt={collection.image.altText || collection.title}
-                          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
-                          loading="lazy"
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className="aspect-[4/3] w-full rounded-sm flex items-center justify-center"
-                        style={{ background: 'oklch(0.20 0.03 210)' }}
-                      >
-                        <span className="text-muted-foreground text-sm tracking-widest uppercase">
-                          {collection.title}
-                        </span>
-                      </div>
-                    )}
-                  </BaroqueCardContent>
-                </BaroqueCard>
-              </Link>
+          <div className="grid grid-cols-3 gap-[22px] max-[1100px]:grid-cols-2 max-[760px]:gap-3">
+            {collections.map((collection) => (
+              <CollectionCard key={collection.id} collection={collection} />
             ))}
           </div>
         )}

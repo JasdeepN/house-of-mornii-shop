@@ -68,8 +68,7 @@ export function NewsletterSignup({ className, source = 'newsletter-form' }: News
       <div className={className}>
         <p
           role="status"
-          className="text-sm tracking-[0.15em] text-center"
-          style={{ color: 'oklch(0.60 0.11 78)' }}
+          className="text-sm tracking-[0.15em] text-center text-foreground"
         >
           {content.successMessage}
         </p>
@@ -96,11 +95,7 @@ export function NewsletterSignup({ className, source = 'newsletter-form' }: News
               error: null
             })
           }}
-          className="flex-1 px-4 py-2.5 text-sm tracking-wider rounded-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
-          style={{
-            border: '1px solid oklch(1 0 0 / 0.15)',
-            color: 'oklch(0.90 0.01 210)',
-          }}
+          className="flex-1 px-4 py-2.5 text-sm tracking-wider rounded-sm bg-transparent outline-none border border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
         />
         <button
           type="submit"
@@ -112,7 +107,7 @@ export function NewsletterSignup({ className, source = 'newsletter-form' }: News
       </div>
       {status === 'error' && (
         <p 
-          className="text-xs text-red-400" 
+          className="text-xs text-destructive" 
           role="alert"
           aria-live="polite"
         >

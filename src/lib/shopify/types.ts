@@ -23,6 +23,9 @@ export interface ShopifyProductVariant {
   image: ShopifyImage | null
 }
 
+/** What a listing card's Variant edges carry: just enough for quick-add. */
+export type ShopifyCardVariant = Pick<ShopifyProductVariant, 'id' | 'availableForSale'>
+
 export interface ShopifyProduct {
   id: string
   handle: string
@@ -33,7 +36,8 @@ export interface ShopifyProduct {
   featuredImage: ShopifyImage | null
   images: { edges: { node: ShopifyImage }[] }
   options: { id: string; name: string; values: string[] }[]
-  variants: { edges: { node: ShopifyProductVariant }[] }
+  /** Full Variants from a Product page query; card queries carry only `id` and `availableForSale`. */
+  variants: { edges: { node: ShopifyProductVariant | ShopifyCardVariant }[] }
   priceRange: {
     minVariantPrice: ShopifyMoney
     maxVariantPrice: ShopifyMoney

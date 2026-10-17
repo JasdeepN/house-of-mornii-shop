@@ -4,6 +4,7 @@ import { renderWithProviders, userEvent } from '@/test/utils'
 import { CartFlyout } from './CartFlyout'
 import { useCart } from '@/context/CartContext'
 import { getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
+import type { ShopifyProductVariant } from '@/lib/shopify/types'
 
 const shopifyFetch = vi.fn()
 
@@ -25,7 +26,7 @@ function OpenCartWrapper() {
 function PopulatedCartWrapper() {
   const { addToCart, openCart } = useCart()
   const product = getFixtureProducts()[0]
-  const variant = product.variants.edges[0].node
+  const variant = product.variants.edges[0].node as ShopifyProductVariant
 
   return (
     <>
@@ -116,6 +117,17 @@ describe('CartFlyout', () => {
     const checkoutButton = await screen.findByTestId('checkout-button')
     expect(checkoutButton).toHaveAttribute('aria-disabled', 'true')
     expect(checkoutButton).not.toHaveAttribute('href')
+  })
+
+  it('makes no free-shipping claim', async () => {
+    renderWithProviders(<PopulatedCartWrapper />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByText('Open with item'))
+    await screen.findByTestId('checkout-button')
+
+    expect(screen.queryByText(/free shipping/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/away from free/i)).not.toBeInTheDocument()
   })
 
   it('accumulates rapid quantity clicks before sending one update', async () => {

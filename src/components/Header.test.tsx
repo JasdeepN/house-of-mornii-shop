@@ -44,6 +44,11 @@ describe('Header', () => {
     expect(contactLink).toHaveAttribute('href', '/contact')
   })
 
+  it('renders no theme toggle', () => {
+    renderWithProviders(<Header />)
+    expect(screen.queryByRole('button', { name: /switch to (light|dark) mode/i })).not.toBeInTheDocument()
+  })
+
   it('shows bag icon', () => {
     renderWithProviders(<Header />)
     // The bag button should be present (check for any button that isn't a nav link)

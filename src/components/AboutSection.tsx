@@ -35,7 +35,7 @@ export function AboutSection() {
           <BaroqueCard animate={false}>
             <BaroqueCardHeader withDivider={false}>
               <BaroqueCardTitle className="text-2xl">
-                House of <span className="font-script text-3xl" style={{ color: 'oklch(0.60 0.11 78)' }}>Mornii</span>
+                House of <span className="font-script text-3xl text-primary">Mornii</span>
               </BaroqueCardTitle>
             </BaroqueCardHeader>
 
@@ -49,15 +49,13 @@ export function AboutSection() {
 
             <BaroqueCardFooter centered className="flex flex-col items-center gap-4">
               <p
-                className="text-sm tracking-[0.25em] font-semibold"
-                style={{ color: 'oklch(0.60 0.11 78)' }}
+                className="text-sm tracking-[0.25em] font-semibold text-foreground"
               >
                 REGAL · RADIANT · MODERN
               </p>
               <Link
                 to="/about"
-                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4"
-                style={{ color: 'oklch(0.75 0.05 78)' }}
+                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4 text-muted-foreground"
               >
                 DISCOVER OUR STORY →
               </Link>

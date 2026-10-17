@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { useProduct, useRelatedProducts, formatMoney, formatDisplayPrice, defaultVariant } from '@/lib/shopify'
@@ -43,8 +43,15 @@ function sanitizeDescriptionHtml(html: string): string {
   return DOMPurify.sanitize(html, DESCRIPTION_SANITIZE_CONFIG)
 }
 
+/** The Collection's title for the breadcrumb: the Product's own when it is that Collection, else the handle read as words. */
+function cameFromTitle(handle: string, primary: { handle: string; title: string } | null): string {
+  if (primary?.handle === handle) return primary.title.toUpperCase()
+  return decodeURIComponent(handle).replace(/-/g, ' ').toUpperCase()
+}
+
 export function ProductPage() {
   const { handle } = useParams()
+  const location = useLocation()
   const { data: product, isLoading, error } = useProduct(handle ?? '')
   const errorDisplay = useErrorHandler(error)
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null)
@@ -72,6 +79,11 @@ export function ProductPage() {
   // Parent collection — used to add a real middle breadcrumb level instead of skipping straight to the product
   const primaryCollection = product?.primaryCollection ?? null
 
+  // A card passes the list it came from so the breadcrumb returns there with its filters.
+  const from = (location.state as { from?: unknown } | null)?.from
+  const cameFrom = typeof from === 'string' && (from.startsWith('/shop') || from.startsWith('/collections/')) ? from : null
+  const cameFromCollectionHandle = cameFrom?.startsWith('/collections/') ? cameFrom.slice('/collections/'.length).split(/[?#/]/)[0] : null
+
   // SEO — dynamic per product
   useSEO({
     title: product?.title,
@@ -96,11 +108,10 @@ export function ProductPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-28 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div
-            className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: 'oklch(0.60 0.11 78)', borderTopColor: 'transparent' }}
+            className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin"
           />
           <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground">
             Loading...
@@ -112,12 +123,11 @@ export function ProductPage() {
 
   if (errorDisplay) {
     return (
-      <div className="min-h-screen pt-28 pb-16 flex items-center justify-center" style={{ background: 'oklch(0.18 0.03 210)' }}>
+      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
           <div className="mb-6">
             <svg
-              className="w-16 h-16 mx-auto"
-              style={{ color: 'oklch(0.65 0.02 78 / 0.6)' }}
+              className="w-16 h-16 mx-auto text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -130,17 +140,16 @@ export function ProductPage() {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-semibold tracking-[0.15em] mb-4" style={{ color: 'oklch(0.92 0.01 78)' }}>
+          <h1 className="text-3xl font-semibold tracking-[0.15em] mb-4 text-foreground">
             {errorDisplay.title}
           </h1>
-          <p className="mb-8 leading-relaxed" style={{ color: 'oklch(0.65 0.02 78 / 0.8)' }}>
+          <p className="mb-8 leading-relaxed text-muted-foreground">
             {errorDisplay.message}
           </p>
           {errorDisplay.showRetry && (
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2.5 text-sm tracking-[0.2em] uppercase border text-accent hover:bg-white/5 transition-colors"
-              style={{ borderColor: 'oklch(0.60 0.11 78 / 0.4)', color: 'oklch(0.60 0.11 78)' }}
+              className="px-6 py-2.5 text-sm tracking-[0.2em] uppercase border border-border text-foreground hover:bg-muted transition-colors"
             >
               Try Again
             </button>
@@ -148,8 +157,7 @@ export function ProductPage() {
           {!errorDisplay.showRetry && (
             <Link
               to="/collections"
-              className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-accent hover:opacity-80 transition-opacity"
-              style={{ color: 'oklch(0.60 0.11 78)' }}
+              className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-primary hover:opacity-80 transition-opacity"
             >
               <span>&larr;</span> Browse Collections
             </Link>
@@ -161,12 +169,11 @@ export function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen pt-28 pb-16 flex items-center justify-center" style={{ background: 'oklch(0.18 0.03 210)' }}>
+      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
           <div className="mb-6">
             <svg
-              className="w-16 h-16 mx-auto"
-              style={{ color: 'oklch(0.65 0.02 78 / 0.6)' }}
+              className="w-16 h-16 mx-auto text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -179,16 +186,15 @@ export function ProductPage() {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-semibold tracking-[0.15em] mb-4" style={{ color: 'oklch(0.92 0.01 78)' }}>
+          <h1 className="text-3xl font-semibold tracking-[0.15em] mb-4 text-foreground">
             Product Not Found
           </h1>
-          <p className="mb-8 leading-relaxed" style={{ color: 'oklch(0.65 0.02 78 / 0.8)' }}>
+          <p className="mb-8 leading-relaxed text-muted-foreground">
             This piece may no longer be available.
           </p>
           <Link
             to="/collections"
-            className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-accent hover:opacity-80 transition-opacity"
-            style={{ color: 'oklch(0.60 0.11 78)' }}
+            className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-primary hover:opacity-80 transition-opacity"
           >
             <span>&larr;</span> Browse Collections
           </Link>
@@ -198,6 +204,15 @@ export function ProductPage() {
   }
 
   const compareAtPrice = activeVariant?.compareAtPrice
+
+  const listCrumbs: { label: string; to: string }[] = cameFrom
+    ? [{ label: cameFromCollectionHandle ? cameFromTitle(cameFromCollectionHandle, primaryCollection) : 'SHOP', to: cameFrom }]
+    : [
+        { label: 'COLLECTIONS', to: '/collections' },
+        ...(primaryCollection
+          ? [{ label: primaryCollection.title.toUpperCase(), to: `/collections/${primaryCollection.handle}` }]
+          : []),
+      ]
 
   return (
     <div className="min-h-screen pt-28 pb-16">
@@ -214,10 +229,7 @@ export function ProductPage() {
         <PageBreadcrumb
           items={[
             { label: 'HOME', to: '/' },
-            { label: 'COLLECTIONS', to: '/collections' },
-            ...(primaryCollection
-              ? [{ label: primaryCollection.title.toUpperCase(), to: `/collections/${primaryCollection.handle}` }]
-              : []),
+            ...listCrumbs,
             { label: product.title.toUpperCase() },
           ]}
           className="mb-8"
@@ -243,8 +255,7 @@ export function ProductPage() {
             {/* Vendor */}
             {product.vendor && (
               <span
-                className="text-xs tracking-[0.3em] uppercase"
-                style={{ color: 'oklch(0.60 0.11 78)' }}
+                className="text-xs tracking-[0.3em] uppercase text-muted-foreground"
               >
                 {product.vendor}
               </span>
@@ -257,8 +268,7 @@ export function ProductPage() {
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span
-                className="text-2xl tracking-wider"
-                style={{ color: 'oklch(0.60 0.11 78)' }}
+                className="text-2xl tracking-wider text-foreground"
               >
                 {activeVariant ? formatMoney(activeVariant.price) : formatDisplayPrice(product.price)}
               </span>
@@ -295,7 +305,7 @@ export function ProductPage() {
             {/* Description */}
             {product.descriptionHtml && (
               <div
-                className="prose prose-invert prose-sm max-w-none mt-4 text-muted-foreground leading-relaxed"
+                className="prose prose-sm max-w-none mt-4 text-muted-foreground leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(product.descriptionHtml) }}
               />
             )}
@@ -340,21 +350,13 @@ export function ProductPage() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-            style={{
-              background: 'oklch(0.18 0.03 210 / 0.85)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderTop: '1px solid oklch(1 0 0 / 0.10)',
-              boxShadow: '0 -4px 24px oklch(0 0 0 / 0.4)',
-            }}
+            className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-card/90 backdrop-blur-md border-t border-border shadow-lg"
           >
             <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-sm tracking-widest truncate">{product.title}</p>
                 <p
-                  className="text-sm tracking-wider"
-                  style={{ color: 'oklch(0.60 0.11 78)' }}
+                  className="text-sm tracking-wider text-foreground"
                 >
                   {formatMoney(activeVariant.price)}
                 </p>

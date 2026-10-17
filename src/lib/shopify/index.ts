@@ -11,6 +11,9 @@ export {
 export {
   PRODUCT_SORTS,
   parseProductSort,
+  parseListingFilters,
+  withListingFilters,
+  viewListing,
   formatDisplayPrice,
   defaultVariant,
   variantWithOption,
@@ -20,6 +23,9 @@ export {
   type Product,
   type CollectionSummary,
   type ProductSort,
+  type ListingFilters,
+  type ListingView,
+  type TypeCount,
 } from './catalog'
 export {
   CART_CREATE_MUTATION,

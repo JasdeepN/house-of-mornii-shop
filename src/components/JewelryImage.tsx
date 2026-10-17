@@ -16,14 +16,14 @@ export function JewelryImage({ collection, className = '' }: JewelryImageProps) 
   return (
     <div className={`relative w-full h-full ${className}`}>
       <div
-        className="w-full h-full bg-gradient-to-br from-teal-deep via-slate-dark to-background"
+        className="w-full h-full bg-secondary"
         style={{
           backgroundImage:
             collection === 'everyday'
-              ? 'radial-gradient(circle at 35% 40%, oklch(0.50 0.09 210) 0%, oklch(0.30 0.04 210) 40%, oklch(0.18 0.02 210) 100%)'
+              ? 'radial-gradient(circle at 35% 40%, var(--card) 0%, var(--secondary) 100%)'
               : collection === 'festive'
-                ? 'radial-gradient(circle at 65% 35%, oklch(0.60 0.11 78) 0%, oklch(0.45 0.08 210) 35%, oklch(0.20 0.02 210) 100%)'
-                : 'radial-gradient(circle at 50% 45%, oklch(0.65 0.12 78) 0%, oklch(0.50 0.09 210) 30%, oklch(0.22 0.03 210) 100%)',
+                ? 'radial-gradient(circle at 65% 35%, var(--card) 0%, var(--secondary) 100%)'
+                : 'radial-gradient(circle at 50% 45%, var(--card) 0%, var(--secondary) 100%)',
         }}
         role="img"
         aria-label={description}

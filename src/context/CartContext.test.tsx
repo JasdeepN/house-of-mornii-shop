@@ -6,6 +6,7 @@ import { CartProvider, useCart } from './CartContext'
 import type { ReactNode } from 'react'
 import { getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
 import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify'
+import type { ShopifyProductVariant } from '@/lib/shopify/types'
 
 const shopifyFetch = vi.fn()
 
@@ -37,7 +38,7 @@ function makeLine(variantId: string, quantity: number): ShopifyCartLine {
   const product = products.find((p) =>
     p.variants.edges.some((e) => e.node.id === variantId),
   )!
-  const variant = product.variants.edges[0].node
+  const variant = product.variants.edges[0].node as ShopifyProductVariant
   const price = variant.price
   return {
     id: `line-${++_lineId}`,
@@ -280,7 +281,7 @@ describe('Cart operations (token mode, shopifyFetch mocked)', () => {
 
     const product = getFixtureProducts()[0]
     const variantId = product.variants.edges[0].node.id
-    const unitPrice = parseFloat(product.variants.edges[0].node.price.amount)
+    const unitPrice = parseFloat((product.variants.edges[0].node as ShopifyProductVariant).price.amount)
 
     shopifyFetch.mockResolvedValueOnce({
       cartCreate: { cart: makeCart([makeLine(variantId, 3)]), userErrors: [] },

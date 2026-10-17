@@ -63,8 +63,8 @@
       ),
       radial-gradient(
         ellipse at 30% 40%,
-        oklch(0.25 0.03 210) 0%,
-        oklch(0.18 0.02 210) 100%
+        var(--card) 0%,
+        var(--secondary) 100%
       );
     background-size:
       80px 80px,
@@ -73,14 +73,6 @@
       100% 100%;
   }
 }
-
-/* ===== Background gradient profiles (SVG data URIs for banding-free rendering) ===== */
-
-$bg-dark-gradient: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3CradialGradient id='tealGlow' cx='15%' cy='20%' r='60%25' fx='15%' fy='20%25'%3E%3Cstop offset='0%25' stop-color='%233a5068'/%3E%3Cstop offset='45%25' stop-color='%233a5068' stop-opacity='0.4'/%3E%3Cstop offset='100%25' stop-color='%233a5068' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='goldGlow' cx='80%' cy='80%' r='65%25' fx='80%' fy='80%25'%3E%3Cstop offset='0%25' stop-color='%237a6b44'/%3E%3Cstop offset='35%25' stop-color='%237a6b44' stop-opacity='0.35'/%3E%3Cstop offset='100%25' stop-color='%237a6b44' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='%231e2530'/%3E%3Crect width='1920' height='1080' fill='url(%23tealGlow)' opacity='0.7'/%3E%3Crect width='1920' height='1080' fill='url(%23goldGlow)' opacity='0.7'/%3E%3C/svg%3E");
-
-$bg-light-gradient: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3CradialGradient id='tealGlowL' cx='15%' cy='20%' r='60%25' fx='15%' fy='20%25'%3E%3Cstop offset='0%25' stop-color='%235a7fa0'/%3E%3Cstop offset='45%25' stop-color='%235a7fa0' stop-opacity='0.5'/%3E%3Cstop offset='100%25' stop-color='%235a7fa0' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='goldGlowL' cx='80%' cy='80%' r='65%25' fx='80%' fy='80%25'%3E%3Cstop offset='0%25' stop-color='%23b8a46c'/%3E%3Cstop offset='35%25' stop-color='%23b8a46c' stop-opacity='0.4'/%3E%3Cstop offset='100%25' stop-color='%23b8a46c' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='%23e8e4dc'/%3E%3Crect width='1920' height='1080' fill='url(%23tealGlowL)' opacity='0.65'/%3E%3Crect width='1920' height='1080' fill='url(%23goldGlowL)' opacity='0.65'/%3E%3C/svg%3E");
-
-$bg-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E");
 
 @layer base {
   * {
@@ -92,38 +84,10 @@ $bg-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' wid
   }
 
   body {
-    background-color: oklch(0.18 0.03 210);
+    background-color: var(--background);
     color: var(--foreground);
-    font-family: 'Cormorant Garamond', serif;
+    font-family: Arial, Helvetica, sans-serif;
     position: relative;
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  /* Unified SVG gradient background — avoids CSS banding by using a single compositable image */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: $bg-dark-gradient;
-    background-size: cover;
-    background-position: center;
-    transition: opacity 0.4s ease, background-image 0.4s ease;
-  }
-
-  /* Subtle film-grain noise overlay to mask residual banding edges */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.06;
-    mix-blend-mode: overlay;
-    background-image: $bg-noise;
-    background-size: 256px 256px;
-    transition: opacity 0.4s ease;
   }
 
   body > #root {
@@ -136,97 +100,25 @@ $bg-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' wid
   h4,
   h5,
   h6 {
-    font-family: 'Cinzel', serif;
-  }
-}
-
-/* ===== Theme toggle styles (outside @layer for attribute selectors) ===== */
-
-html[data-theme="light"],
-body[data-theme="light"] {
-  background-color: oklch(0.94 0.01 80);
-  color: oklch(0.22 0.02 78); /* dark brown-gold — WCAG AAA on cream bg */
-
-  // ── Tailwind semantic color variables (light mode) ──
-  --background: oklch(0.96 0.005 85);
-  --foreground: oklch(0.15 0.02 78);
-  --card: oklch(0.97 0.005 85);
-  --card-foreground: oklch(0.15 0.02 78);
-  --popover: oklch(0.97 0.005 85);
-  --popover-foreground: oklch(0.15 0.02 78);
-  --primary: oklch(0.55 0.12 78);
-  --primary-foreground: oklch(0.98 0.005 85);
-  --secondary: oklch(0.90 0.008 85);
-  --secondary-foreground: oklch(0.25 0.02 78);
-  --muted: oklch(0.92 0.008 85);
-  --muted-foreground: oklch(0.42 0.02 78);
-  --accent: oklch(0.60 0.11 78);
-  --accent-foreground: oklch(0.12 0.02 210);
-  --destructive: oklch(0.55 0.20 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.85 0.01 85);
-  --input: oklch(0.97 0.005 85);
-  --ring: oklch(0.55 0.12 78);
-
-  --gold: oklch(0.60 0.11 78);
-  --gold-bright: oklch(0.68 0.13 80);
-  --teal-deep: oklch(0.45 0.08 210);
-  --slate-dark: oklch(0.20 0.02 210);
-
-  // ── Ambient light-mode glass gradient (multi-stop OKLCH) ──
-  --glass-panel-bg: linear-gradient(
-    160deg,
-    oklch(0.96 0.01 80 / 0.55) 0%,
-    oklch(0.93 0.015 210 / 0.35) 35%,
-    oklch(0.92 0.01 80 / 0.45) 65%,
-    oklch(0.94 0.02 78 / 0.25) 100%
-  );
-
-  --glass-blur-md: 24px; /* stronger blur so page gradient shows through */
-  --glass-saturate: 140%;
-  --glass-contrast: 108%;
-  --glass-panel-border: oklch(0.60 0.11 78 / 0.18);
-  --glass-highlight: oklch(1 0 0 / 0.50);
-  --glass-shadow:
-    0 12px 48px -16px oklch(0.28 0.03 210 / 0.14),
-    0 4px 18px oklch(0.28 0.03 210 / 0.08);
-  --glass-shadow-hover:
-    0 18px 56px -14px oklch(0.28 0.03 210 / 0.20),
-    0 8px 24px oklch(0.28 0.03 210 / 0.12),
-    0 0 0 1px oklch(0.60 0.11 78 / 0.24);
-
-  // ── Soft golden glow under-lighting (replaces PNG ornamental border) ──
-  --golden-glow-color: oklch(0.60 0.11 78);
-  --golden-glow-intensity: 0.18;
-  --golden-glow-spread: 16px;
-  --golden-glow-blur: 32px;
-  --golden-glow-hover-intensity: 0.28;
-
-  &::before {
-    opacity: 0.05;
-  }
-
-  &::after {
-    background-image: $bg-light-gradient !important;
+    font-family: 'Mornii Display', Georgia, 'Times New Roman', serif;
+    font-weight: 400;
   }
 }
 
 :root {
-  // ── Dark mode color tokens (default) ────────────────────────
-  --foreground: oklch(0.92 0.01 78);
-  --card-foreground: oklch(0.90 0.01 78);
-  --muted-foreground: oklch(0.65 0.02 78);
-  --border: oklch(1 0 0 / 0.08);
-
   --ornamental-frame-pad-top: clamp(2.75rem, 5vw, 5rem);
   --ornamental-frame-pad-right: clamp(2.5rem, 4.5vw, 4.5rem);
   --ornamental-frame-pad-bottom: clamp(4.5rem, 8vw, 7rem);
   --ornamental-frame-pad-left: clamp(2.5rem, 4.5vw, 4.5rem);
 
-  // ── Golden glow defaults (dark mode) ────────────────────────
-  --golden-glow-intensity: 0.12;
-  --golden-glow-hover-intensity: 0.22;
+  // Golden glow is off in the champagne theme
+  --golden-glow-color: var(--gold);
+  --golden-glow-intensity: 0;
+  --golden-glow-spread: 16px;
+  --golden-glow-blur: 32px;
+  --golden-glow-hover-intensity: 0;
 }
+
 
 .font-script {
   font-family: 'Great Vibes', cursive;
@@ -234,9 +126,7 @@ body[data-theme="light"] {
 
 /* Gold text glow for hero/internal content — enhances readability on glass panels */
 .hero-text-glow {
-  text-shadow:
-    0 0 8px oklch(0.60 0.11 78 / 0.25),
-    0 0 20px oklch(0.60 0.11 78 / 0.12);
+  text-shadow: none;
 }
 
 /* ── Soft golden under-lighting glow for cards/panels ──────────────── */
@@ -274,44 +164,94 @@ body[data-theme="light"] {
   }
 }
 
-/* ===== Brand lockup colors — dark mode defaults ===== */
-.brand-title { color: oklch(0.88 0.02 210); }
-.brand-name { color: oklch(0.60 0.11 78); }
+/* ===== Brand lockup (default: on the champagne page) ===== */
+.brand-title { color: var(--foreground); }
+.brand-name { color: var(--gold); }
 
-/* ===== Hero section text colors — dark mode defaults (on dark glass) ===== */
-.text-hero-tagline { color: oklch(0.90 0.04 78); }
-.text-hero-description { color: oklch(0.88 0.02 210); }
-.text-hero-subtle-link { color: oklch(0.75 0.05 78); }
-.text-hero-scroll-text { color: oklch(0.72 0.05 78); }
+/* ===== Hero section text colours (on the champagne page) ===== */
+.text-hero-tagline { color: var(--foreground); }
+.text-hero-description { color: var(--foreground); }
+.text-hero-subtle-link { color: var(--foreground); }
+.text-hero-scroll-text { color: var(--muted-foreground); }
 .hero-scroll-indicator {
-  background: oklch(0.10 0.02 210 / 0.60);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid oklch(1 0 0 / 0.08);
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  border: 1px solid var(--border);
 }
-.hero-scroll-arrow { color: oklch(0.65 0.10 78); }
-.hero-line-decorative { background: linear-gradient(to right, oklch(0.60 0.08 78), transparent); }
+.hero-scroll-arrow { color: var(--muted-foreground); }
+.hero-line-decorative { background: linear-gradient(to right, var(--gold), transparent); }
 
-/* ===== Hero section text colors — light mode overrides (on bright glass) ===== */
-html[data-theme="light"],
-body[data-theme="light"] {
-  .text-hero-tagline { color: oklch(0.35 0.10 78); } /* dark gold for legibility on cream bg */
-  .text-hero-description { color: oklch(0.24 0.02 78); } /* near-black brown-gold — WCAG AAA on cream */
-  .text-hero-subtle-link { color: oklch(0.32 0.06 78); }
-  .text-hero-scroll-text { color: oklch(0.40 0.06 78); }
-  .hero-scroll-indicator {
-    background: oklch(0.90 0.01 80 / 0.70);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid oklch(0.60 0.11 78 / 0.20);
+/* Surfaces that sit inside a teal bar but are page-coloured (dropdowns): restore the page tokens */
+.on-page {
+  --foreground: var(--page-foreground);
+  --muted-foreground: var(--page-muted-foreground);
+  --accent: var(--page-accent);
+  --accent-foreground: var(--page-accent-foreground);
+  --border: var(--page-border);
+  --input: var(--page-input);
+  --color-background: var(--page-background);
+  --color-foreground: var(--page-foreground);
+  --color-muted-foreground: var(--page-muted-foreground);
+  --color-accent: var(--page-accent);
+  --color-accent-foreground: var(--page-accent-foreground);
+  --color-border: var(--page-border);
+  --color-input: var(--page-input);
+  color: var(--page-foreground);
+}
+
+/* ===== Teal bars: the header and footer =====
+   Teal at 94%, champagne text, gold accents, square corners. The Tailwind colour
+   utilities read --color-*, so those are redefined here too. */
+.bar-teal,
+.glass-panel.bar-teal {
+  --bar-teal: oklch(0.336 0.054 200.5);
+  --bar-on-teal: oklch(0.941 0.020 74.7);
+  --bar-on-teal-muted: oklch(0.924 0.027 85.7);
+  --bar-gold: oklch(0.800 0.100 76);
+
+  --foreground: var(--bar-on-teal);
+  --muted-foreground: var(--bar-on-teal-muted);
+  --accent: var(--bar-gold);
+  --accent-foreground: var(--bar-teal);
+  --border: oklch(0.941 0.020 74.7 / 0.22);
+  --input: oklch(0.941 0.020 74.7 / 0.35);
+  --ring: var(--bar-gold);
+  --color-background: var(--bar-teal);
+  --color-foreground: var(--bar-on-teal);
+  --color-muted-foreground: var(--bar-on-teal-muted);
+  --color-accent: var(--bar-gold);
+  --color-accent-foreground: var(--bar-teal);
+  --color-border: oklch(0.941 0.020 74.7 / 0.22);
+  --color-input: oklch(0.941 0.020 74.7 / 0.35);
+  --color-ring: var(--bar-gold);
+
+  background: color-mix(in oklch, var(--bar-teal) 94%, transparent);
+  color: var(--bar-on-teal);
+  border-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+
+  --destructive: oklch(0.85 0.10 25);
+  --color-destructive: oklch(0.85 0.10 25);
+
+  .brand-title { color: var(--bar-on-teal); }
+  .brand-name { color: var(--bar-gold); }
+
+  // Primary buttons would be teal on teal: invert them to gold
+  .pill-btn--cta {
+    color: var(--bar-teal);
+    background: var(--bar-gold);
+    border-color: var(--bar-gold);
+
+    &:hover {
+      color: var(--bar-teal);
+      background: var(--bar-on-teal);
+      border-color: var(--bar-on-teal);
+    }
   }
-  .hero-scroll-arrow { color: oklch(0.45 0.10 78); }
-  .hero-line-decorative { background: linear-gradient(to right, oklch(0.55 0.10 78), transparent); }
-
-  /* Brand lockup light mode overrides */
-  .brand-title { color: oklch(0.28 0.04 210) !important; } /* dark slate for legibility on cream bg */
-  .brand-name { color: oklch(0.45 0.11 78) !important; } /* darker gold for contrast */
 }
+
 
 .ornate-border {
   position: relative;
@@ -338,7 +278,7 @@ body[data-theme="light"] {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Pill Button — smoky glass with peacock hover jelly effect          */
+/*  Pill Button —  hover jelly effect          */
 /* ------------------------------------------------------------------ */
 
 .pill-btn {
@@ -352,28 +292,21 @@ body[data-theme="light"] {
   text-transform: uppercase;
   border-radius: 0.25rem;
   cursor: pointer;
-  color: oklch(0.80 0.02 210);
-  background: oklch(0.22 0.03 210 / 0.60);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid oklch(1 0 0 / 0.14);
-  box-shadow: 0 2px 8px oklch(0 0 0 / 0.20);
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
   transform: scale(1);
-  // colour + shadow animate fast; scale uses spring for the jelly bounce
+  // colour animates fast; scale uses spring for the jelly bounce
   transition:
     transform    0.40s cubic-bezier(0.34, 1.56, 0.64, 1),
     background   0.25s ease,
     border-color 0.25s ease,
-    color        0.25s ease,
-    box-shadow   0.25s ease;
+    color        0.25s ease;
 
   &:hover {
-    color: oklch(0.88 0.10 195);
-    background: oklch(0.45 0.12 195 / 0.18);
-    border-color: oklch(0.55 0.14 195 / 0.55);
-    box-shadow:
-      0 4px 18px oklch(0.45 0.12 195 / 0.20),
-      0 0 0 1px oklch(0.55 0.14 195 / 0.16);
+    color: var(--primary);
+    background: var(--secondary);
+    border-color: var(--primary);
     transform: scale(1.06);
   }
 
@@ -383,43 +316,30 @@ body[data-theme="light"] {
   }
 }
 
-// Active / selected state — gold tint, no hover-grow
+// Active / selected state: filled teal, no hover-grow
 .pill-btn--active {
-  color: oklch(0.75 0.12 78);
-  background: oklch(0.60 0.11 78 / 0.18);
-  border-color: oklch(0.60 0.11 78 / 0.45);
-  box-shadow:
-    0 4px 16px oklch(0.60 0.11 78 / 0.15),
-    0 0 0 1px oklch(0.60 0.11 78 / 0.18);
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
 
   &:hover {
-    // keep gold look, only micro-scale
-    color: oklch(0.80 0.13 78);
-    background: oklch(0.60 0.11 78 / 0.24);
-    border-color: oklch(0.60 0.11 78 / 0.60);
-    box-shadow:
-      0 6px 20px oklch(0.60 0.11 78 / 0.22),
-      0 0 0 1px oklch(0.60 0.11 78 / 0.25);
+    color: var(--primary-foreground);
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
     transform: scale(1.04);
   }
 }
 
-// CTA / primary action — rich gold glass, strong spring bounce
+// CTA / primary action
 .pill-btn--cta {
-  color: oklch(0.15 0.02 210);
-  background: oklch(0.60 0.11 78);
-  border-color: oklch(0.68 0.13 80 / 0.80);
-  box-shadow:
-    0 4px 20px oklch(0.60 0.11 78 / 0.30),
-    inset 0 1px 0 oklch(1 0 0 / 0.20);
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
 
   &:hover {
-    color: oklch(0.10 0.02 210);
-    background: oklch(0.65 0.13 80);
-    border-color: oklch(0.72 0.14 80);
-    box-shadow:
-      0 8px 28px oklch(0.60 0.11 78 / 0.40),
-      inset 0 1px 0 oklch(1 0 0 / 0.25);
+    color: var(--primary-foreground);
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
     transform: scale(1.06);
   }
 
@@ -518,14 +438,14 @@ body[data-theme="light"] {
 .glass-panel--hover:hover {
   transform: translateY(-2px) scale(1.01);
   box-shadow: var(--glass-shadow-hover);
-  border-color: oklch(0.60 0.11 78 / 0.22);
+  border-color: var(--border);
 }
 
 /* Subtle variant — lighter blur for nested or secondary surfaces */
 .glass-panel--subtle {
   backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
-  box-shadow: 0 4px 16px oklch(0 0 0 / 0.25);
+  box-shadow: none;
 
   &::before {
     opacity: 0.3;
@@ -703,7 +623,7 @@ body[data-theme="light"] {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    oklch(0.60 0.11 78 / 0.3) 50%,
+    oklch(0.649 0.077 83.8 / 0.3) 50%,
     transparent 100%
   );
   background-size: 1000px 100%;
@@ -715,14 +635,14 @@ body[data-theme="light"] {
 }
 
 ::-webkit-scrollbar-track {
-  background: oklch(0.20 0.02 210);
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.60 0.11 78);
+  background: var(--border);
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.68 0.13 80);
+  background: var(--muted-foreground);
 }

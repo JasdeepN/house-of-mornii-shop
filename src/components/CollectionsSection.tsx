@@ -4,13 +4,7 @@ import { JewelryImage } from '@/components/JewelryImage'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  BaroqueCard, 
-  BaroqueCardHeader, 
-  BaroqueCardTitle, 
-  BaroqueCardDescription,
-  BaroqueCardContent
-} from '@/components/BaroqueCard'
+import { CollectionCard } from '@/components/CollectionCard'
 import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
 
 // To use real photos: import them here and set the `image` field, e.g.:
@@ -19,6 +13,7 @@ import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
 const collections = [
   {
     id: 'everyday' as const,
+    handle: 'everyday',
     title: 'EVERYDAY',
     subtitle: 'Polished essentials',
     description: 'Refined, versatile pieces that elevate your daily elegance with timeless sophistication.',
@@ -26,6 +21,7 @@ const collections = [
   },
   {
     id: 'festive' as const,
+    handle: 'festive',
     title: 'FESTIVE',
     subtitle: 'Celebration shine',
     description: 'Radiant statement pieces designed to captivate and dazzle at every special occasion.',
@@ -33,6 +29,7 @@ const collections = [
   },
   {
     id: 'bridal' as const,
+    handle: 'bridal',
     title: 'BRIDAL',
     subtitle: 'Bridal grandeur',
     description: 'Exquisite heirloom-quality jewellery that transforms your most treasured moments into lasting memories.',
@@ -61,40 +58,19 @@ export function CollectionsSection() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {collections.map((collection, index) => (
-            <Link key={collection.id} to={`/collections/${collection.id}`} className="h-full block">
-               <BaroqueCard
-                  className="h-full cursor-pointer"
-                  animate
-                  noGlow
-                  hoverable
-                  style={{ animationDelay: `${index * 150}ms` }}
-               >
-                  <BaroqueCardHeader withDivider={true}>
-                    <BaroqueCardTitle className="text-xl md:text-2xl">{collection.title}</BaroqueCardTitle>
-                    <BaroqueCardDescription>{collection.subtitle}</BaroqueCardDescription>
-                  </BaroqueCardHeader>
-
-                  <BaroqueCardContent className="flex flex-col gap-4">
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm mx-auto">
-                      {collection.image ? (
-                        <img
-                          src={collection.image}
-                          alt={collection.title}
-                          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <JewelryImage collection={collection.id} className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" />
-                      )}
-                    </div>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      {collection.description}
-                    </p>
-                  </BaroqueCardContent>
-               </BaroqueCard>
-            </Link>
+        <div className="grid grid-cols-3 gap-[22px] max-[1100px]:grid-cols-2 max-[760px]:gap-3">
+          {collections.map((collection) => (
+            <CollectionCard
+              key={collection.id}
+              collection={{
+                id: collection.id,
+                handle: collection.handle,
+                title: collection.title,
+                description: collection.description,
+                image: null,
+              }}
+              media={<JewelryImage collection={collection.id} className="h-full w-full object-cover" />}
+            />
           ))}
         </div>
 
@@ -108,8 +84,7 @@ export function CollectionsSection() {
         >
           <Link
             to="/collections"
-            className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4"
-            style={{ color: 'oklch(0.75 0.05 78)' }}
+            className="text-xs tracking-[0.3em] uppercase text-primary underline-offset-4 transition-colors duration-300 hover:text-primary-hover hover:underline"
           >
             VIEW ALL COLLECTIONS →
           </Link>

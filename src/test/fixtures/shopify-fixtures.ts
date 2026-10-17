@@ -165,6 +165,23 @@ const bridalProducts: ShopifyProduct[] = [
 
 const allProducts = [...everydayProducts, ...festiveProducts, ...bridalProducts]
 
+// Product types, as the live store sets them (Necklace, Earrings, Set, ...).
+const productTypes: Record<string, string> = {
+  'aria-pendant': 'Necklace',
+  'seren-studs': 'Earrings',
+  'lumiere-bangle': 'Bracelet',
+  'cassia-chain': 'Necklace',
+  'noor-chandeliers': 'Earrings',
+  'zara-ring': 'Ring',
+  'rania-collar': 'Necklace',
+  'farah-drops': 'Earrings',
+  'maharani-set': 'Set',
+  'celestia-tikka': 'Tikka',
+  'anaya-jhumkas': 'Earrings',
+  'priya-harness': 'Bracelet',
+}
+for (const product of allProducts) product.productType = productTypes[product.handle]
+
 // ─── Collections ─────────────────────────────────────────────────────────────
 
 function fixtureCollection(
@@ -437,6 +454,25 @@ const budgetProduct: ShopifyProduct = {
   vendor: 'House of Mornii',
 }
 
+// Sold-out Product: its only Variant cannot be bought
+const soldOutProduct: ShopifyProduct = {
+  ...budgetProduct,
+  id: gid('Product'),
+  handle: 'sold-out-product',
+  title: 'Sold Out Piece',
+  availableForSale: false,
+  variants: { edges: [{ node: { ...budgetProduct.variants.edges[0].node, id: gid('ProductVariant'), availableForSale: false } }] },
+  tags: ['edge-case', 'sold-out'],
+}
+
+// Product types for the edge cases (single Variant: no-image, special-chars, premium, budget; several: multi-variant)
+noImageProduct.productType = 'Necklace'
+multiVariantProduct.productType = 'Ring'
+specialCharsProduct.productType = 'Earrings'
+premiumProduct.productType = 'Set'
+budgetProduct.productType = 'Earrings'
+soldOutProduct.productType = 'Necklace'
+
 // Add edge case products to the allProducts array
 const edgeCaseProducts = [
   noImageProduct,
@@ -444,6 +480,7 @@ const edgeCaseProducts = [
   specialCharsProduct,
   premiumProduct,
   budgetProduct,
+  soldOutProduct,
 ]
 
 export function getEdgeCaseProducts(): ShopifyProduct[] {

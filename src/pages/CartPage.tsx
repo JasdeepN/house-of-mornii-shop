@@ -7,7 +7,6 @@ import type { ShopifyCartLine } from '@/lib/shopify'
 import { TrustBadges, PaymentIcons } from '@/components/TrustBadges'
 import { useSEO } from '@/hooks/useSEO'
 import { trackBeginCheckout } from '@/lib/analytics'
-import { FreeShippingBar } from '@/components/FreeShippingBar'
 import { checkoutLink, isValidCheckoutUrl } from '@/lib/cart'
 import { useCustomerSession } from '@/lib/customer'
 import { luxuryEase } from '@/lib/animations'
@@ -20,7 +19,6 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
   return (
     <div
       className="flex gap-4 py-6 border-b"
-      style={{ borderColor: 'oklch(1 0 0 / 0.08)' }}
     >
       {/* Image */}
       <div className="w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden">
@@ -32,8 +30,7 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
           />
         ) : (
           <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: 'oklch(0.20 0.03 210)' }}
+            className="w-full h-full flex items-center justify-center bg-secondary"
           >
             <ShoppingBag size={20} className="text-muted-foreground" />
           </div>
@@ -85,15 +82,14 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
           {/* Price + Remove */}
           <div className="flex items-center gap-3">
             <span
-              className="text-sm tracking-wider"
-              style={{ color: 'oklch(0.60 0.11 78)' }}
+              className="text-sm tracking-wider text-foreground"
             >
               {formatMoney(line.cost.totalAmount)}
             </span>
             <button
               onClick={() => removeLineItem(line.id)}
               disabled={isLoading}
-              className="text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-40"
+              className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
             >
               <Trash size={16} weight="bold" />
             </button>
@@ -172,11 +168,9 @@ export function CartPage() {
             transition={{ duration: 0.3, delay: 0.2, ease: luxuryEase }}
             className="mt-8 space-y-4"
           >
-            <FreeShippingBar subtotalAmount={cart.cost.subtotalAmount.amount} className="mb-2" />
-
             <div className="flex items-center justify-between text-lg">
               <span className="tracking-widest">SUBTOTAL</span>
-              <span style={{ color: 'oklch(0.60 0.11 78)' }}>
+              <span className="text-foreground">
                 {formatMoney(cart.cost.subtotalAmount)}
               </span>
             </div>
@@ -195,21 +189,13 @@ export function CartPage() {
                   isLoading
                     ? 'opacity-50 pointer-events-none'
                     : 'hover:opacity-90'
-                }`}
-                style={{
-                  background: 'oklch(0.60 0.11 78)',
-                  color: 'oklch(0.15 0.02 210)',
-                }}
+                } bg-primary text-primary-foreground hover:bg-primary-hover`}
               >
                 PROCEED TO CHECKOUT
               </a>
             ) : (
               <div
-                className="block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none"
-                style={{
-                  background: 'oklch(0.60 0.11 78)',
-                  color: 'oklch(0.15 0.02 210)',
-                }}
+                className="block w-full text-center py-4 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none bg-primary text-primary-foreground hover:bg-primary-hover"
               >
                 PROCEED TO CHECKOUT
               </div>

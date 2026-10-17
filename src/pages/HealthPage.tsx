@@ -35,8 +35,8 @@ export function HealthPage() {
   }, [])
 
   const statusColor = {
-    healthy: 'text-green-500',
-    unhealthy: 'text-red-500',
+    healthy: 'text-primary',
+    unhealthy: 'text-destructive',
   }
 
   if (isLoading) {
@@ -74,7 +74,7 @@ export function HealthPage() {
             </div>
             <div>
               <span className="text-xs tracking-widest uppercase text-muted-foreground block mb-1">Configured</span>
-              <span className={`text-lg font-medium ${health.configured ? 'text-green-500' : 'text-red-500'}`}>
+              <span className={`text-lg font-medium ${health.configured ? 'text-primary' : 'text-destructive'}`}>
                 {health.configured ? 'YES' : 'NO'}
               </span>
             </div>
@@ -110,7 +110,7 @@ export function HealthPage() {
             </button>
             <a
               href="/"
-              className="px-4 py-2 text-sm tracking-widest uppercase bg-accent text-white hover:bg-accent/90 transition-colors"
+              className="px-4 py-2 text-sm tracking-widest uppercase bg-primary text-primary-foreground hover:bg-primary-hover transition-colors"
             >
               Return to Store
             </a>
@@ -122,7 +122,7 @@ export function HealthPage() {
           <summary className="text-xs tracking-widest uppercase text-muted-foreground cursor-pointer">
             Debug Information
           </summary>
-          <pre className="mt-2 p-4 bg-black/30 rounded text-xs overflow-auto text-muted-foreground">
+          <pre className="mt-2 p-4 bg-secondary rounded text-xs overflow-auto text-muted-foreground">
             {JSON.stringify({
               mode: STOREFRONT_MODE,
               configured: IS_CONFIGURED,

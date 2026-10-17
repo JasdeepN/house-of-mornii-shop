@@ -29,6 +29,8 @@ const PRODUCT_CARD_FRAGMENT = `
     productType
     compareAtPriceRange { minVariantPrice { amount currencyCode } }
     images(first: 2) { edges { node { ...ImageFields } } }
+    # Just enough to decide what the quick-add button does
+    variants(first: 2) { edges { node { id availableForSale } } }
   }
   ${IMAGE_FRAGMENT}
 `

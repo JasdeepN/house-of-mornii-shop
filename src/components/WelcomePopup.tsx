@@ -33,16 +33,11 @@ export function WelcomePopup() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 z-60"
-          style={{ background: 'oklch(0 0 0 / 0.6)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-60 bg-foreground/40"
+          style={{ backdropFilter: 'blur(4px)' }}
         />
         <Dialog.Content
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-61 w-[90vw] max-w-md p-8 rounded-sm focus:outline-none"
-          style={{
-            background: 'oklch(0.14 0.03 210)',
-            border: '1px solid oklch(1 0 0 / 0.12)',
-            boxShadow: '0 16px 64px oklch(0 0 0 / 0.6)',
-          }}
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-61 w-[90vw] max-w-md p-8 rounded-sm focus:outline-none bg-card text-foreground border border-border shadow-2xl"
         >
           <Dialog.Close asChild>
             <button
@@ -55,8 +50,7 @@ export function WelcomePopup() {
 
           <div className="text-center space-y-4">
             <p
-              className="text-xs tracking-[0.3em] uppercase"
-              style={{ color: 'oklch(0.60 0.11 78)' }}
+              className="text-xs tracking-[0.3em] uppercase text-foreground"
             >
               {content.eyebrow}
             </p>

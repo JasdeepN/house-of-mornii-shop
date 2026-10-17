@@ -48,8 +48,8 @@ function OrdersList() {
                         <h3 className="text-lg tracking-widest font-medium">{order.name}</h3>
                         <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${
                           order.financialStatus === 'PAID'
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-amber-500/20 text-amber-400'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-foreground border border-border'
                         }`}>
                           {humanStatus(order.financialStatus)}
                         </span>

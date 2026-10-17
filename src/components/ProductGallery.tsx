@@ -14,8 +14,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
   if (images.length === 0) {
     return (
       <div
-        className="aspect-square w-full rounded-sm flex items-center justify-center"
-        style={{ background: 'oklch(0.20 0.03 210)' }}
+        className="aspect-square w-full rounded-sm flex items-center justify-center bg-secondary"
       >
         <span className="text-muted-foreground text-sm tracking-widest uppercase">
           No Image
