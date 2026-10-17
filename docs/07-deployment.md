@@ -31,7 +31,7 @@ The application deploys as a static site to Cloudflare Pages (or any static host
 | `VITE_SITE_URL` | Canonical URL base | `http://localhost:5173` |
 | `VITE_SITE_OG_IMAGE_PATH` | Open Graph image path | `/og-image.png` |
 | `VITE_SITE_OG_IMAGE_ALT` | OG image alt text | `House of Mornii preview image` |
-| `VITE_THEME_COLOR` | Theme color for browser UI | `oklch(0.15 0.02 210)` |
+| `VITE_THEME_COLOR` | Theme color for browser UI | `oklch(0.336 0.054 200.5)` |
 | `VITE_CONTACT_EMAIL` | Contact email address | (empty) |
 | `VITE_INSTAGRAM_HANDLE` | Instagram username | `@houseofmornii` |
 | `VITE_INSTAGRAM_URL` | Instagram profile URL | `https://instagram.com/houseofmornii` |

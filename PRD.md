@@ -65,38 +65,32 @@ This is a content showcase with collection browsing, mood-based shopping navigat
 
 ## Design Direction
 
+> **Note:** The peacock imagery and jewel-tone wording below is the original concept. The current look is the champagne and teal palette in Color Selection, with a teal header and footer and layout C Product cards.
+
 The design should evoke the feeling of stepping into an exclusive jewelry atelier where heritage meets modern luxury. Rich jewel tones (deep teals, lustrous golds), ornate Victorian-inspired borders, and peacock feather motifs create a sense of regal opulence. Typography should be elegant and refined, with script fonts for brand elements and sophisticated serifs for body content. Every interaction should feel precious and intentional, like handling fine jewelry.
 
 ## Color Selection
 
-A rich, jewel-toned palette inspired by peacock plumage and precious metals, updated to feature darker, more refined gold tones:
+A champagne and teal palette, light only (v1.0 has no dark mode). Defined once in `src/tailwind.css`. Gold is decoration, never text:
 
-- **Primary Color**: Deep Teal `oklch(0.45 0.08 210)` - Evokes peacock feathers and precious gemstones, communicates luxury and sophistication
-- **Secondary Colors**: 
-  - Refined Antique Gold `oklch(0.60 0.11 78)` - Muted, darker gold representing aged precious metals and heritage opulence
-  - Dark Slate `oklch(0.20 0.02 210)` - Deep, moody background that makes jewel tones pop
-- **Accent Color**: Antique Gold `oklch(0.60 0.11 78)` - Sophisticated metallic highlight for CTAs and ornamental details, replacing the brighter gold
-- **Foreground/Background Pairings**:
-  - Background Dark `oklch(0.15 0.02 210)`: Light Gold text `oklch(0.95 0.05 85)` - Ratio 11.2:1 ✓
-  - Primary Teal `oklch(0.45 0.08 210)`: White text `oklch(1 0 0)` - Ratio 6.1:1 ✓
-  - Accent Gold `oklch(0.60 0.11 78)`: Dark Slate text `oklch(0.12 0.02 210)` - Ratio 7.8:1 ✓
-  - Card Background `oklch(0.22 0.03 210)`: Light text `oklch(0.92 0.02 85)` - Ratio 9.8:1 ✓
+- **Page**: Champagne `oklch(0.924 0.027 78.2)` background; Ink `oklch(0.335 0.045 193.0)` text
+- **Primary/Accent**: Deep Teal `oklch(0.336 0.054 200.5)` (#063F42) for buttons, links and the header and footer; hover `oklch(0.409 0.061 199.7)`
+- **Card**: `oklch(0.941 0.020 74.7)`; Muted `oklch(0.894 0.032 78.1)`; Border `oklch(0.846 0.027 80.2)`
+- **Gold**: `oklch(0.649 0.077 83.8)` for rules and ornaments; Gold on teal `oklch(0.800 0.100 76)` for accents inside the teal bars
+- **Foreground/Background Pairings** (measured):
+  - Page `oklch(0.924 0.027 78.2)`: Ink text `oklch(0.335 0.045 193.0)` - Ratio 9.4:1 ✓
+  - Page: Muted text `oklch(0.502 0.020 145.3)` - Ratio 4.7:1 ✓
+  - Teal `oklch(0.336 0.054 200.5)`: Champagne text `oklch(0.941 0.020 74.7)` - Ratio 9.8:1 ✓
+  - Teal: Gold on teal `oklch(0.800 0.100 76)` - Ratio 6.2:1 ✓
+  - Page: Gold `oklch(0.649 0.077 83.8)` - Ratio 2.6:1 (decoration only, never text)
 
 ## Font Selection
 
-Typography should balance ornate elegance with modern readability, evoking both heritage craftsmanship and contemporary luxury:
+- **Heading Font**: Noto Serif Display, self-hosted as "Mornii Display" at weight 400 (`font-heading`)
+- **Body Font**: Arial (`font-body`)
+- **Script Font**: Great Vibes (script) - only for the "Mornii" brand element (`font-script`)
 
-- **Primary Font**: Cormorant Garamond (serif) - Elegant, high-contrast serif with old-style numerals perfect for luxury branding
-- **Accent Font**: Cinzel (serif) - Classical proportions inspired by Roman inscriptions, used for headings and the brand name
-- **Script Font**: Great Vibes (script) - Flowing, sophisticated script for the "Mornii" brand element
-
-**Typographic Hierarchy**:
-- H1 (Brand Name): Cinzel Bold/48px/tight letter-spacing (0.05em)
-- H2 (Section Headers): Cinzel Regular/36px/normal letter-spacing (0.08em)
-- H3 (Collection Names): Cinzel Regular/28px/wide letter-spacing (0.12em)
-- Body (Descriptions): Cormorant Garamond Regular/18px/relaxed line-height (1.6)
-- Script (Brand Accent): Great Vibes Regular/64px/flowing spacing
-- Buttons: Cormorant Garamond SemiBold/16px/uppercase with letter-spacing (0.15em)
+Cinzel, Cormorant Garamond and Inter are no longer used.
 
 ## Animations
 
