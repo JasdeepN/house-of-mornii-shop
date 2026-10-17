@@ -1,10 +1,9 @@
 # wrangler.toml — Shopify Automation Worker
 #
-# Deploys workers/shopify-proxy.ts as a Cloudflare Worker with three
+# Deploys workers/shopify-proxy.ts as a Cloudflare Worker with two
 # responsibilities:
-#   1. POST /api/shopify/admin    — read-only Admin API proxy (mutation-blocked)
-#   2. POST /api/shopify/webhook  — HMAC-verified Shopify webhook receiver
-#   3. scheduled()                — daily Cron Trigger that backs up
+#   1. POST /api/shopify/webhook  — HMAC-verified Shopify webhook receiver
+#   2. scheduled()                — daily Cron Trigger that backs up
 #                                    products/collections/orders to R2
 #
 # Two named environments are defined below:
@@ -58,7 +57,6 @@ id = "1ec1c137cb154caba663d2b6e223f3ad"
 # from the production store below. Create one via Shopify Partners
 # (partners.shopify.com) — development stores are free with no subscription.
 SHOPIFY_STORE_DOMAIN = "dev-hom.myshopify.com"
-ALLOWED_ORIGIN = "https://dev.houseofmornii.com"
 
 # ---------------------------------------------------------------------------
 # Production environment — houseofmornii.com
@@ -82,4 +80,3 @@ id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"
 
 [env.production.vars]
 SHOPIFY_STORE_DOMAIN = "2svzqt-hg.myshopify.com"
-ALLOWED_ORIGIN = "https://houseofmornii.com"

@@ -19,14 +19,16 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 - Cart: `src/context/CartContext.tsx`, synced through Storefront API mutations.
 - Storefront hosting: Workers static assets, one Worker per environment, deployed by `.github/workflows/deploy-site.yml`. `dev-hom` (`wrangler.site.dev.jsonc`, branch `dev`) serves `dev.houseofmornii.com`; `prod-hom` (`wrangler.site.production.jsonc`, branch `main`) serves `houseofmornii.com`. Store credentials are secrets on the GitHub environments `dev` and `production`, each locked to its own branch.
 - Workers (secrets via `wrangler secret put`, never committed):
-  - `workers/shopify-proxy.ts` (`wrangler.toml`): Admin API proxy, webhook receiver, daily backup cron.
+  - `workers/shopify-proxy.ts` (`wrangler.toml`): webhook receiver and daily backup cron. It does not proxy the Admin API.
   - `workers/catalog-sync.ts` (`wrangler.catalog-sync.toml`): nightly prod-to-dev sync of products and collections only.
 
 ## Shopify
 
 - Import from the `@/lib/shopify` barrel (`index.ts`), never from subpaths.
 - Live credentials `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are required in every environment; `client.ts` throws at module load when they are missing or placeholders (`your-store.myshopify.com`, `CHANGE_ME`). No demo fallback exists.
-- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`, `VITE_SHOPIFY_ADMIN_PROXY_ENABLED`.
+- Catalog (Products, Variants, Collections): pages take domain shapes (`ProductSummary`, `Product`, `Variant`, `CollectionSummary`, `DisplayPrice`) and hooks (`useProductListing`, `useProduct`, `useCollections`, `useRelatedProducts`) from the barrel; raw `edges`/`priceRange` and `shopifyFetch` for catalog data stay inside `src/lib/shopify`.
+- Price display, sort keys (`PRODUCT_SORTS`, `parseProductSort`; Shop URL `?sort=`) and variant picking live in `catalog.ts`. Catalog reads use the Storefront API only (`docs/adr/0003`).
+- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`.
 
 ## Conventions
 
@@ -47,7 +49,7 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 ## Testing
 
 - Vitest, Testing Library, jsdom. `src/test/setup.ts` patches `IntersectionObserver` and `ResizeObserver` and stubs Shopify env with dummy credentials (`test-store.myshopify.com`, `test-storefront-token`); empty values would throw.
-- Mock `shopifyFetch` from `@/lib/shopify/client` with `src/test/fixtures/shopify-fixtures.ts`.
+- Mock `shopifyFetch` from `@/lib/shopify/client` with `src/test/fixtures/shopify-fixtures.ts`; tests that mock the Catalog hooks use `src/test/fixtures/catalog-fixtures.ts`.
 
 ## Issues and domain docs
 

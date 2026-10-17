@@ -3,11 +3,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LoadMore, Photo, Price, TYPES, typeLabel, useTypeFilter, type ShopVariantProps } from './shared'
 
-export function VariantE({ products, loading, sortKey, reverse, onSort, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
+export function VariantE({ products, loading, sort, onSort, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
   const { type, setType, visible } = useTypeFilter(products)
   const [activeId, setActiveId] = useState<string | null>(null)
   const active = visible.find((p) => p.id === activeId) ?? visible[0]
-  const byName = sortKey === 'TITLE'
+  const byName = sort === 'title-asc'
 
   return (
     <div className="p-wrap">
@@ -27,8 +27,8 @@ export function VariantE({ products, loading, sortKey, reverse, onSort, canLoadM
         <div>
           <div className="pe-cols">
             <span>No.</span>
-            <button type="button" onClick={() => onSort('TITLE', byName && !reverse)} aria-label="Sort by name">
-              Name {byName ? (reverse ? '↑' : '↓') : ''}
+            <button type="button" onClick={() => onSort(byName ? 'best-selling' : 'title-asc')} aria-label="Sort by name">
+              Name {byName ? '↓' : ''}
             </button>
             <span className="pe-type-col">Type</span>
             <span className="text-right">Price</span>

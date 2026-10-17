@@ -69,7 +69,10 @@ describe('analytics', () => {
       expect(mockScript.async).toBe(true)
       expect(mockScript.src).toBe('https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX')
       expect(appendChildSpy).toHaveBeenCalledWith(mockScript)
-      expect(window.dataLayer).toEqual([])
+      expect(window.dataLayer).toEqual([
+        ['js', expect.any(Date)],
+        ['config', 'G-XXXXXXXXXX'],
+      ])
       expect(typeof window.gtag).toBe('function')
     })
 

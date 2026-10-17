@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect, lazy, Suspense, useState } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -10,11 +10,9 @@ import { Toaster } from 'sonner'
 import { trackPageView } from '@/lib/analytics'
 import { JsonLd, organizationSchema } from '@/components/JsonLd'
 import { WelcomePopup } from '@/components/WelcomePopup'
+import { CustomerSessionProvider } from '@/lib/customer'
+import { SignInDialogProvider } from '@/context/SignInDialogContext'
 import { CartProvider } from '@/context/CartContext'
-import { CustomerAuthProvider } from '@/context/CustomerAuthContext'
-import { LoginModal } from '@/components/LoginModal'
-import { RegisterModal } from '@/components/RegisterModal'
-import { PasswordRecoveryModal } from '@/components/PasswordRecoveryModal'
 
 // Route-level code splitting — each page loads on demand
 const HomePage = lazy(() => import('@/pages/HomePage').then((m) => ({ default: m.HomePage })))
@@ -73,7 +71,7 @@ function AnimatedRoutes() {
             <Route path="/account/details" element={<AccountDetailsPage />} />
             <Route path="/account/addresses" element={<AddressesPage />} />
             <Route path="/account/orders" element={<OrdersPage />} />
-            <Route path="/account/orders/:orderNumber" element={<OrderDetailPage />} />
+            <Route path="/account/orders/:orderId" element={<OrderDetailPage />} />
             <Route path="/_health" element={<HealthPage />} />
           </Routes>
         </Suspense>
@@ -83,15 +81,10 @@ function AnimatedRoutes() {
 }
 
 function AppContent() {
-  // Auth modal state — managed at app level to render outside zIndex container
-  const [showLogin, setShowLogin] = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
-  const [showRecovery, setShowRecovery] = useState(false)
-
   return (
     <>
       <div className="relative" style={{ zIndex: 2 }}>
-        <Header onLoginClick={() => setShowLogin(true)} />
+        <Header />
         <ScrollToHash />
         <main>
           <AnimatedRoutes />
@@ -100,24 +93,6 @@ function AppContent() {
       </div>
       <CartFlyout />
       <WelcomePopup />
-
-      {/* Auth modals — rendered outside zIndex: 2 container to avoid stacking context trapping */}
-      <LoginModal
-        open={showLogin}
-        onOpenChange={setShowLogin}
-        onNavigateToRegister={() => { setShowLogin(false); setShowRegister(true) }}
-        onNavigateToRecovery={() => { setShowLogin(false); setShowRecovery(true) }}
-      />
-      <RegisterModal
-        open={showRegister}
-        onOpenChange={setShowRegister}
-        onNavigateToLogin={() => { setShowRegister(false); setShowLogin(true) }}
-      />
-      <PasswordRecoveryModal
-        open={showRecovery}
-        onOpenChange={setShowRecovery}
-        onNavigateToLogin={() => { setShowRecovery(false); setShowLogin(true) }}
-      />
 
       <Toaster
         position="bottom-right"
@@ -136,12 +111,14 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <CustomerAuthProvider>
-        <CartProvider>
-          <JsonLd data={organizationSchema()} />
-          <AppContent />
-        </CartProvider>
-      </CustomerAuthProvider>
+      <CustomerSessionProvider>
+        <SignInDialogProvider>
+          <CartProvider>
+            <JsonLd data={organizationSchema()} />
+            <AppContent />
+          </CartProvider>
+        </SignInDialogProvider>
+      </CustomerSessionProvider>
     </BrowserRouter>
   )
 }

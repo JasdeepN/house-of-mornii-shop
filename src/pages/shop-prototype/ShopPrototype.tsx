@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PrototypeSwitcher } from '@/components/PrototypeSwitcher'
-import type { ShopifyProduct } from '@/lib/shopify'
+import type { ProductSummary } from '@/lib/shopify'
 import type { ShopVariantProps } from './shared'
 import { VariantA } from './VariantA'
 import { VariantB } from './VariantB'
@@ -37,7 +37,7 @@ export function ShopPrototype(props: Omit<ShopVariantProps, 'onQuickAdd'>) {
     }
   }, [])
 
-  const onQuickAdd = (product: ShopifyProduct) =>
+  const onQuickAdd = (product: ProductSummary) =>
     toast(`Quick add: ${product.title}`, { description: 'Prototype control. Nothing was added to the Cart.' })
 
   return (

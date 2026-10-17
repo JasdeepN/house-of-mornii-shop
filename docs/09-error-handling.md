@@ -43,7 +43,7 @@ All data pages (ProductPage, CollectionPage, ShopPage) follow the same pattern:
 ```tsx
 import { StorefrontError } from '@/lib/shopify'
 
-// After the useProduct / useCollection / useProducts hook:
+// After the useProduct / useProductListing hook:
 if (error) {
   const isServiceError =
     error instanceof StorefrontError &&

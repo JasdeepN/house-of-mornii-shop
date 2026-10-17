@@ -1,41 +1,24 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useMemo, useCallback, useEffect } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CaretDown } from '@phosphor-icons/react'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
-import {
-  useCollection,
-  shopifyFetch,
-  COLLECTION_BY_HANDLE_QUERY,
-} from '@/lib/shopify'
+import { useProductListing, parseProductSort, PRODUCT_SORTS, type ProductSort } from '@/lib/shopify'
 import { useErrorHandler } from '@/lib/errorHandler'
-import type { ShopifyProduct } from '@/lib/shopify'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { ProductGrid } from '@/components/ProductGrid'
 import { useSEO } from '@/hooks/useSEO'
 import { trackViewItemList } from '@/lib/analytics'
 import { fadeSlideUp, luxuryEase } from '@/lib/animations'
 
-const SORT_OPTIONS = [
-  { label: 'Best Selling', key: 'BEST_SELLING', reverse: false },
-  { label: 'Newest', key: 'CREATED', reverse: true },
-  { label: 'Price: Low → High', key: 'PRICE', reverse: false },
-  { label: 'Price: High → Low', key: 'PRICE', reverse: true },
-  { label: 'A–Z', key: 'TITLE', reverse: false },
-] as const
-
 export function CollectionPage() {
   const { handle } = useParams<{ handle: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
-  const sortKey = searchParams.get('sort') || undefined
-  const reverse = searchParams.get('reverse') === 'true'
-  const [loadedProducts, setLoadedProducts] = useState<ShopifyProduct[]>([])
-  const [afterCursor, setAfterCursor] = useState<string | undefined>(undefined)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [hasMorePages, setHasMorePages] = useState(true)
+  const sort = parseProductSort(searchParams.get('sort'))
 
-  const { data: collection, isLoading, error } = useCollection(handle ?? '', 12, sortKey, reverse)
-  const errorDisplay = useErrorHandler(error)
+  const listing = useProductListing({ collection: handle, sort })
+  const { collection, products } = listing
+  const errorDisplay = useErrorHandler(listing.error)
 
   useSEO({
     title: collection?.title,
@@ -43,78 +26,36 @@ export function CollectionPage() {
     image: collection?.image?.url,
   })
 
-  const activeSortLabel = useMemo(() => {
-    const match = SORT_OPTIONS.find(
-      (o) => o.key === sortKey && o.reverse === reverse,
-    )
-    return match?.label ?? 'Featured'
-  }, [sortKey, reverse])
+  const activeSortLabel = PRODUCT_SORTS.find((o) => o.value === sort)?.label ?? 'Featured'
 
   const handleSort = useCallback(
-    (key: string, rev: boolean) => {
+    (next: ProductSort) => {
       const params = new URLSearchParams(searchParams)
-      if (key) params.set('sort', key)
-      else params.delete('sort')
-      if (rev) params.set('reverse', 'true')
-      else params.delete('reverse')
+      params.set('sort', next)
+      params.delete('reverse')
       setSearchParams(params, { replace: true })
-      // Reset loaded-more products when sort changes
-      setLoadedProducts([])
-      setAfterCursor(undefined)
-      setHasMorePages(true)
     },
     [searchParams, setSearchParams],
   )
 
-  const handleLoadMore = useCallback(async () => {
-    if (!handle || !collection) return
-    const cursor = afterCursor || collection.products.pageInfo.endCursor
-    if (!cursor) return
-    setIsLoadingMore(true)
-    try {
-      const data = await shopifyFetch<{
-        collection: {
-          products: {
-            edges: { node: ShopifyProduct; cursor: string }[]
-            pageInfo: { hasNextPage: boolean; endCursor: string | null }
-          }
-        }
-      }>(COLLECTION_BY_HANDLE_QUERY, {
-        handle,
-        first: 12,
-        sortKey,
-        reverse,
-        after: cursor,
-      })
-      const newProducts = data.collection.products.edges.map((e) => e.node)
-      setLoadedProducts((prev) => [...prev, ...newProducts])
-      setHasMorePages(data.collection.products.pageInfo.hasNextPage)
-      setAfterCursor(data.collection.products.pageInfo.endCursor ?? undefined)
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }, [handle, collection, afterCursor, sortKey, reverse])
+  const trackedProducts = useMemo(
+    () =>
+      products.slice(0, 12).map((product) => ({
+        id: product.id,
+        name: product.title,
+        price: product.price.min.amount,
+      })),
+    [products],
+  )
 
-  const baseProducts = collection?.products.edges.map((e) => e.node) ?? []
-  const products = [...baseProducts, ...loadedProducts]
-  const showLoadMore = !!collection && hasMorePages && collection.products.pageInfo.hasNextPage
-
-  // Track view_item_list when collection products load.
   // Keep this before any conditional return so hook order stays stable.
   useEffect(() => {
-    if (collection && products.length > 0) {
-      trackViewItemList(
-        collection.title,
-        products.slice(0, 12).map((product) => ({
-          id: product.id,
-          name: product.title,
-          price: product.priceRange.minVariantPrice.amount,
-        })),
-      )
+    if (collection && trackedProducts.length > 0) {
+      trackViewItemList(collection.title, trackedProducts)
     }
-  }, [collection, products])
+  }, [collection, trackedProducts])
 
-  if (isLoading) {
+  if (listing.isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center py-20">
@@ -145,7 +86,7 @@ export function CollectionPage() {
     )
   }
 
-  if (!collection) {
+  if (listing.notFound || !collection) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center" style={{ background: 'oklch(0.18 0.03 210)' }}>
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
@@ -217,12 +158,12 @@ export function CollectionPage() {
                 boxShadow: '0 8px 32px oklch(0 0 0 / 0.5)',
               }}
             >
-              {SORT_OPTIONS.map((option) => {
-                const isActive = sortKey === option.key && reverse === option.reverse
+              {PRODUCT_SORTS.map((option) => {
+                const isActive = sort === option.value
                 return (
                   <button
-                    key={`${option.key}-${option.reverse}`}
-                    onClick={() => handleSort(option.key, option.reverse)}
+                    key={option.value}
+                    onClick={() => handleSort(option.value)}
                     className={`block w-full text-left px-4 py-2.5 text-[12px] font-semibold tracking-widest uppercase transition-colors ${
                       isActive
                         ? ''
@@ -244,14 +185,14 @@ export function CollectionPage() {
 
         <ProductGrid products={products} />
 
-        {showLoadMore && (
+        {listing.hasMore && (
           <div className="text-center mt-12">
             <button
               className="pill-btn"
-              onClick={handleLoadMore}
-              disabled={isLoadingMore}
+              onClick={listing.loadMore}
+              disabled={listing.isLoadingMore}
             >
-              {isLoadingMore ? 'LOADING...' : 'LOAD MORE'}
+              {listing.isLoadingMore ? 'LOADING...' : 'LOAD MORE'}
             </button>
           </div>
         )}

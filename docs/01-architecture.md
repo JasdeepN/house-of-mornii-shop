@@ -133,17 +133,17 @@ sequenceDiagram
     participant Cache as Query Cache
 
     User->>Component: Navigate to /collections/everyday
-    Component->>Hook: useCollection('everyday')
-    Hook->>Cache: Check cache for ['collection', 'everyday']
+    Component->>Hook: useProductListing({ collection: 'everyday' })
+    Hook->>Cache: Check cache for ['product-listing', 'everyday', ...]
     alt Cache hit
         Cache-->>Hook: Return cached data
     else Cache miss
         Hook->>Client: shopifyFetch(query, vars)
         Client->>API: POST graphql.json
         API-->>Client: Collection + Products JSON
-        Client-->>Hook: Parsed ShopifyCollection
+        Client-->>Hook: Parsed collection page
         Hook->>Cache: Store in cache
-        Hook-->>Component: ShopifyCollection data
+        Hook-->>Component: ProductSummary[] + CollectionSummary
     end
     Component-->>User: Render collection page
 ```

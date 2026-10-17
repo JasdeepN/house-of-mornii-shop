@@ -3,7 +3,6 @@ import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { CartProvider, useCart } from './CartContext'
-import { CustomerAuthProvider } from '@/context/CustomerAuthContext'
 import type { ReactNode } from 'react'
 import { getFixtureProducts } from '@/test/fixtures/shopify-fixtures'
 import type { ShopifyCart, ShopifyCartLine } from '@/lib/shopify'
@@ -23,9 +22,7 @@ function createWrapper() {
     return (
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>
-          <CustomerAuthProvider>
-            <CartProvider>{children}</CartProvider>
-          </CustomerAuthProvider>
+          <CartProvider>{children}</CartProvider>
         </QueryClientProvider>
       </MemoryRouter>
     )
@@ -295,5 +292,26 @@ describe('Cart operations (token mode, shopifyFetch mocked)', () => {
 
     const subtotal = parseFloat(result.current.cart!.cost.subtotalAmount.amount)
     expect(subtotal).toBeCloseTo(unitPrice * 3, 2)
+  })
+})
+
+describe('Cart and sign-in', () => {
+  beforeEach(() => {
+    shopifyFetch.mockReset()
+    localStorage.clear()
+  })
+
+  it('keeps hom-cart-id and never sends cartBuyerIdentityUpdate', async () => {
+    localStorage.setItem('hom-cart-id', 'gid://shopify/Cart/test-cart')
+    shopifyFetch.mockResolvedValue({ cart: makeCart([]) })
+
+    const { result } = renderHook(() => useCart(), { wrapper: createWrapper() })
+    await act(async () => {})
+
+    expect(result.current.cart).not.toBeNull()
+    expect(localStorage.getItem('hom-cart-id')).toBe('gid://shopify/Cart/test-cart')
+    for (const call of shopifyFetch.mock.calls) {
+      expect(String(call[0])).not.toContain('cartBuyerIdentityUpdate')
+    }
   })
 })

@@ -1,5 +1,5 @@
 // GraphQL client for Shopify Storefront API (using @shopify/storefront-api-client SDK)
-// Admin API calls are proxied through Cloudflare Worker — see src/lib/shopify/admin-proxy.ts
+// Catalog reads use the Storefront API only — see docs/adr/0003-catalog-reads-use-the-storefront-api-only.md
 
 import { logger, type LogContext } from '@/lib/logger'
 import { storefrontClient } from './sdk-client'

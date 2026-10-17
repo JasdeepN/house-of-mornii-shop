@@ -120,9 +120,10 @@ describe('token-requirements', () => {
     })
 
     it('returns true when "tags" appears as a substring in a field name', () => {
-      // The function uses .includes(), so "tags" in "productTags" would match
-      const query = 'query { productTags }'
-      expect(hasTokenGatedFields(query)).toBe(true)
+      // The function uses a case-sensitive .includes(), so lowercase "tags" inside "subtags" matches
+      expect(hasTokenGatedFields('query { subtags }')).toBe(true)
+      // ...but "productTags" has a capital T and does not
+      expect(hasTokenGatedFields('query { productTags }')).toBe(false)
     })
   })
 })

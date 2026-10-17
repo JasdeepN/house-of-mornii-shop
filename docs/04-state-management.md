@@ -56,9 +56,8 @@ useQuery({
 | Hook | Query Key | Invalidation Trigger |
 |------|-----------|---------------------|
 | `useCollections()` | `['collections']` | Cart mutation (product count changes) |
-| `useCollection(handle)` | `['collection', handle, first, sortKey, reverse, after]` | Cart mutation |
 | `useProduct(handle)` | `['product', handle]` | Cart mutation |
-| `useProducts()` | `['products', sortKey, reverse, query, first, after]` | Cart mutation |
+| `useProductListing()` | `['product-listing', collection, sort, query, pageSize]` | Cart mutation |
 
 ### Query Function Pattern
 

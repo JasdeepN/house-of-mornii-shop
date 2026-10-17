@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, type UIEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Command } from 'cmdk'
 import { MagnifyingGlass, X } from '@phosphor-icons/react'
-import { useProducts, formatMoney, type ShopifyProduct } from '@/lib/shopify'
+import { useProductListing, formatDisplayPrice } from '@/lib/shopify'
 
 const SEARCH_PAGE_SIZE = 24
 const LOAD_MORE_THRESHOLD = 96
@@ -25,75 +25,26 @@ interface SearchResultsProps {
   searchQuery: string
 }
 
-function mergeUniqueProducts(existing: ShopifyProduct[], incoming: ShopifyProduct[]) {
-  const productsById = new Map(existing.map((product) => [product.id, product]))
-
-  for (const product of incoming) {
-    productsById.set(product.id, product)
-  }
-
-  return Array.from(productsById.values())
-}
-
 function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
-  const [results, setResults] = useState<ShopifyProduct[]>([])
-  const [requestedCursor, setRequestedCursor] = useState<string | undefined>(undefined)
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined)
-  const [hasNextPage, setHasNextPage] = useState(false)
-  const [appliedPageKey, setAppliedPageKey] = useState<string | null>(null)
-
-  const { data: productsData, isFetching, isLoading } = useProducts(
-    'BEST_SELLING',
-    false,
-    searchQuery,
-    SEARCH_PAGE_SIZE,
-    requestedCursor,
-  )
-
-  useEffect(() => {
-    setResults([])
-    setRequestedCursor(undefined)
-    setNextCursor(undefined)
-    setHasNextPage(false)
-    setAppliedPageKey(null)
-  }, [searchQuery])
-
-  useEffect(() => {
-    if (!productsData) return
-
-    const currentPageKey = `${searchQuery}:${requestedCursor ?? 'first'}`
-    if (appliedPageKey === currentPageKey) return
-
-    setAppliedPageKey(currentPageKey)
-    setResults((previousResults) =>
-      mergeUniqueProducts(
-        previousResults,
-        productsData.edges.map((edge) => edge.node),
-      ),
-    )
-    setNextCursor(productsData.pageInfo.endCursor ?? undefined)
-    setHasNextPage(productsData.pageInfo.hasNextPage)
-  }, [appliedPageKey, productsData, requestedCursor, searchQuery])
-
-  const loadNextPage = useCallback(() => {
-    if (!hasNextPage || !nextCursor || isFetching) return
-    setRequestedCursor(nextCursor)
-  }, [hasNextPage, isFetching, nextCursor])
+  const { products, hasMore, isLoading, isLoadingMore, loadMore } = useProductListing({
+    query: searchQuery,
+    pageSize: SEARCH_PAGE_SIZE,
+  })
 
   const handleScroll = useCallback(
     (event: UIEvent<HTMLDivElement>) => {
       const { clientHeight, scrollHeight, scrollTop } = event.currentTarget
 
       if (scrollHeight - scrollTop - clientHeight <= LOAD_MORE_THRESHOLD) {
-        loadNextPage()
+        loadMore()
       }
     },
-    [loadNextPage],
+    [loadMore],
   )
 
-  const showEmpty = !isLoading && !isFetching && results.length === 0
-  const showInitialLoading = (isLoading || isFetching) && results.length === 0
-  const showLoadingMore = isFetching && results.length > 0
+  const showEmpty = !isLoading && products.length === 0
+  const showInitialLoading = isLoading
+  const showLoadingMore = isLoadingMore
 
   return (
     <Command.List
@@ -117,7 +68,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
         </Command.Empty>
       )}
 
-      {results.map((product) => (
+      {products.map((product) => (
         <Command.Item
           key={product.id}
           value={product.handle}
@@ -134,7 +85,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
           <div className="flex-1 min-w-0">
             <p className="text-sm tracking-wider truncate">{product.title}</p>
             <p className="text-xs tracking-wider" style={{ color: 'oklch(0.60 0.11 78)' }}>
-              {formatMoney(product.priceRange.minVariantPrice)}
+              {formatDisplayPrice(product.price)}
             </p>
           </div>
         </Command.Item>
@@ -149,11 +100,11 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
         </div>
       )}
 
-      {hasNextPage && !isFetching && (
+      {hasMore && !isLoadingMore && (
         <div className="px-2 pt-2">
           <button
             type="button"
-            onClick={loadNextPage}
+            onClick={loadMore}
             className="w-full rounded-sm border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground dark:hover:border-primary/60"
           >
             LOAD MORE RESULTS

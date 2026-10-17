@@ -14,11 +14,9 @@ import {
   CART_LINES_ADD_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_LINES_REMOVE_MUTATION,
-  CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION,
   type ShopifyCart,
 } from '@/lib/shopify'
 import { toast } from 'sonner'
-import { useCustomerAuth } from './CustomerAuthContext'
 
 const CART_ID_KEY = 'hom-cart-id'
 
@@ -49,7 +47,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<ShopifyCart | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isCartOpen, setCartOpen] = useState(false)
-  const { isAuthenticated, accessToken } = useCustomerAuth()
 
   const openCart = useCallback(() => setCartOpen(true), [])
 
@@ -88,44 +85,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Reset to empty cart state on localStorage error
     }
   }, [])
-
-  // Cart merge: when customer authenticates, merge anonymous cart into their account cart
-  useEffect(() => {
-    if (!isAuthenticated || !accessToken) return
-
-    const savedCartId = localStorage.getItem(CART_ID_KEY)
-    if (!savedCartId) return
-
-    setIsLoading(true)
-    shopifyFetch<{
-      cartBuyerIdentityUpdate: {
-        cart: ShopifyCart
-        userErrors: { message: string }[]
-      }
-    }>(CART_MERGE_WITH_CUSTOMER_ACCESS_TOKEN_MUTATION, {
-      cartId: savedCartId,
-      customerAccessToken: accessToken,
-    })
-      .then((data) => {
-        const updated = data.cartBuyerIdentityUpdate.cart
-        if (updated) {
-          setCart(updated)
-        }
-        // Clear the anonymous cart ID — it's now associated with the customer's account
-        localStorage.removeItem(CART_ID_KEY)
-      })
-      .catch((error) => {
-        logger.error('Failed to merge cart', {
-          action: 'mergeCart',
-          error: error instanceof Error ? error.message : String(error),
-        })
-        // Don't show error toast for merge failures — non-critical.
-        // Clear the stale anonymous cart ID so we don't retry a merge
-        // against a cart that may no longer be valid.
-        localStorage.removeItem(CART_ID_KEY)
-      })
-      .finally(() => setIsLoading(false))
-  }, [isAuthenticated, accessToken])
 
   // ── Add to Cart ──────────────────────────────────────────────────────────
 

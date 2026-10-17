@@ -39,7 +39,7 @@ const COLORS = {
 
 // Format a log entry for console output in dev mode
 function formatDevEntry(entry: LogEntry): string {
-  const { timestamp, level, message, context, stack } = entry
+  const { timestamp, level, message, context, stack, metadata } = entry
   const color = COLORS[level] || ''
   const reset = COLORS.reset
   const bold = COLORS.bold
@@ -49,6 +49,15 @@ function formatDevEntry(entry: LogEntry): string {
   if (context && Object.keys(context).length > 0) {
     output += `\n${color}┌─────────────────────────────────────────────────────┐${reset}`
     for (const [key, value] of Object.entries(context)) {
+      const displayValue = typeof value === 'string' ? value : JSON.stringify(value)
+      output += `\n│ ${bold}${key}:${' '.repeat(Math.max(1, 40 - key.length))}${reset} ${displayValue}`
+    }
+    output += `\n${color}└─────────────────────────────────────────────────────┘${reset}`
+  }
+
+  if (metadata && Object.keys(metadata).length > 0) {
+    output += `\n${color}┌─────────────────────────────────────────────────────┐${reset}`
+    for (const [key, value] of Object.entries(metadata)) {
       const displayValue = typeof value === 'string' ? value : JSON.stringify(value)
       output += `\n│ ${bold}${key}:${' '.repeat(Math.max(1, 40 - key.length))}${reset} ${displayValue}`
     }

@@ -7,9 +7,6 @@ import type { StorefrontMode } from './client'
 const EnvSchema = z.object({
   VITE_SHOPIFY_STORE_DOMAIN: z.string().optional(),
   VITE_SHOPIFY_STOREFRONT_TOKEN: z.string().optional(),
-  // C2: Client only knows whether the Admin proxy is enabled (non-secret flag).
-  // The real Admin token (SHOPIFY_ADMIN_ACCESS_TOKEN) is server-side only, in the Worker.
-  VITE_SHOPIFY_ADMIN_PROXY_ENABLED: z.string().optional(),
 })
 
 /**

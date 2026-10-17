@@ -1,5 +1,7 @@
 # Shopify Automation Worker Plan
 
+> Historical plan. The Admin API proxy route it describes was removed; see [ADR 0003](./adr/0003-catalog-reads-use-the-storefront-api-only.md).
+
 > Status checklist
 >
 > - [x] Add `wrangler.toml` with Worker config, Cron Trigger, R2 + KV bindings

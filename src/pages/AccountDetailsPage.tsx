@@ -1,37 +1,36 @@
-import { useState, useCallback, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useCustomerAuth } from '@/context/CustomerAuthContext'
+import { useState, useCallback } from 'react'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { OrnamentalBorder, OrnamentalDivider } from '@/components/OrnamentalBorder'
-import { LockKey } from '@phosphor-icons/react'
+import { useCustomerProfile, useUpdateName, useSetEmailMarketing, type CustomerProfile } from '@/lib/customer'
 import { toast } from 'sonner'
+import { AccountGate, LoadingState } from './account/AccountGate'
 
 export function AccountDetailsPage() {
-  const { customer, isAuthenticated, isLoading, updateProfile } = useCustomerAuth()
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    acceptsMarketing: false,
-  })
-  const [password, setPassword] = useState('')
+  return (
+    <AccountGate signedOutMessage="Please sign in to manage your account details.">
+      <AccountDetails />
+    </AccountGate>
+  )
+}
+
+function AccountDetails() {
+  const { data: profile } = useCustomerProfile()
+  if (!profile) return <LoadingState />
+  return <DetailsForm profile={profile} />
+}
+
+function DetailsForm({ profile }: { profile: CustomerProfile }) {
+  const updateName = useUpdateName()
+  const setMarketing = useSetEmailMarketing()
+  const [firstName, setFirstName] = useState(profile.firstName ?? '')
+  const [lastName, setLastName] = useState(profile.lastName ?? '')
+  const [subscribed, setSubscribed] = useState(profile.emailAddress?.marketingState === 'SUBSCRIBED')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    if (customer) {
-      setFormData({
-        firstName: customer.firstName ?? '',
-        lastName: customer.lastName ?? '',
-        email: customer.email ?? '',
-        phone: customer.phone ?? '',
-        acceptsMarketing: customer.acceptsMarketing ?? false,
-      })
-    }
-  }, [customer])
+  const accountUrl = import.meta.env.VITE_SHOPIFY_ACCOUNT_URL as string | undefined
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -39,15 +38,7 @@ export function AccountDetailsPage() {
       if (isSubmitting) return
       setIsSubmitting(true)
       try {
-        await updateProfile({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone || undefined,
-          acceptsMarketing: formData.acceptsMarketing,
-          ...(password ? { password } : {}),
-        })
-        setPassword('')
+        await updateName.mutateAsync({ firstName, lastName })
         toast.success('Account details updated')
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Update failed. Please try again.')
@@ -55,42 +46,23 @@ export function AccountDetailsPage() {
         setIsSubmitting(false)
       }
     },
-    [updateProfile, formData, password, isSubmitting],
+    [updateName, firstName, lastName, isSubmitting],
   )
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: 'oklch(0.60 0.11 78)', borderTopColor: 'transparent' }}
-          />
-          <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground">
-            Loading...
-          </span>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated || !customer) {
-    return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl tracking-widest mb-4">ACCOUNT REQUIRED</h1>
-          <p className="text-muted-foreground mb-6">
-            Please sign in to manage your account details.
-          </p>
-          <Link to="/shop">
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 tracking-widest">
-              CONTINUE SHOPPING
-            </Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  const handleMarketing = useCallback(
+    async (checked: boolean) => {
+      const previous = subscribed
+      setSubscribed(checked)
+      try {
+        await setMarketing.mutateAsync(checked)
+        toast.success(checked ? 'Subscribed to emails' : 'Unsubscribed from emails')
+      } catch (err) {
+        setSubscribed(previous)
+        toast.error(err instanceof Error ? err.message : 'Update failed. Please try again.')
+      }
+    },
+    [setMarketing, subscribed],
+  )
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -101,9 +73,7 @@ export function AccountDetailsPage() {
         ]} className="mb-10" />
 
         <h1 className="text-2xl tracking-widest mb-2">ACCOUNT DETAILS</h1>
-        <p className="text-muted-foreground mb-8">
-          Update your personal information and manage your login credentials.
-        </p>
+        <p className="text-muted-foreground mb-8">Update your name and email preferences.</p>
 
         <OrnamentalBorder>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -114,8 +84,8 @@ export function AccountDetailsPage() {
                 </label>
                 <Input
                   id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   className="bg-card/50 border-gold/30"
                 />
               </div>
@@ -125,88 +95,51 @@ export function AccountDetailsPage() {
                 </label>
                 <Input
                   id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   className="bg-card/50 border-gold/30"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-xs tracking-widest uppercase text-muted-foreground">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                className="bg-card/50 border-gold/30"
-              />
-            </div>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
+            >
+              {isSubmitting ? 'SAVING...' : 'SAVE CHANGES'}
+            </Button>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="phone" className="text-xs tracking-widest uppercase text-muted-foreground">
-                Phone
-              </label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+1 613 555 1111"
-                className="bg-card/50 border-gold/30"
-              />
+            <OrnamentalDivider className="my-6" />
+
+            <div className="flex flex-col gap-1">
+              <span className="text-xs tracking-widest uppercase text-muted-foreground">Email</span>
+              <span>{profile.emailAddress?.emailAddress ?? 'Not set'}</span>
             </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs tracking-widest uppercase text-muted-foreground">Phone</span>
+              <span>{profile.phoneNumber?.phoneNumber ?? 'Not set'}</span>
+            </div>
+            {accountUrl && (
+              <a
+                href={`${accountUrl}/profile`}
+                className="text-sm text-accent underline underline-offset-4 w-fit"
+              >
+                Change email or phone
+              </a>
+            )}
 
             <div className="flex items-center gap-2 mt-2">
               <Checkbox
                 id="acceptsMarketing"
-                checked={formData.acceptsMarketing}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, acceptsMarketing: checked === true })
-                }
+                checked={subscribed}
+                disabled={setMarketing.isPending}
+                onCheckedChange={(checked) => handleMarketing(checked === true)}
               />
               <label htmlFor="acceptsMarketing" className="text-sm text-muted-foreground">
                 Email me about new collections and exclusive offers
               </label>
             </div>
-
-            <OrnamentalDivider className="my-6" />
-
-            <div className="flex items-center gap-2 mb-1">
-              <LockKey size={18} className="text-accent" weight="bold" />
-              <h2 className="text-sm tracking-widest uppercase text-foreground">
-                Password
-              </h2>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label htmlFor="new-password" className="text-xs tracking-widest uppercase text-muted-foreground">
-                New Password (optional)
-              </label>
-              <Input
-                id="new-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Leave blank to keep current password"
-                minLength={8}
-                className="bg-card/50 border-gold/30"
-              />
-              <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters. Leave this field blank to keep your current password.
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
-            >
-              {isSubmitting ? 'SAVING...' : 'SAVE CHANGES'}
-            </Button>
           </form>
         </OrnamentalBorder>
       </div>

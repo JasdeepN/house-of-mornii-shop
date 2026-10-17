@@ -360,6 +360,6 @@ After each deployment:
 - [ ] Visit the environment URL (`https://dev.houseofmornii.com` or `https://houseofmornii.com`) — verify page loads, no console errors
 - [ ] Test Shopify product data displays correctly
 - [ ] Verify cart functionality works
-- [ ] Confirm the Worker route responds: `curl -i https://<domain>/api/shopify/admin` should return a JSON error (not a 404 from Pages) if the Admin proxy is reachable
+- [ ] Confirm the webhook route responds: `curl -i -X POST https://<domain>/api/shopify/webhook` should return a 401 (HMAC check fails), not a 404 from the static assets
 - [ ] Check `wrangler tail --env <dev|production>` for Worker errors after a webhook or the next scheduled backup
 - [ ] Run E2E tests against the new URL if applicable

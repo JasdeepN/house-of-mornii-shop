@@ -1,8 +1,8 @@
 import { ProductCard } from '@/components/ProductCard'
-import type { ShopifyProduct } from '@/lib/shopify'
+import type { ProductSummary } from '@/lib/shopify'
 
 interface ProductGridProps {
-  products: ShopifyProduct[]
+  products: ProductSummary[]
   className?: string
 }
 

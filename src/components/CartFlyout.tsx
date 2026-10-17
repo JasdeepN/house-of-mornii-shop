@@ -14,7 +14,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { FreeShippingBar } from '@/components/FreeShippingBar'
 import { useCallback, useRef, useEffect } from 'react'
-import { isValidCheckoutUrl } from '@/lib/cart'
+import { checkoutLink, isValidCheckoutUrl } from '@/lib/cart'
+import { useCustomerSession } from '@/lib/customer'
 
 function FlyoutLineItem({
   line,
@@ -166,6 +167,7 @@ function FlyoutLineItem({
 
 export function CartFlyout() {
   const { cart, isLoading, itemCount, isCartOpen, setCartOpen } = useCart()
+  const signedIn = useCustomerSession().session.status === 'signed-in'
   const lines = cart ? flattenEdges(cart.lines) : []
   const isEmpty = !cart || lines.length === 0
   const canCheckout = cart ? isValidCheckoutUrl(cart.checkoutUrl) : false
@@ -253,7 +255,7 @@ export function CartFlyout() {
               {canCheckout ? (
                 <a
                   data-testid="checkout-button"
-                  href={cart.checkoutUrl}
+                  href={checkoutLink(cart.checkoutUrl, signedIn)}
                   className={`block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
                     isLoading ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'
                   }`}

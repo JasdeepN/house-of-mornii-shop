@@ -1,11 +1,11 @@
 // PROTOTYPE variant D · Bento: mixed tile sizes, a featured Product and Collection tiles woven into the grid.
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import type { ShopifyProduct } from '@/lib/shopify'
+import type { ProductSummary } from '@/lib/shopify'
 import { LoadMore, Photo, Price, TYPES, Tag, sized, useTypeFilter, type ShopCollection, type ShopVariantProps } from './shared'
 
 type Tile =
-  | { kind: 'product'; p: ShopifyProduct; size: 'feature' | 'wide' | 'normal' }
+  | { kind: 'product'; p: ProductSummary; size: 'feature' | 'wide' | 'normal' }
   | { kind: 'collection'; c: ShopCollection }
 
 export function VariantD({ products, collections, loading, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {

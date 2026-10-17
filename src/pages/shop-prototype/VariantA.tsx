@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom'
 import { LoadMore, Photo, Price, SortSelect, TYPES, useTypeFilter, type ShopVariantProps } from './shared'
 
-export function VariantA({ products, loading, sortKey, reverse, onSort, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
+export function VariantA({ products, loading, sort, onSort, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
   const { type, setType, visible } = useTypeFilter(products)
   return (
     <div className="p-wrap">
@@ -20,7 +20,7 @@ export function VariantA({ products, loading, sortKey, reverse, onSort, canLoadM
         <p className="m-0 text-[var(--p-muted)]" aria-live="polite">
           {visible.length} {visible.length === 1 ? 'product' : 'products'}
         </p>
-        <SortSelect sortKey={sortKey} reverse={reverse} onSort={onSort} />
+        <SortSelect sort={sort} onSort={onSort} />
       </div>
       {loading ? (
         <p className="text-[var(--p-muted)]">Loading…</p>

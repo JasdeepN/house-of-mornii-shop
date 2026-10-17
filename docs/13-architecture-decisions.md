@@ -32,18 +32,19 @@ This document captures the key architectural decisions, remediation history, and
 
 **Files:** `src/lib/shopify/client.ts`, `src/lib/shopify/env-schema.ts`
 
-#### 2. Two-API Architecture: Storefront + Admin Proxy (P0 — Implemented)
+#### 2. Storefront API for the browser, Admin API server-side only (P0 — Implemented)
 
-**Decision:** Use the Storefront API for all client-side operations and the Admin API only through a server-side Cloudflare Worker proxy.
+> Superseded in part: the browser Admin proxy (`adminProxyFetch`, `POST /api/shopify/admin`) was removed. Catalog reads use the Storefront API only; see [ADR 0003](./adr/0003-catalog-reads-use-the-storefront-api-only.md).
 
-**Rationale:** Shopify explicitly recommends against calling Admin API from the browser. The Admin API provides richer data (tags, vendor, metafields) and write capabilities, but its secret token must never be exposed. The Worker proxy provides read-only Admin API access, webhook reception, and scheduled backups.
+**Decision:** Use the Storefront API for all client-side operations and the Admin API only from server-side Cloudflare Workers.
+
+**Rationale:** Shopify explicitly recommends against calling Admin API from the browser. The Admin API provides richer data (tags, vendor, metafields) and write capabilities, but its secret token must never be exposed. The Worker provides webhook reception and scheduled backups.
 
 **Implementation:**
 - Browser calls `shopifyFetch()` → Storefront API (direct, public token)
-- Browser calls `adminProxyFetch()` → `POST /api/shopify/admin` → Cloudflare Worker → Admin API (read-only, mutation-blocked)
 - Worker secrets (`SHOPIFY_ADMIN_ACCESS_TOKEN`, `SHOPIFY_WEBHOOK_SECRET`) are never `VITE_`-prefixed
 
-**Files:** `src/lib/shopify/client.ts`, `src/lib/shopify/admin-proxy.ts`, `workers/shopify-proxy.ts`
+**Files:** `src/lib/shopify/client.ts`, `workers/shopify-proxy.ts`
 
 #### 3. Typed Error Handling with Categories (P1 — Implemented)
 
@@ -70,7 +71,7 @@ This document captures the key architectural decisions, remediation history, and
 
 **Decision:** Deploy the frontend to Cloudflare Pages and backend automation to Cloudflare Workers, with CI/CD via GitHub Actions.
 
-**Rationale:** Cloudflare Pages provides free hosting with automatic HTTPS, global CDN, and preview URLs per PR. Cloudflare Workers provide server-side automation (Admin API proxy, webhooks, backups) without managing servers.
+**Rationale:** Cloudflare Pages provides free hosting with automatic HTTPS, global CDN, and preview URLs per PR. Cloudflare Workers provide server-side automation (webhooks, backups) without managing servers.
 
 **Files:** `.github/workflows/deploy.yml`, `wrangler.toml`, `workers/shopify-proxy.ts`
 
@@ -142,7 +143,7 @@ Customer account integration (login, registration, order history) is planned for
 
 If the business requires write/mutation operations from the storefront (e.g., customer account management, order tracking):
 1. Add write-capable hooks in `hooks.ts` for mutations
-2. Relax the `MUTATION_PATTERN` guard in `workers/shopify-proxy.ts` for specific, vetted operations
+2. Add a server-side route for specific, vetted Admin API operations (the former browser proxy and its `MUTATION_PATTERN` guard were removed, see ADR 0003)
 3. Add error handling for Admin API-specific errors
 
 ### Automated Restore Tooling

@@ -1,5 +1,6 @@
 import { absoluteSiteUrl, getContactConfig, getSiteConfig } from '@/lib/siteConfig'
 import DOMPurify from 'dompurify'
+import type { ProductSummary } from '@/lib/shopify'
 
 interface JsonLdProps {
   data: Record<string, unknown>
@@ -36,17 +37,9 @@ export function organizationSchema() {
   }
 }
 
-export function productSchema(product: {
-  title: string
-  description: string
-  handle: string
-  featuredImage?: { url: string } | null
-  priceRange: {
-    minVariantPrice: { amount: string; currencyCode: string }
-  }
-  availableForSale: boolean
-  vendor?: string
-}) {
+export function productSchema(
+  product: Pick<ProductSummary, 'title' | 'description' | 'handle' | 'featuredImage' | 'availableForSale' | 'vendor' | 'price'>,
+) {
   const site = getSiteConfig()
 
   return {
@@ -62,8 +55,8 @@ export function productSchema(product: {
     },
     offers: {
       '@type': 'Offer',
-      price: product.priceRange.minVariantPrice.amount,
-      priceCurrency: product.priceRange.minVariantPrice.currencyCode,
+      price: product.price.min.amount,
+      priceCurrency: product.price.min.currencyCode,
       availability: product.availableForSale
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',

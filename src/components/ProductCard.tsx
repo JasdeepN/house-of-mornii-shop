@@ -8,13 +8,13 @@ import {
   BaroqueCardContent,
   BaroqueCardFooter,
 } from '@/components/BaroqueCard'
-import type { ShopifyProduct } from '@/lib/shopify'
-import { formatMoney } from '@/lib/shopify'
+import type { ProductSummary } from '@/lib/shopify'
+import { formatMoney, formatDisplayPrice } from '@/lib/shopify'
 import { memo } from 'react'
 import { luxuryEase, viewportOnce } from '@/lib/animations'
 
 interface ProductCardProps {
-  product: ShopifyProduct
+  product: ProductSummary
   index?: number
 }
 
@@ -24,18 +24,16 @@ const areProductCardPropsEqual = (prevProps: ProductCardProps, nextProps: Produc
     prevProps.product.id === nextProps.product.id &&
     prevProps.product.title === nextProps.product.title &&
     prevProps.product.description === nextProps.product.description &&
-    prevProps.product.priceRange.minVariantPrice.amount === nextProps.product.priceRange.minVariantPrice.amount &&
-    prevProps.product.priceRange.maxVariantPrice?.amount === nextProps.product.priceRange.maxVariantPrice?.amount &&
+    prevProps.product.price.min.amount === nextProps.product.price.min.amount &&
+    prevProps.product.price.max.amount === nextProps.product.price.max.amount &&
+    prevProps.product.price.compareAt?.amount === nextProps.product.price.compareAt?.amount &&
     prevProps.product.featuredImage?.url === nextProps.product.featuredImage?.url &&
     prevProps.index === nextProps.index
   )
 }
 
 export const ProductCard = memo(function ProductCard({ product, index = 0 }: ProductCardProps) {
-  const price = product.priceRange.minVariantPrice
-  const compareAt = product.priceRange.maxVariantPrice
-  const hasDiscount =
-    compareAt && parseFloat(compareAt.amount) > parseFloat(price.amount)
+  const compareAt = product.price.compareAt
   const imageUrl = product.featuredImage?.url
 
   return (
@@ -57,17 +55,17 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
             {product.title}
           </BaroqueCardTitle>
           <BaroqueCardDescription>
-            {hasDiscount ? (
+            {compareAt ? (
               <>
                 <span className="line-through opacity-60 mr-2">
                   {formatMoney(compareAt)}
                 </span>
                 <span style={{ color: 'oklch(0.60 0.11 78)' }}>
-                  {formatMoney(price)}
+                  {formatDisplayPrice(product.price)}
                 </span>
               </>
             ) : (
-              formatMoney(price)
+              formatDisplayPrice(product.price)
             )}
           </BaroqueCardDescription>
         </BaroqueCardHeader>

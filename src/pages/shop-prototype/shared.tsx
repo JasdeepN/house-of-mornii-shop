@@ -1,7 +1,7 @@
 // PROTOTYPE, throwaway: small helpers shared by the Shop All variants. Layout stays inside each variant.
 import { useMemo, useState } from 'react'
-import { formatMoney } from '@/lib/shopify'
-import type { ShopifyImage, ShopifyProduct } from '@/lib/shopify'
+import { formatDisplayPrice, formatMoney, PRODUCT_SORTS, type ProductSort, type ProductSummary } from '@/lib/shopify'
+import type { ShopifyImage } from '@/lib/shopify'
 
 export interface ShopCollection {
   handle: string
@@ -11,38 +11,33 @@ export interface ShopCollection {
 }
 
 export interface ShopVariantProps {
-  products: ShopifyProduct[]
+  products: ProductSummary[]
   collections: ShopCollection[]
   loading: boolean
-  sortKey: string
-  reverse: boolean
-  onSort: (key: string, reverse: boolean) => void
+  sort: ProductSort | undefined
+  onSort: (sort: ProductSort) => void
   canLoadMore: boolean
   loadingMore: boolean
   onLoadMore: () => void
-  onQuickAdd: (product: ShopifyProduct) => void
+  onQuickAdd: (product: ProductSummary) => void
 }
 
-// The brief keeps only these three sorts until real price and date data are connected.
-export const SORTS = [
-  { label: 'Recommended', key: 'BEST_SELLING', reverse: false },
-  { label: 'Name A–Z', key: 'TITLE', reverse: false },
-  { label: 'Name Z–A', key: 'TITLE', reverse: true },
+// The brief keeps only these sorts until real price and date data are connected.
+const PROTOTYPE_SORTS: { value: ProductSort; label: string }[] = [
+  { value: 'best-selling', label: 'Recommended' },
+  { value: 'title-asc', label: 'Name A–Z' },
 ]
-export const sortValue = (key: string, reverse: boolean) => `${key}:${reverse}`
-export function SortSelect({ sortKey, reverse, onSort, label = true }: Pick<ShopVariantProps, 'sortKey' | 'reverse' | 'onSort'> & { label?: boolean }) {
+export const SORTS = PRODUCT_SORTS.flatMap((s) => PROTOTYPE_SORTS.filter((p) => p.value === s.value))
+export function SortSelect({ sort, onSort, label = true }: Pick<ShopVariantProps, 'sort' | 'onSort'> & { label?: boolean }) {
   const select = (
     <select
       className="p-select"
       aria-label={label ? undefined : 'Sort'}
-      value={sortValue(sortKey, reverse)}
-      onChange={(e) => {
-        const [key, rev] = e.target.value.split(':')
-        onSort(key, rev === 'true')
-      }}
+      value={sort ?? 'best-selling'}
+      onChange={(e) => onSort(e.target.value as ProductSort)}
     >
       {SORTS.map((s) => (
-        <option key={s.label} value={sortValue(s.key, s.reverse)}>{s.label}</option>
+        <option key={s.value} value={s.value}>{s.label}</option>
       ))}
     </select>
   )
@@ -57,7 +52,7 @@ export const TYPES = [
   { key: 'Set', label: 'Sets' },
 ]
 
-export function useTypeFilter(products: ShopifyProduct[]) {
+export function useTypeFilter(products: ProductSummary[]) {
   const [type, setType] = useState('all')
   const counts = useMemo(
     () => Object.fromEntries(TYPES.map((t) => [t.key, t.key === 'all' ? products.length : products.filter((p) => p.productType === t.key).length])),
@@ -68,29 +63,23 @@ export function useTypeFilter(products: ShopifyProduct[]) {
 }
 
 export const sized = (url: string, width: number) => `${url}${url.includes('?') ? '&' : '?'}width=${width}`
-export const typeLabel = (p: ShopifyProduct) => p.productType || 'Jewellery'
+export const typeLabel = (p: ProductSummary) => p.productType || 'Jewellery'
 
-export function imagesOf(p: ShopifyProduct): ShopifyImage[] {
-  const list = p.images?.edges?.map((e) => e.node) ?? []
-  if (list.length) return list
-  return p.featuredImage ? [p.featuredImage] : []
+export function imagesOf(p: ProductSummary): ShopifyImage[] {
+  return p.images
 }
 
 // A range reads "From", and a sale shows only from Shopify's real compare-at price (see #25).
-export function priceOf(p: ShopifyProduct) {
-  const min = p.priceRange.minVariantPrice
-  const max = p.priceRange.maxVariantPrice
-  const cmp = p.compareAtPriceRange?.minVariantPrice
-  const onSale = Boolean(cmp && Number(cmp.amount) > Number(min.amount))
+export function priceOf(p: ProductSummary) {
   return {
-    now: `${Number(max.amount) > Number(min.amount) ? 'From ' : ''}${formatMoney(min)}`,
-    was: onSale && cmp ? formatMoney(cmp) : null,
-    pctOff: onSale && cmp ? Math.round((1 - Number(min.amount) / Number(cmp.amount)) * 100) : 0,
+    now: formatDisplayPrice(p.price),
+    was: p.price.compareAt ? formatMoney(p.price.compareAt) : null,
+    pctOff: p.price.percentOff,
     soldOut: !p.availableForSale,
   }
 }
 
-export function Price({ p, soldOutText = true }: { p: ShopifyProduct; soldOutText?: boolean }) {
+export function Price({ p, soldOutText = true }: { p: ProductSummary; soldOutText?: boolean }) {
   const price = priceOf(p)
   return (
     <>
@@ -101,14 +90,14 @@ export function Price({ p, soldOutText = true }: { p: ShopifyProduct; soldOutTex
   )
 }
 
-export function Tag({ p }: { p: ShopifyProduct }) {
+export function Tag({ p }: { p: ProductSummary }) {
   const price = priceOf(p)
   if (price.soldOut) return <span className="p-tag">Sold out</span>
   if (price.pctOff) return <span className="p-tag p-tag--sale">−{price.pctOff}%</span>
   return null
 }
 
-export function Photo({ p, width = 700, swap = false, className = '' }: { p: ShopifyProduct; width?: number; swap?: boolean; className?: string }) {
+export function Photo({ p, width = 700, swap = false, className = '' }: { p: ProductSummary; width?: number; swap?: boolean; className?: string }) {
   const imgs = imagesOf(p)
   if (!imgs.length) {
     return (

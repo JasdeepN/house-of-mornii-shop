@@ -19,6 +19,14 @@ initMetaPixel()
 // placeholder values. This prevents a visually-healthy but
 // commercially-dead storefront from being served in any environment.
 
+// Remove the legacy browser-held Customer token once; the Customer session now lives on the server.
+try {
+  localStorage.removeItem('hom-customer-access-token')
+  localStorage.removeItem('hom-customer-expires-at')
+} catch {
+  // Storage can be unavailable; nothing to clean up then.
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -65,6 +65,16 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config wrangler.catalog-sync.toml
 
+      # Customer session Worker (dev) — routed at dev.houseofmornii.com/api/customer/*.
+      # No secrets: the client ID is public and lives in wrangler.customer-session.toml.
+      - name: Deploy Customer Session Worker (dev)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.1"
+          command: deploy -c wrangler.customer-session.toml --env dev
+
   # ---------------------------------------------------------------------
   # Production — every push to `main`
   # ---------------------------------------------------------------------
@@ -86,3 +96,12 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env production
+
+      # Customer session Worker (production) — routed at houseofmornii.com/api/customer/*.
+      - name: Deploy Customer Session Worker (production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.1"
+          command: deploy -c wrangler.customer-session.toml --env production

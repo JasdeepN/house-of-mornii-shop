@@ -3,13 +3,16 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test/utils'
 import { SearchBar } from './SearchBar'
 
-const mockUseProducts = vi.fn()
+const mockUseProductListing = vi.fn()
 const mockNavigate = vi.fn()
 
-vi.mock('@/lib/shopify', () => ({
-  useProducts: (...args: unknown[]) => mockUseProducts(...args),
-  formatMoney: () => '$100.00',
-}))
+vi.mock('@/lib/shopify', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/shopify')>('@/lib/shopify')
+  return {
+    ...actual,
+    useProductListing: (...args: unknown[]) => mockUseProductListing(...args),
+  }
+})
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
@@ -25,55 +28,53 @@ class ResizeObserverMock {
   unobserve() {}
 }
 
-function createProductsPage(
-  products: Array<{ handle: string; id?: string; title: string }>,
-  pageInfo?: { endCursor: string | null; hasNextPage: boolean },
+const money = (amount: string) => ({ amount, currencyCode: 'USD' })
+
+function createListing(
+  items: Array<{ handle: string; id?: string; title: string; range?: boolean }>,
+  { hasMore = false, loadMore = vi.fn() }: { hasMore?: boolean; loadMore?: () => void } = {},
 ) {
   return {
-    data: {
-      edges: products.map((product, index) => ({
-        node: {
-          id: product.id ?? `product-${product.handle}-${index}`,
-          handle: product.handle,
-          title: product.title,
-          tags: ['ring'],
-          featuredImage: null,
-          priceRange: { minVariantPrice: { amount: '100.00', currencyCode: 'USD' } },
-        },
-      })),
-      pageInfo: pageInfo ?? { endCursor: null, hasNextPage: false },
-    },
-    isFetching: false,
+    products: items.map((item, index) => ({
+      id: item.id ?? `product-${item.handle}-${index}`,
+      handle: item.handle,
+      title: item.title,
+      featuredImage: null,
+      price: {
+        min: money('100.00'),
+        max: money(item.range ? '250.00' : '100.00'),
+        isRange: Boolean(item.range),
+        compareAt: null,
+        percentOff: 0,
+      },
+    })),
+    collection: null,
+    notFound: false,
     isLoading: false,
+    error: null,
+    hasMore,
+    isLoadingMore: false,
+    loadMore,
   }
 }
+
+const EMPTY = createListing([])
 
 describe('SearchBar', () => {
   beforeEach(() => {
     vi.stubGlobal('ResizeObserver', ResizeObserverMock)
     mockNavigate.mockReset()
-    mockUseProducts.mockReset()
-    mockUseProducts.mockReturnValue({ data: undefined, isFetching: false, isLoading: false })
+    mockUseProductListing.mockReset()
+    mockUseProductListing.mockReturnValue(EMPTY)
   })
 
-  it('loads additional result pages for a search query', async () => {
-    mockUseProducts.mockImplementation((_sortKey, _reverse, query, first, after) => {
-      if (query === 'Alpha' && first === 24 && after === 'cursor-1') {
-        return createProductsPage(
-          [{ handle: 'amber-charm', title: 'Amber Charm' }],
-          { endCursor: null, hasNextPage: false },
-        )
-      }
-
-      if (query === 'Alpha' && first === 24) {
-        return createProductsPage(
-          [{ handle: 'alpha-ring', title: 'Alpha Ring' }],
-          { endCursor: 'cursor-1', hasNextPage: true },
-        )
-      }
-
-      return createProductsPage([])
-    })
+  it('searches the sanitized query and loads more on request', async () => {
+    const loadMore = vi.fn()
+    mockUseProductListing.mockImplementation(({ query }: { query: string }) =>
+      query === 'Alpha'
+        ? createListing([{ handle: 'alpha-ring', title: 'Alpha Ring' }], { hasMore: true, loadMore })
+        : EMPTY,
+    )
 
     const user = userEvent.setup()
     renderWithProviders(<SearchBar />)
@@ -82,41 +83,39 @@ describe('SearchBar', () => {
     await user.type(screen.getByLabelText('Search products'), 'Alpha<>')
 
     await waitFor(() => {
-      expect(mockUseProducts).toHaveBeenCalledWith('BEST_SELLING', false, 'Alpha', 24, undefined)
+      expect(mockUseProductListing).toHaveBeenCalledWith({ query: 'Alpha', pageSize: 24 })
     })
-
     expect(await screen.findByText('Alpha Ring')).toBeInTheDocument()
 
     await user.click(await screen.findByRole('button', { name: 'LOAD MORE RESULTS' }))
-
-    await waitFor(() => {
-      expect(mockUseProducts).toHaveBeenCalledWith('BEST_SELLING', false, 'Alpha', 24, 'cursor-1')
-    })
-
-    expect(await screen.findByText('Amber Charm')).toBeInTheDocument()
+    expect(loadMore).toHaveBeenCalledTimes(1)
   })
 
-  it('resets accumulated results when the query changes', async () => {
-    mockUseProducts.mockImplementation((_sortKey, _reverse, query, first, after) => {
-      if (query === 'Alpha' && first === 24 && after === 'cursor-1') {
-        return createProductsPage(
-          [{ handle: 'amber-charm', title: 'Amber Charm' }],
-          { endCursor: null, hasNextPage: false },
-        )
-      }
+  it('shows "From" for a Product with a price range', async () => {
+    mockUseProductListing.mockImplementation(({ query }: { query: string }) =>
+      query === 'Alpha'
+        ? createListing([
+            { handle: 'alpha-ring', title: 'Alpha Ring', range: true },
+            { handle: 'alpha-chain', title: 'Alpha Chain' },
+          ])
+        : EMPTY,
+    )
 
-      if (query === 'Alpha' && first === 24) {
-        return createProductsPage(
-          [{ handle: 'alpha-ring', title: 'Alpha Ring' }],
-          { endCursor: 'cursor-1', hasNextPage: true },
-        )
-      }
+    const user = userEvent.setup()
+    renderWithProviders(<SearchBar />)
 
-      if (query === 'Beta' && first === 24) {
-        return createProductsPage([{ handle: 'beta-chain', title: 'Beta Chain' }])
-      }
+    await user.click(screen.getByRole('button', { name: /search products/i }))
+    await user.type(screen.getByLabelText('Search products'), 'Alpha')
 
-      return createProductsPage([])
+    expect(await screen.findByText(/^From \$?.*100\.00/)).toBeInTheDocument()
+    expect(screen.getByText(/^(?!From).*100\.00/)).toBeInTheDocument()
+  })
+
+  it('shows only the new query results after the query changes', async () => {
+    mockUseProductListing.mockImplementation(({ query }: { query: string }) => {
+      if (query === 'Alpha') return createListing([{ handle: 'alpha-ring', title: 'Alpha Ring' }])
+      if (query === 'Beta') return createListing([{ handle: 'beta-chain', title: 'Beta Chain' }])
+      return EMPTY
     })
 
     const user = userEvent.setup()
@@ -127,28 +126,20 @@ describe('SearchBar', () => {
     await user.type(input, 'Alpha')
     expect(await screen.findByText('Alpha Ring')).toBeInTheDocument()
 
-    await user.click(await screen.findByRole('button', { name: 'LOAD MORE RESULTS' }))
-    expect(await screen.findByText('Amber Charm')).toBeInTheDocument()
-
     await user.clear(input)
     await user.type(input, 'Beta')
 
     await waitFor(() => {
       expect(screen.getByText('Beta Chain')).toBeInTheDocument()
       expect(screen.queryByText('Alpha Ring')).not.toBeInTheDocument()
-      expect(screen.queryByText('Amber Charm')).not.toBeInTheDocument()
     })
   })
 
   it('clears query state on selection and close', async () => {
     const onClose = vi.fn()
-    mockUseProducts.mockImplementation((_sortKey, _reverse, query, first) => {
-      if (query === 'Alpha' && first === 24) {
-        return createProductsPage([{ handle: 'alpha-ring', title: 'Alpha Ring' }])
-      }
-
-      return createProductsPage([])
-    })
+    mockUseProductListing.mockImplementation(({ query }: { query: string }) =>
+      query === 'Alpha' ? createListing([{ handle: 'alpha-ring', title: 'Alpha Ring' }]) : EMPTY,
+    )
 
     const user = userEvent.setup()
     renderWithProviders(<SearchBar onClose={onClose} />)

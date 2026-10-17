@@ -144,57 +144,6 @@ describe('shopifyFetch', () => {
     expect(err.message).toContain('Internal server error')
   })
   
-  describe('adminProxyFetch', () => {
-    beforeEach(() => {
-      vi.resetModules()
-      vi.restoreAllMocks()
-    })
-  
-    afterEach(() => {
-      vi.unstubAllEnvs()
-    })
-  
-    it('throws on non-200 response', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
-      } as Response)
-  
-      const { adminProxyFetch } = await import('./admin-proxy')
-      await expect(
-        adminProxyFetch({ query: '{ shop { name } }' })
-      ).rejects.toThrow('Admin API proxy error: 500 Internal Server Error')
-    })
-  
-    it('throws on GraphQL errors from proxy', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          data: null,
-          errors: [{ message: 'Field not found' }],
-        }),
-      } as Response)
-  
-      const { adminProxyFetch } = await import('./admin-proxy')
-      await expect(
-        adminProxyFetch({ query: '{ badQuery }' })
-      ).rejects.toThrow('Admin API GraphQL errors: Field not found')
-    })
-  
-    it('returns data on successful response', async () => {
-      const expectedData = { shop: { name: 'Test Store' } }
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ data: expectedData }),
-      } as Response)
-  
-      const { adminProxyFetch } = await import('./admin-proxy')
-      const result = await adminProxyFetch({ query: '{ shop { name } }' })
-      expect(result).toEqual(expectedData)
-    })
-  })
-  
   describe('withRetry', () => {
     it('returns immediately on success', async () => {
       const { withRetry } = await import('./retry')

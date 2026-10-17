@@ -20,7 +20,7 @@ This document provides a comprehensive analysis of the test coverage across the 
 | Test File | Type | Tests |
 |-----------|------|-------|
 | `src/lib/shopify/client.test.ts` | Unit | STOREFRONT_MODE, shopifyFetch, StorefrontError, retry |
-| `src/lib/shopify/hooks.test.tsx` | Integration | useCollections, useCollection, useProduct, useProducts, useRelatedProducts |
+| `src/lib/shopify/hooks.test.tsx` | Integration | useCollections, useProduct, useProductListing, useRelatedProducts |
 | `src/lib/shopify/hooks.token.test.tsx` | Integration | Token mode hook integration |
 | `src/lib/shopify/types.test.ts` | Unit | flattenEdges, formatMoney |
 | `src/context/CartContext.test.tsx` | Integration | Cart state, addToCart, updateLineItem, removeLineItem, clearCart |
@@ -58,7 +58,7 @@ This document provides a comprehensive analysis of the test coverage across the 
 **Coverage: Excellent**
 
 - `client.test.ts` — Tests `STOREFRONT_MODE` resolution, `shopifyFetch` with SDK mock, `StorefrontError` classification, retry behavior
-- `hooks.test.tsx` — Tests all 5 hooks (`useCollections`, `useCollection`, `useProduct`, `useProducts`, `useRelatedProducts`) with mocked `shopifyFetch` and fixture data
+- `hooks.test.tsx` — Tests the Catalog hooks (`useCollections`, `useProduct`, `useProductListing`, `useRelatedProducts`) with mocked `shopifyFetch` and fixture data
 - `hooks.token.test.tsx` — Token mode integration tests for hooks (fetch by handle, pagination, null handling)
 - `types.test.ts` — Tests `flattenEdges` and `formatMoney` helpers
 
@@ -124,7 +124,6 @@ This document provides a comprehensive analysis of the test coverage across the 
 | `src/lib/shopify/queries.ts` | — | GraphQL query strings |
 | `src/lib/shopify/token-requirements.ts` | ~33 | `getRequiredModeForFields`, `hasTokenGatedFields` |
 | `src/lib/shopify/retry.ts` | ~76 | `withRetry`, `isRetryableError` (only indirectly tested) |
-| `src/lib/shopify/admin-proxy.ts` | ~83 | `adminProxyFetch` (only indirectly tested) |
 
 ### UI Components with NO Tests (26 components)
 
@@ -163,8 +162,7 @@ The test suite cannot execute due to Vitest 4.1.10 + Node v24 incompatibility. U
 1. **`src/lib/analytics.ts`** — Critical tracking code with zero coverage. Add tests for `initGA4`, `initMetaPixel`, `trackEvent`, `trackViewItem`, `trackAddToCart`, `trackViewItemList`, `trackBeginCheckout`
 2. **`src/lib/siteConfig.ts`** — All config getters are untested. Add tests for `getSiteConfig`, `getContactConfig`, `getNewsletterConfig`, `getWelcomePopupConfig`
 3. **`src/lib/shopify/retry.ts`** — Add direct unit tests for `withRetry` and `isRetryableError`
-4. **`src/lib/shopify/admin-proxy.ts`** — Add direct unit tests for `adminProxyFetch`
-5. **`src/lib/shopify/token-requirements.ts`** — Add tests for `getRequiredModeForFields` and `hasTokenGatedFields`
+4. **`src/lib/shopify/token-requirements.ts`** — Add tests for `getRequiredModeForFields` and `hasTokenGatedFields`
 
 ### Priority 3: Add Coverage Thresholds
 

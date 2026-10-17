@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LoadMore, Photo, Price, SORTS, TYPES, Tag, priceOf, typeLabel, useTypeFilter, type ShopVariantProps } from './shared'
 
-export function VariantC({ products, loading, sortKey, reverse, onSort, onQuickAdd, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
+export function VariantC({ products, loading, sort, onSort, onQuickAdd, canLoadMore, loadingMore, onLoadMore }: ShopVariantProps) {
   const { type, setType, counts, visible } = useTypeFilter(products)
   const [hideSoldOut, setHideSoldOut] = useState(false)
   const shown = hideSoldOut ? visible.filter((p) => p.availableForSale) : visible
@@ -31,7 +31,7 @@ export function VariantC({ products, loading, sortKey, reverse, onSort, onQuickA
         <div className="pc-group">
           <h2>Sort</h2>
           {SORTS.map((s) => (
-            <button key={s.label} type="button" className="pc-option" aria-pressed={sortKey === s.key && reverse === s.reverse} onClick={() => onSort(s.key, s.reverse)}>
+            <button key={s.value} type="button" className="pc-option" aria-pressed={(sort ?? 'best-selling') === s.value} onClick={() => onSort(s.value)}>
               <span>{s.label}</span>
             </button>
           ))}

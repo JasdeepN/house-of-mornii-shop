@@ -167,14 +167,28 @@ describe('siteConfig', () => {
       expect(absoluteSiteUrl('products')).toBe('https://example.com/products')
     })
 
-    it('returns just the path when site URL is empty', async () => {
+    it('falls back to the current window origin when site URL is empty', async () => {
       vi.stubEnv('VITE_SITE_NAME', 'My Shop')
       vi.stubEnv('VITE_SITE_URL', '')
       vi.stubEnv('VITE_SITE_DESCRIPTION', 'Test description')
 
       const { absoluteSiteUrl } = await import('./siteConfig')
 
-      expect(absoluteSiteUrl('/products')).toBe('/products')
+      expect(absoluteSiteUrl('/products')).toBe(`${window.location.origin}/products`)
+    })
+
+    it('returns just the path when site URL is empty and there is no window', async () => {
+      vi.stubEnv('VITE_SITE_NAME', 'My Shop')
+      vi.stubEnv('VITE_SITE_URL', '')
+      vi.stubEnv('VITE_SITE_DESCRIPTION', 'Test description')
+      vi.stubGlobal('window', undefined)
+
+      try {
+        const { absoluteSiteUrl } = await import('./siteConfig')
+        expect(absoluteSiteUrl('/products')).toBe('/products')
+      } finally {
+        vi.unstubAllGlobals()
+      }
     })
   })
 
