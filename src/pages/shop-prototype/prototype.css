@@ -80,10 +80,12 @@ body[data-proto-palette="champagne"] footer.glass-panel {
   --color-border: oklch(0.941 0.020 74.7 / 0.22);
   --color-input: oklch(0.941 0.020 74.7 / 0.35);
   --color-ring: var(--p-gold-on-teal);
-  background: var(--p-teal) !important;
+  /* Square corners and only slightly see-through: content scrolling under the header shows faintly */
+  background: color-mix(in oklch, var(--p-teal) 94%, transparent) !important;
   color: var(--p-on-teal);
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+  backdrop-filter: blur(10px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
 }
 body[data-proto-palette="champagne"] header.glass-panel .brand-title { color: var(--p-on-teal) !important; }
 body[data-proto-palette="champagne"] header.glass-panel .brand-name { color: var(--p-gold-on-teal) !important; }
