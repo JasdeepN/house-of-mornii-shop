@@ -89,7 +89,7 @@ src/
 ├── hooks/                     # Custom React hooks
 │   ├── useSEO.ts              # Dynamic meta tag management
 │   ├── useShopifyError.ts     # DEPRECATED — replaced by '@/lib/errorHandler'
-│   ├── useTheme.ts            # Dark/light theme toggle (key: hom-theme-preference)
+│   ├── useTheme.ts            # Always light (v1.0 is light only)
 │   └── use-mobile.ts          # Responsive breakpoint hook
 ├── lib/                       # Utility libraries
 │   ├── shopify/               # Shopify integration layer

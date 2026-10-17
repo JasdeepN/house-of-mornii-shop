@@ -24,12 +24,10 @@ graph TB
 
     subgraph Persistence["Browser Storage"]
         LocalCart[(localStorage: hom-cart-id)]
-        LocalTheme[(localStorage: hom-theme-preference)]
         SessionSession[(sessionStorage: hom_welcome_shown)]
     end
 
     CartCtx --> LocalCart
-    ThemeCtx --> LocalTheme
     Collections --> ServerState
     Products --> ServerState
 ```
@@ -154,12 +152,12 @@ Theme management is handled by the [`useTheme`](src/hooks/useTheme.ts) hook:
 
 ```typescript
 const { theme, toggleTheme } = useTheme()
-// Returns: { theme: 'dark' | 'light', toggleTheme: () => void }
+// Returns: { theme: 'light', toggleTheme: () => void } (toggleTheme is a no-op)
 ```
 
-**Persistence:** Theme preference stored in `localStorage` with key `hom-theme-preference` and restored on mount. Respects `prefers-color-scheme: light` system preference as fallback.
+**Persistence:** None. v1.0 is light only; the hook always returns light and ignores any stored preference (the old `hom-theme-preference` key is no longer read or written).
 
-**Implementation:** Uses `data-theme` attribute on `<body>` element for CSS targeting (not `<html>`).
+**Implementation:** Sets `data-theme="light"` on the `<body>` element.
 
 ## UI State (Local Component State)
 
@@ -197,7 +195,6 @@ const navigateDebounced = useCallback(
 | Key | Value | Purpose | Component |
 |-----|-------|---------|-----------|
 | `hom-cart-id` | Shopify cart ID (e.g., `gid://shopify/Cart/...`) | Cart persistence across sessions | [`CartContext`](src/context/CartContext.tsx) |
-| `hom-theme-preference` | `'dark'` or `'light'` | Theme preference | [`useTheme`](src/hooks/useTheme.ts) |
 
 ### sessionStorage Keys
 
@@ -205,7 +202,7 @@ const navigateDebounced = useCallback(
 |-----|-------|---------|-----------|
 | `hom_welcome_shown` | `'1'` (set after first display) | Welcome popup shown once per session | [`WelcomePopup`](src/components/WelcomePopup.tsx) |
 
-> **Note:** Previous documentation referenced keys `theme` and `welcome-shown`. The actual implementation uses `hom-theme-preference` and `hom_welcome_shown` with prefix convention.
+> **Note:** Previous documentation referenced keys `theme` and `welcome-shown`. The actual implementation uses `hom_welcome_shown`.
 
 ### Cart ID Format
 

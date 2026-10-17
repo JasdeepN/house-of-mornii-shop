@@ -34,7 +34,9 @@ graph TD
         CollectionsSection[CollectionsSection]
         ProductGrid[ProductGrid]
         TrustBadges[TrustBadges]
-        FreeShippingBar[FreeShippingBar]
+        QuickAddDialog[QuickAddDialog]
+        CollectionCard[CollectionCard]
+        ProductListingLayout[ProductListingLayout]
         AddToCartButton[AddToCartButton]
         ScrollToHash[ScrollToHash]
         PageTransition[PageTransition]
@@ -66,7 +68,7 @@ Displays a warning banner when Shopify credentials are missing in production.
 
 ### [`Header`](src/components/Header.tsx)
 
-Fixed navigation header with glass-panel styling, responsive mobile menu, and cart badge.
+Fixed navigation header styled with `.bar-teal` (teal, champagne text, square corners), responsive mobile menu, and cart badge.
 
 **Props:** None (uses context internally)
 
@@ -104,7 +106,7 @@ import { Header } from '@/components/Header'
 
 ### [`Footer`](src/components/Footer.tsx)
 
-Site footer with brand lockup, trust badges, newsletter signup, and copyright.
+Site footer with brand lockup, trust badges, newsletter signup, and copyright. Styled with `.bar-teal` (teal, champagne text, square corners), like the Header.
 
 **Props:** None (uses context internally)
 
@@ -126,7 +128,6 @@ Slide-out cart drawer (Sheet) that appears when user opens cart from any page.
 - Displays cart items with images, quantities, prices
 - Debounced quantity adjustment per line item (300ms debounce)
 - Remove line item functionality
-- FreeShippingBar integration
 - Cart subtotal display
 - Checkout button linking to Shopify checkout URL (validates URL)
 - Closes when clicking outside or pressing Escape
@@ -159,49 +160,70 @@ interface AddToCartButtonProps {
 
 ### [`ProductCard`](src/components/ProductCard.tsx)
 
-Interactive product card for grid display with image, title, price, and description.
+The Product card (layout C), used on listing pages, the homepage and related Products.
 
 **Props:**
 ```typescript
 interface ProductCardProps {
-  product: ShopifyProduct
+  product: ProductSummary
   index?: number        // For staggered animation delay
 }
 ```
 
 **Key Features:**
 - `React.memo` wrapped with custom comparison function to prevent unnecessary re-renders
-- Framer Motion entrance animation with viewport-triggered fade-up (`once: true`)
-- Discount price display (strikethrough original + accent sale price)
-- Image hover zoom effect (`hover:scale-105`, `duration-700`)
+- Whole photo on a square panel; a second photo shows on hover when the Product has one
+- Type label, title in `font-heading`, price
+- "From" price when Variants differ in price; strikethrough only for a real compare-at price
+- Sale and Sold out badges
+- Round quick-add button driven by `product.quickAdd`: `add` (one Variant) adds it and opens the Cart; `choose` (several Variants) opens [`QuickAddDialog`](src/components/QuickAddDialog.tsx); `sold-out` disables it
 - Links to `/products/:handle`
-- Lazy-loaded images with fallback placeholder
+- Framer Motion entrance (`duration: 0.6`, delay `index * 0.12`, viewport-triggered)
 
-**Animation:**
-```tsx
-<motion.div
-  initial={{ opacity: 0, y: 24 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true, margin: '-40px' }}
-  transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.12 }}
->
-```
+### [`QuickAddDialog`](src/components/QuickAddDialog.tsx)
+
+Dialog that lets a Shopper pick a Variant of a Product with several, then adds it to the Cart and opens the Cart.
+
+**Props:** `product: ProductSummary`, `open: boolean`, `onOpenChange: (open: boolean) => void`
+
+**Key Features:**
+- Loads the Product's Variants with `useProduct` when opened
+- Shows loading and error states
+- Tracks add-to-cart; shows a toast when the add fails
+
+### [`CollectionCard`](src/components/CollectionCard.tsx)
+
+A Collection as the Product card looks, without price, quick add or badges.
+
+**Props:** `collection: CollectionSummary`, `media?: ReactNode` (replaces the photo for Collections with an illustration)
 
 ### [`ProductGrid`](src/components/ProductGrid.tsx)
 
-Grid layout for displaying multiple product cards with responsive columns.
+Grid layout for Product cards.
 
 **Props:**
 ```typescript
 interface ProductGridProps {
-  products: ShopifyProduct[]
+  products: ProductSummary[]
   className?: string
 }
 ```
 
 **Key Features:**
-- Responsive grid (1 col mobile, 2 col tablet, 3 col desktop)
+- 3 columns, 2 at 1100px and below
 - Empty state handling ("No products found in this collection.")
+
+### [`ProductListingLayout`](src/components/ProductListingLayout.tsx)
+
+Shared layout for `ShopPage` and `CollectionPage`: title, optional breadcrumb and intro, filters, and a `ProductGrid`.
+
+**Props:** `title`, `breadcrumb?`, `intro?`, `products` (the whole listing), `isLoading`, `error?`, `filters: ListingFilters`, `onFiltersChange`
+
+**Key Features:**
+- Sticky sidebar with Type counts, Hide sold out and a sort; a chip row on phones
+- Six sorts (`PRODUCT_SORTS`): Recommended, Newest, Price low to high, Price high to low, Name A-Z, Name Z-A
+- Filter state lives in the URL: `type`, `available=1`, `sort`; defaults are left out, so Back and Forward restore the list. Product pages link back to the same list
+- Rules live in the Catalog module (`src/lib/shopify/catalog.ts`): `parseListingFilters`, `withListingFilters`, `viewListing`
 
 ### [`JewelryImage`](src/components/JewelryImage.tsx)
 
@@ -275,7 +297,7 @@ interface OrnamentalBorderProps {
 
 ### [`BaroqueCard`](src/components/BaroqueCard.tsx)
 
-Luxury card component wrapping content with ornamental styling and optional animations.
+Generic card wrapper (not the Product card; see `ProductCard`) wrapping content with ornamental styling and optional animations.
 
 **Sub-components:**
 - `BaroqueCardHeader` - Card header section
@@ -343,7 +365,7 @@ interface NewsletterSignupProps {
 
 ### [`HeroSection`](src/components/HeroSection.tsx)
 
-Full-viewport hero with brand identity, peacock imagery, and mood navigation.
+Full-viewport hero with brand identity and mood navigation.
 
 **Props:** None (uses env vars for configuration)
 
@@ -384,7 +406,7 @@ interface FAQAccordionProps {
 
 ### [`TrustBadges`](src/components/TrustBadges.tsx)
 
-Row of trust signals (shipping, returns, quality guarantees).
+Trust signals. The only badge is "Secure Checkout"; shipping, returns and authenticity claims were removed.
 
 **Props:**
 ```typescript
@@ -398,23 +420,6 @@ interface TrustBadgesProps {
 - `full` variant: grid layout with icons, labels, and subtitles
 - `compact` variant: inline labels for footer use
 - Includes `PaymentIcons` sub-component for payment method badges (Visa, Mastercard, Amex, Apple Pay, Google Pay)
-
-### [`FreeShippingBar`](src/components/FreeShippingBar.tsx)
-
-Progress bar showing free shipping threshold.
-
-**Props:**
-```typescript
-interface FreeShippingBarProps {
-  subtotalAmount: string
-  className?: string
-}
-```
-
-**Key Features:**
-- Threshold hardcoded at $150
-- Progress bar fills based on subtotal
-- Shows "unlocked" message when threshold reached
 
 ## Utility Components
 
@@ -557,12 +562,12 @@ function ProductPage() {
 
 ### [`useTheme`](src/hooks/useTheme.ts)
 
-Manages dark/light theme toggle with localStorage persistence.
+Always returns the light theme (v1.0 is light only); `toggleTheme` is a no-op and stored preferences are ignored.
 
 **Returns:**
 ```typescript
 {
-  theme: 'dark' | 'light'
+  theme: 'light'
   toggleTheme: () => void
 }
 ```

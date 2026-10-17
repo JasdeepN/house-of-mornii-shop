@@ -131,7 +131,7 @@ Add these non-secret repository **Variables** when final public copy/config shou
 | `VITE_SITE_URL` | Canonical production URL, e.g. `https://houseofmornii.com` |
 | `VITE_SITE_OG_IMAGE_PATH` | Social image path, e.g. `/og-image.png` |
 | `VITE_SITE_OG_IMAGE_ALT` | Social image alt text |
-| `VITE_THEME_COLOR` | Browser theme color |
+| `VITE_THEME_COLOR` | Browser theme color, for example `oklch(0.336 0.054 200.5)` |
 | `VITE_CONTACT_EMAIL` | Public contact email, when ready |
 | `VITE_INSTAGRAM_HANDLE` | Public Instagram display handle |
 | `VITE_INSTAGRAM_URL` | Public Instagram URL |

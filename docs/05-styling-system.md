@@ -2,14 +2,13 @@
 
 ## Overview
 
-The styling system combines Tailwind CSS 4 (without PostCSS), SCSS for complex mixins, and CSS custom properties for theming. The design language emphasizes luxury aesthetics with OKLCH color space, glass-morphism panels, and soft golden under-lighting effects.
+The styling system combines Tailwind CSS 4 (without PostCSS), SCSS for complex mixins, and CSS custom properties for theming. The design language is a champagne and teal palette in the OKLCH color space, light only (v1.0 has no dark mode), with a teal header and footer and layout C Product cards. The palette is defined once in [`src/tailwind.css`](src/tailwind.css).
 
 ```mermaid
 graph TB
     subgraph SCSS["SCSS Layer (src/index.scss)"]
         Mixins[ornamental-surface mixin]
-        Gradients[SVG gradient data URIs]
-        Noise[Noise overlay pattern]
+        Bars[.bar-teal header and footer]
         ThemeVars[Theme CSS variables]
     end
 
@@ -64,6 +63,8 @@ if (fs.existsSync('./theme.json')) {
 
 ### theme.json Integration
 
+> **Note:** The live color tokens come from [`src/tailwind.css`](src/tailwind.css). The color values in `theme.json` below predate the champagne and teal theme.
+
 The [`theme.json`](theme.json) file provides custom design tokens that are merged with Tailwind's default theme at build time:
 
 ```json
@@ -83,82 +84,49 @@ The [`theme.json`](theme.json) file provides custom design tokens that are merge
 
 ## OKLCH Color System
 
-All colors use the OKLCH color space for perceptually uniform transitions and better accessibility:
+All colors use the OKLCH color space. The theme is light only: `useTheme` always returns light. Tokens are CSS variables in `:root` of [`src/tailwind.css`](src/tailwind.css), exposed to Tailwind through `@theme` (`bg-background`, `text-muted-foreground`, `bg-primary`, `text-gold-on-teal`).
 
-### Dark Mode Palette (Default)
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| Background | `oklch(0.18 0.03 210)` | Body background |
-| Card | `oklch(0.22 0.03 210)` | Glass panels, cards |
-| Text (Foreground) | `oklch(0.95 0.01 210)` | Primary text |
-| Muted | `oklch(0.60 0.01 210)` | Secondary text |
-| Accent/Gold | `oklch(0.60 0.11 78)` | CTAs, highlights, ornamental details |
-| Primary/Teal | `oklch(0.45 0.08 210)` | Brand color, gradients |
-
-### Light Mode Palette
+### Palette
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| Background | `oklch(0.94 0.01 80)` | Body background (cream) |
-| Text | `oklch(0.22 0.02 78)` | Primary text (dark brown-gold) |
-| Accent/Gold | `oklch(0.60 0.11 78)` | Same as dark mode |
+| `background` | `oklch(0.924 0.027 78.2)` | Page (champagne) |
+| `foreground` | `oklch(0.335 0.045 193.0)` | Text (ink) |
+| `card` | `oklch(0.941 0.020 74.7)` | Cards, popovers |
+| `muted` | `oklch(0.894 0.032 78.1)` | Quiet surfaces |
+| `muted-foreground` | `oklch(0.502 0.020 145.3)` | Secondary text |
+| `border` | `oklch(0.846 0.027 80.2)` | Rules and borders |
+| `primary` / `accent` | `oklch(0.336 0.054 200.5)` | Teal #063F42: buttons, links, bars |
+| `primary-hover` | `oklch(0.409 0.061 199.7)` | Button hover |
+| `gold` | `oklch(0.649 0.077 83.8)` | Decoration only, never text |
+| `gold-on-teal` | `oklch(0.800 0.100 76)` | Accents on teal |
 
 ### Accessibility Ratios
 
 | Pair | Ratio | WCAG |
 |------|-------|------|
-| Dark bg + Light text | 11.2:1 | AAA |
-| Teal + White | 6.1:1 | AA |
-| Gold + Dark slate | 7.8:1 | AAA |
-| Card bg + Light text | 9.8:1 | AAA |
+| Ink on page | 9.4:1 | AAA |
+| Muted text on page | 4.7:1 | AA |
+| Champagne on teal | 9.8:1 | AAA |
+| Gold on teal (`gold-on-teal`) | 6.2:1 | AA |
+| Gold on page | 2.6:1 | Fails: decoration only, never text |
 
 ## CSS Custom Properties
 
 ### Glass Panel Variables
 
-Defined in [`src/index.scss`](src/index.scss) for both dark and light modes:
+Defined in [`src/tailwind.css`](src/tailwind.css). Panels are a near-transparent page color with a rule border and no highlight:
 
-**Dark Mode:**
 ```css
---glass-panel-bg: linear-gradient(160deg, oklch(0.18 0.03 210 / 0.55) ...);
---glass-blur-md: 24px;
---glass-saturate: 140%;
---glass-contrast: 108%;
---glass-panel-border: oklch(1 0 0 / 0.1);
---glass-highlight: oklch(1 0 0 / 0.15);
---glass-shadow: 0 12px 48px -16px oklch(0.28 0.03 210 / 0.14), ...;
-```
-
-**Light Mode:**
-```css
---glass-panel-bg: linear-gradient(160deg, oklch(0.96 0.01 80 / 0.55) ...);
---glass-blur-md: 24px;
---glass-saturate: 140%;
---glass-contrast: 108%;
---glass-panel-border: oklch(0.60 0.11 78 / 0.18);
---glass-highlight: oklch(1 0 0 / 0.50);
---glass-shadow: 0 12px 48px -16px oklch(0.28 0.03 210 / 0.14), ...;
+--glass-blur-md: 16px;
+--glass-panel-bg: color-mix(in oklch, var(--background) 92%, transparent);
+--glass-panel-border: var(--border);
+--glass-shadow: 0 1px 0 var(--border);
 ```
 
 ### Golden Glow Variables
 
-Replaces the previous PNG ornamental border system (see [`GOLDEN_GLOW_GUIDE.md`](GOLDEN_GLOW_GUIDE.md)):
-
-```css
-/* Dark mode defaults */
---golden-glow-intensity: 0.12;
---golden-glow-hover-intensity: 0.22;
-
-/* Light mode */
---golden-glow-intensity: 0.18;
---golden-glow-hover-intensity: 0.28;
-
-/* Shared */
---golden-glow-color: oklch(0.60 0.11 78);
---golden-glow-spread: 16px;
---golden-glow-blur: 32px;
-```
+The glow is off in the champagne theme (`--golden-glow-intensity: 0` and `--golden-glow-hover-intensity: 0` in [`src/index.scss`](src/index.scss)); `--golden-glow-color` is `var(--gold)`.
 
 ### Ornamental Frame Padding
 
@@ -199,6 +167,20 @@ The `.glass-panel` class applies:
 </div>
 ```
 
+## Teal Header and Footer
+
+The `.bar-teal` class (with `.glass-panel`) in [`src/index.scss`](src/index.scss) styles the header and footer:
+
+- Background: teal `oklch(0.336 0.054 200.5)` at 94% with `backdrop-filter: blur(10px) saturate(120%)`
+- Text: champagne `oklch(0.941 0.020 74.7)`; muted text `oklch(0.924 0.027 85.7)`
+- Accents: `gold-on-teal` `oklch(0.800 0.100 76)`
+- Square corners, no shadow
+- Inside the bar the tokens (`--foreground`, `--accent`, `--border`, `--ring` and their `--color-*` twins) are remapped to the bar colors, so components render correctly on teal. `.on-page` restores the page values for a surface inside a bar.
+
+## Product Card (layout C)
+
+[`ProductCard`](src/components/ProductCard.tsx): a `bg-card` panel with a rounded corner, soft teal shadow, and a 3px lift on hover or focus. It shows the whole photo on a square panel, the Type label (uppercase, muted), the title in `font-heading`, a "From" price when Variants differ in price, a strikethrough only for a real compare-at price, and Sale and Sold out badges. A round quick-add button sits on the photo. [`CollectionCard`](src/components/CollectionCard.tsx) reuses the same card. [`ProductGrid`](src/components/ProductGrid.tsx) lays cards out in 3 columns, 2 at 1100px and below.
+
 ## Golden Glow System
 
 The golden glow creates a soft under-lighting effect beneath glass panels:
@@ -236,9 +218,6 @@ The golden glow creates a soft under-lighting effect beneath glass panels:
 | Component | Default | Override |
 |-----------|---------|----------|
 | [`OrnamentalBorder`](src/components/OrnamentalBorder.tsx) | Applied | `noGlow` prop |
-| [`BaroqueCard`](src/components/BaroqueCard.tsx) | Inherited | `noGlow` prop |
-| [`ProductCard`](src/components/ProductCard.tsx) | Explicitly disabled | `noGlow` always |
-| [`CollectionCard`](src/pages/CollectionsPage.tsx) | Explicitly disabled | `noGlow` always |
 
 ## SCSS Mixins
 
@@ -270,37 +249,17 @@ Creates complex multi-layered background patterns for ornamental surfaces:
 | `$goldLineOpacity` | Number | Opacity of gold diagonal lines |
 | `$withAmbient` | Boolean | Include ambient radial gradients |
 
-## SVG Gradient Backgrounds
-
-Band-free backgrounds are implemented as SVG data URIs in SCSS variables:
-
-```scss
-$bg-dark-gradient: url("data:image/svg+xml,...");  // Dark mode gradient
-$bg-light-gradient: url("data:image/svg+xml,..."); // Light mode gradient
-$bg-noise: url("data:image/svg+xml,...");          // Film grain noise overlay
-```
-
-These are applied via `body::after` and `body::before` pseudo-elements for a seamless background that avoids CSS gradient banding.
-
 ## Typography System
 
 ### Font Families
 
 | Role | Font | Usage |
 |------|------|-------|
-| Headings (H1-H6) | Bodoni Moda | Section headers, titles |
-| Body | Cormorant Garamond | Paragraph text, descriptions |
-| Brand Accent | Great Vibes | Script brand elements |
+| Headings (H1-H6), `font-heading` | Noto Serif Display, self-hosted as `Mornii Display`, weight 400 (files in `src/assets/fonts/`, licence `OFL.txt`) | Section headers, titles |
+| Body, `font-body` | Arial | Paragraph text, descriptions, buttons |
+| Brand Accent, `font-script` | Great Vibes (Google Fonts) | "Mornii" only |
 
-### Typography Hierarchy
-
-| Level | Font | Size | Letter Spacing | Use Case |
-|-------|------|------|----------------|----------|
-| H1 | Cinzel Bold | 48px | 0.05em | Brand name |
-| H2 | Cinzel Regular | 36px | 0.08em | Section headers |
-| H3 | Cinzel Regular | 28px | 0.12em | Collection names |
-| Body | Cormorant Garamond | 18px | relaxed (1.6) | Descriptions |
-| Buttons | Cormorant SemiBold | 16px | uppercase + 0.15em | CTAs |
+Cinzel, Cormorant Garamond and Inter are no longer used.
 
 ## Animation System
 
