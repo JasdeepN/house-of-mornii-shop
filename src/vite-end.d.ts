@@ -22,6 +22,7 @@ interface ImportMetaEnv {
   readonly VITE_WELCOME_POPUP_EYEBROW?: string
   readonly VITE_WELCOME_POPUP_TITLE?: string
   readonly VITE_WELCOME_POPUP_DESCRIPTION?: string
+  readonly VITE_WELCOME_POPUP_ENABLED?: string
   readonly VITE_SHOPIFY_STORE_DOMAIN: string
   readonly VITE_SHOPIFY_STOREFRONT_TOKEN: string
   readonly VITE_GA4_MEASUREMENT_ID?: string
