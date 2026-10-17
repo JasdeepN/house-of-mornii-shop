@@ -17,6 +17,7 @@
         "test:run": "vitest run",
         "test:e2e": "playwright test",
         "test:e2e:read-only": "playwright test --project=read-only-desktop --project=read-only-phone",
+        "e2e:session": "node e2e/tools/refresh-session.mjs",
         "test:e2e:ui": "playwright test --ui",
         "test:e2e:report": "playwright show-report",
         "test:backup-export": "tsx scripts/test-backup-export.ts"
