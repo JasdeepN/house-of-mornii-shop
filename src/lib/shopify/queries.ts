@@ -25,6 +25,10 @@ const PRODUCT_CARD_FRAGMENT = `
     }
     tags
     vendor
+    # PROTOTYPE (shop variants): Product type, real compare-at price and a second image
+    productType
+    compareAtPriceRange { minVariantPrice { amount currencyCode } }
+    images(first: 2) { edges { node { ...ImageFields } } }
   }
   ${IMAGE_FRAGMENT}
 `

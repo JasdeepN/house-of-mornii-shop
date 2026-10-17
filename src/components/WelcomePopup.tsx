@@ -11,6 +11,8 @@ export function WelcomePopup() {
   const content = getWelcomePopupConfig()
 
   useEffect(() => {
+    if (!content.enabled) return
+
     // Respect reduced motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
@@ -23,7 +25,9 @@ export function WelcomePopup() {
     }, 4000) // 4s delay for better UX
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [content.enabled])
+
+  if (!content.enabled) return null
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>

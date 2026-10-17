@@ -28,6 +28,8 @@ jobs:
       VITE_SITE_URL: ${{ github.ref_name == 'main' && 'https://houseofmornii.com' || 'https://dev.houseofmornii.com' }}
       # Shopify's hosted account pages (email and phone changes), per environment.
       VITE_SHOPIFY_ACCOUNT_URL: ${{ vars.VITE_SHOPIFY_ACCOUNT_URL }}
+      # Throwaway design prototypes (?variant= on /shop, #22): on for dev, empty for production.
+      VITE_PROTOTYPES: ${{ github.ref_name == 'dev' && 'true' || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

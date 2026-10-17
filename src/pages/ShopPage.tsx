@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CaretDown, Funnel } from '@phosphor-icons/react'
@@ -17,6 +17,12 @@ import { ProductGrid } from '@/components/ProductGrid'
 import { fadeSlideUp, luxuryEase, viewportOnce } from '@/lib/animations'
 import { useSEO } from '@/hooks/useSEO'
 import { trackViewItemList } from '@/lib/analytics'
+
+// PROTOTYPE: Shop All design variants on ?variant=A-E. Only in development builds and builds made with
+// VITE_PROTOTYPES=true (the dev deploy); production builds leave it out.
+const ShopPrototype = import.meta.env.DEV || import.meta.env.VITE_PROTOTYPES === 'true'
+  ? lazy(() => import('@/pages/shop-prototype/ShopPrototype').then((m) => ({ default: m.ShopPrototype })))
+  : null
 
 const SORT_OPTIONS = [
   { label: 'Best Selling', key: 'BEST_SELLING', reverse: false },
@@ -39,7 +45,9 @@ export function ShopPage() {
   const [hasMorePages, setHasMorePages] = useState(true)
 
   const { data: collections } = useCollections()
-  const { data: productsData, isLoading: isAllLoading, error: productsError } = useProducts(sortKey, reverse)
+  // PROTOTYPE: load every Product while a design variant is shown, so counts and patterns are complete
+  const prototyping = Boolean(ShopPrototype && searchParams.get('variant'))
+  const { data: productsData, isLoading: isAllLoading, error: productsError } = useProducts(sortKey, reverse, undefined, prototyping ? 50 : undefined)
   const errorDisplay = useErrorHandler(productsError)
   // When a collection filter is active, fetch that collection's products directly
   const { data: collectionData, isLoading: isCollectionLoading, error: collectionError } = useCollection(
@@ -136,6 +144,24 @@ export function ShopPage() {
   const isServiceError = checkIsServiceError(activeError)
 
   const showLoadMore = !collectionFilter && hasMorePages && (productsData?.pageInfo.hasNextPage || loadedMore.length > 0)
+
+  if (ShopPrototype && searchParams.get('variant')) {
+    return (
+      <Suspense fallback={null}>
+        <ShopPrototype
+          products={filteredProducts}
+          collections={collections ?? []}
+          loading={loading}
+          sortKey={sortKey}
+          reverse={reverse}
+          onSort={handleSort}
+          canLoadMore={Boolean(showLoadMore)}
+          loadingMore={isLoadingMore}
+          onLoadMore={handleLoadMore}
+        />
+      </Suspense>
+    )
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-16">

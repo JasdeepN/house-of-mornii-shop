@@ -26,6 +26,7 @@ describe('siteConfig', () => {
       'VITE_WELCOME_POPUP_EYEBROW',
       'VITE_WELCOME_POPUP_TITLE',
       'VITE_WELCOME_POPUP_DESCRIPTION',
+      'VITE_WELCOME_POPUP_ENABLED',
     ]
     for (const key of envKeys) {
       originalEnv[key] = import.meta.env[key]
@@ -331,6 +332,23 @@ describe('siteConfig', () => {
       const config = getWelcomePopupConfig()
 
       expect(config.title).toBe('Custom Shop Name')
+    })
+
+    it('is switched off unless VITE_WELCOME_POPUP_ENABLED is "true"', async () => {
+      vi.stubEnv('VITE_WELCOME_POPUP_ENABLED', '')
+      const { getWelcomePopupConfig } = await import('./siteConfig')
+
+      expect(getWelcomePopupConfig().enabled).toBe(false)
+
+      vi.stubEnv('VITE_WELCOME_POPUP_ENABLED', 'yes')
+      expect(getWelcomePopupConfig().enabled).toBe(false)
+    })
+
+    it('is switched on when VITE_WELCOME_POPUP_ENABLED is "true"', async () => {
+      vi.stubEnv('VITE_WELCOME_POPUP_ENABLED', 'true')
+      const { getWelcomePopupConfig } = await import('./siteConfig')
+
+      expect(getWelcomePopupConfig().enabled).toBe(true)
     })
   })
 })

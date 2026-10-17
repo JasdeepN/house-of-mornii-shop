@@ -29,6 +29,7 @@ const envSchema = z.object({
   VITE_WELCOME_POPUP_EYEBROW: z.string().optional(),
   VITE_WELCOME_POPUP_TITLE: z.string().optional(),
   VITE_WELCOME_POPUP_DESCRIPTION: z.string().optional(),
+  VITE_WELCOME_POPUP_ENABLED: z.string().optional(),
   VITE_CONTACT_LOCATION_LABEL: z.string().optional(),
 })
 
@@ -110,6 +111,8 @@ export function getNewsletterConfig() {
 
 export function getWelcomePopupConfig() {
   return {
+    // Off until newsletter sign-ups reach Shopify (#34); set VITE_WELCOME_POPUP_ENABLED=true to show it.
+    enabled: envValue('VITE_WELCOME_POPUP_ENABLED') === 'true',
     eyebrow: envValue('VITE_WELCOME_POPUP_EYEBROW', 'Welcome'),
     title: envValue('VITE_WELCOME_POPUP_TITLE', getSiteConfig().name),
     description: envValue('VITE_WELCOME_POPUP_DESCRIPTION', 'Join the list for collection previews and launch updates.'),
