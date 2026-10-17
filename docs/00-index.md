@@ -21,6 +21,7 @@ Welcome to the House of Mornii Shop application documentation. This documentatio
 | [13 - Architecture Decisions](./13-architecture-decisions.md) | Key decisions, remediation history, lessons learned |
 | [14 - Test Coverage Analysis](./14-test-coverage-analysis.md) | Comprehensive test coverage assessment, gaps, and recommendations |
 | [15 - Production Readiness Audit](./15-production-readiness-audit.md) | Blockers/warnings audit before production launch |
+| [16 - End-to-End Tests](./16-end-to-end-tests.md) | Playwright journeys, tiers, local and CI runs, test data, session refresh |
 
 ## Documentation Structure
 

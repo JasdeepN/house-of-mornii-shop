@@ -117,8 +117,11 @@ src/
 ├── test/                      # Test utilities
 │   ├── setup.ts               # Vitest global setup
 │   └── utils.tsx              # Test helpers
-└── e2e/                       # Playwright E2E tests
-    └── buyer-journey.spec.ts  # Full checkout flow test
+└── e2e/                       # Playwright E2E tests (see docs/16-end-to-end-tests.md)
+    ├── read-only/             # Safe on any target
+    ├── dev-only/              # Real test Orders and sign-in; dev only
+    ├── support/               # Guard, Admin client, test Products, checkout helpers
+    └── tools/                 # refresh-session.mjs
 ```
 
 ## Data Flow

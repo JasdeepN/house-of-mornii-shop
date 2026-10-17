@@ -14,12 +14,12 @@ graph TB
     end
 
     subgraph E2E["E2E Tests - Playwright"]
-        BuyerJourney[Buyer journey flow]
-        CrossBrowser[Cross-browser validation]
+        ReadOnly[Read-only tier]
+        DevOnly[Dev-only tier: Orders and sign-in]
     end
 
     subgraph CI["CI Pipeline"]
-        Nightly[Nightly regression]
+        DevDeploy[After every dev deploy]
         PR[PR verification]
     end
 
@@ -162,101 +162,22 @@ The global setup file provides an IntersectionObserver polyfill required by Fram
 
 ## Playwright (E2E Tests)
 
-### Configuration
+The end-to-end suite has two tiers, `e2e/read-only` (safe anywhere) and `e2e/dev-only` (real test Orders and sign-in; dev only). It tests a deployed site, by default https://dev.houseofmornii.com, and runs after every `dev` deploy. Journeys, setup, secrets and troubleshooting are in [16 - End-to-End Tests](./16-end-to-end-tests.md).
 
-Playwright is configured in [`playwright.config.ts`](playwright.config.ts):
-
-```typescript
-export default defineConfig({
-  testDir: './e2e',
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  workers: 1,
-  reporter: process.env.CI ? 'github' : 'html',
-  
-  use: {
-    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5173',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'on-first-retry',
-  },
-})
-```
-
-### Test Scripts
-
-| Script | Command | Purpose |
-|--------|---------|---------|
-| `npm run test:e2e` | `playwright test` | Run all E2E tests |
-| `npm run test:e2e:ui` | `playwright test --ui` | Interactive Playwright UI |
-| `npm run test:e2e:report` | `playwright show-report` | Open HTML report |
-
-### Running Against Different Environments
-
-```bash
-# Local dev server (auto-started by Playwright)
-npm run test:e2e
-
-# Against deployed URL
-E2E_BASE_URL=https://houseofmornii.com npm run test:e2e
-```
-
-### E2E Test Files
-
-| File | Purpose |
-|------|---------|
-| [`e2e/buyer-journey.spec.ts`](e2e/buyer-journey.spec.ts) | Full buyer journey flow |
-
-### Buyer Journey Test Flow
-
-The E2E test simulates a complete shopping experience:
-
-```mermaid
-sequenceDiagram
-    participant User as Test Runner
-    participant App as Dev Server
-    participant Browser as Playwright
-
-    User->>App: npm run dev (auto-start)
-    User->>Browser: Navigate to /
-    Browser->>Browser: Verify hero loads
-    Browser->>Browser: Click Collections
-    Browser->>Browser: Verify collections page
-    Browser->>Browser: Click a collection
-    Browser->>Browser: Verify products display
-    Browser->>Browser: Click a product
-    Browser->>Browser: Verify product details
-    Browser->>Browser: Add to cart
-    Browser->>Browser: Verify cart flyout opens
-    Browser->>Browser: Navigate to /cart
-    Browser->>Browser: Verify cart page
-```
-
-### Prerequisites for E2E Tests
-
-E2E tests require a configured Shopify dev store:
-
-```bash
-# Required for full integration testing
-VITE_SHOPIFY_STORE_DOMAIN=your-dev-store.myshopify.com
-VITE_SHOPIFY_STOREFRONT_TOKEN=your_token
-```
-
-Without credentials, tests run against demo mode data.
-
-### CI Integration
-
-E2E tests run automatically:
-- Every night at 04:00 UTC via `.github/workflows/e2e.yml`
-- On PR merge (against deployed preview URL)
+| Script | Purpose |
+|--------|---------|
+| `npm run test:e2e` | Both tiers, against dev |
+| `npm run test:e2e:read-only` | Read-only tier only |
+| `npm run test:e2e:ui` | Interactive Playwright UI |
+| `npm run test:e2e:report` | Open the HTML report |
+| `npm run e2e:session` | Refresh the saved test Customer session |
 
 ## Test Coverage Goals
 
 | Layer | Target | Current Status |
 |-------|--------|----------------|
 | Unit (Vitest) | >80% | Key modules covered |
-| E2E (Playwright) | Critical paths | Buyer journey covered |
+| E2E (Playwright) | Critical paths | Shop, Product, Bag, checkout and sign-in journeys covered |
 | Visual | Manual | Design review process |
 
 ## Testing Patterns

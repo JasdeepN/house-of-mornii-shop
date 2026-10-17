@@ -58,6 +58,16 @@ v1.0 ships light only: `useTheme` always returns light and ignores stored prefer
 - Vitest, Testing Library, jsdom. `src/test/setup.ts` patches `IntersectionObserver` and `ResizeObserver` and stubs Shopify env with dummy credentials (`test-store.myshopify.com`, `test-storefront-token`); empty values would throw.
 - Mock `shopifyFetch` from `@/lib/shopify/client` with `src/test/fixtures/shopify-fixtures.ts`; tests that mock the Catalog hooks use `src/test/fixtures/catalog-fixtures.ts`.
 
+### End-to-end (Playwright, `docs/16-end-to-end-tests.md`)
+
+- Two tiers, each run at 1440px and 390px. `e2e/read-only` is safe anywhere. `e2e/dev-only` places real test Orders and signs in; `requireDevTarget` (`e2e/support/env.ts`) throws for any target but `https://dev.houseofmornii.com`.
+- `npm run test:e2e` runs both tiers against dev. `npm run test:e2e:read-only` runs the first. `npm run e2e:session` refreshes the saved Customer session.
+- Secrets live in the git-ignored `.env.e2e.local`: `E2E_BASE_URL`, `E2E_SHOPIFY_STORE_DOMAIN`, `E2E_STORE_PASSWORD`, `E2E_SHOPIFY_CLIENT_ID`, `E2E_SHOPIFY_CLIENT_SECRET`, `E2E_CUSTOMER_SESSION`. CI runs the suite after every `dev` deploy, with the same names as secrets on the GitHub environment `dev`.
+- New journeys:
+  - Wait on elements (`expect(...).toBeVisible()`), never `networkidle`.
+  - Shopper-facing words say Bag; code says Cart.
+  - A dev-only journey cleans up its Orders in a `finally` (`cancelAndArchiveOrder`).
+
 ## Issues and domain docs
 
 - Issues: GitHub via `gh`; see `docs/agents/issue-tracker.md`.

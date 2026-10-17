@@ -69,20 +69,20 @@ npm run test       # watch mode
 npm run test:run   # single run (CI mode)
 ```
 
-### E2E Tests (Playwright — requires a running server)
+### E2E Tests (Playwright — tests a deployed site)
 
 ```bash
-# Against local dev server (auto-started)
+# Everything, against https://dev.houseofmornii.com (needs .env.e2e.local)
 npm run test:e2e
 
-# Against production (full smoke test)
-E2E_BASE_URL=https://houseofmornii.com npm run test:e2e
+# Read-only tier only: safe against any site, including production
+E2E_BASE_URL=https://houseofmornii.com npm run test:e2e:read-only
 
 # Open Playwright UI for interactive debugging
 npm run test:e2e:ui
 ```
 
-E2E tests run automatically every night at 04:00 UTC via `.github/workflows/e2e.yml`.
+The dev-only tier places Orders and signs in, so it refuses any target but dev. The suite runs automatically after every `dev` deploy (`.github/workflows/deploy-site.yml`) and by hand via `.github/workflows/e2e.yml`. See [16 - End-to-End Tests](./16-end-to-end-tests.md).
 
 ## Production Build Verification
 
@@ -203,7 +203,7 @@ When rotating Shopify tokens or other credentials:
 
 - **Uptime**: Configure Cloudflare Health Checks under Workers & Pages settings (notify on >2 min downtime)
 - **Analytics**: GA4 real-time view at analytics.google.com
-- **E2E smoke**: Nightly CI run at 04:00 UTC with Playwright report artifacts (available 14 days in GitHub Actions)
+- **E2E**: CI run after every `dev` deploy, with Playwright report and trace artifacts (kept 14 days in GitHub Actions)
 - **Error tracking**: Consider adding Sentry (optional — not currently configured)
 
 ## Troubleshooting
@@ -357,7 +357,7 @@ Complete all items in order. Each section must be fully checked before proceedin
 - [ ] All GitHub secrets configured (see section above)
 - [ ] `npm run build` passes cleanly (no TypeScript errors, no build warnings)
 - [ ] `npm run test:run` — all unit tests pass
-- [ ] E2E smoke tests pass against staging: `E2E_BASE_URL=https://staging-url npm run test:e2e`
+- [ ] E2E suite is green on the latest `dev` deploy (`npm run test:e2e` against dev)
 
 ### Phase 5: SEO & Analytics
 
@@ -405,13 +405,13 @@ Run immediately after deploying to production domain:
 - [ ] Mobile layout: check on iOS Safari and Android Chrome
 - [ ] 404 page shows branded error page (not a blank white page)
 
-Run automated E2E: `E2E_BASE_URL=https://houseofmornii.com npm run test:e2e`
+Run the read-only E2E tier: `E2E_BASE_URL=https://houseofmornii.com npm run test:e2e:read-only` (never the dev-only tier on production)
 
 ### Phase 9: Post-Launch Monitoring
 
 - [ ] Set up Cloudflare Health Check to alert on downtime (Email/Slack notification)
 - [ ] GA4 real-time view shows at least one session after a test visit
-- [ ] E2E nightly workflow (`.github/workflows/e2e.yml`) first run passed
+- [ ] Manual E2E workflow (`.github/workflows/e2e.yml`, tier `read-only`, production URL) passed
 - [ ] Announce on social channels with the OG image / link preview
 
 ### Launch Sign-Off

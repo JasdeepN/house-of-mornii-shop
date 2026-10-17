@@ -101,7 +101,7 @@ This document captures the key architectural decisions, remediation history, and
 1. **External monitoring integration** — Cloudflare Health Checks configured
 2. **Health check page** — `src/pages/HealthPage.tsx` for monitoring
 3. **Security headers** — `public/_headers` with CSP, HSTS, X-Frame-Options
-4. **Security headers E2E tests** — `e2e/security-headers.spec.ts`
+4. **Security headers E2E tests** — `e2e/read-only/security-headers.spec.ts`
 
 ## Lessons Learned
 

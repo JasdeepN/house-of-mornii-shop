@@ -42,12 +42,22 @@ This document provides a comprehensive analysis of the test coverage across the 
 | `workers/shopify-proxy.test.ts` | Unit | HMAC, mutation guard, webhook dispatch, backup |
 | `workers/catalog-sync.test.ts` | Unit | Transform, upsert, orchestration, no-PII |
 
-### E2E Tests (2 files)
+### E2E Tests (8 spec files, two tiers; see [16 - End-to-End Tests](./16-end-to-end-tests.md))
 
-| Test File | Coverage |
-|-----------|----------|
-| `e2e/buyer-journey.spec.ts` | Home page, collections, product detail, cart, checkout |
-| `e2e/security-headers.spec.ts` | Security header validation |
+Each spec runs at desktop (1440px) and phone (390px) widths against https://dev.houseofmornii.com, after every `dev` deploy and on demand.
+
+| Test File | Tier | Coverage |
+|-----------|------|----------|
+| `e2e/read-only/shop-filters.spec.ts` | Read-only | Type, Hide sold out and Sort filters write the address; Back restores them |
+| `e2e/read-only/product-page.spec.ts` | Read-only | Variants and availability; Add to bag twice (#42) |
+| `e2e/read-only/quick-add.spec.ts` | Read-only | Quick add for one Variant, several Variants, and sold out |
+| `e2e/read-only/bag.spec.ts` | Read-only | Bag flyout + / - / remove, Bag page subtotal, checkout link domain |
+| `e2e/read-only/security-headers.spec.ts` | Read-only | Security header validation |
+| `e2e/read-only/env-guard.spec.ts` | Read-only | The dev-target guard accepts only the dev origin |
+| `e2e/dev-only/sign-in.spec.ts` | Dev-only | Sign in reaches Shopify's page; the saved session shows the Customer (phone sign-in waits on #47) |
+| `e2e/dev-only/checkout.spec.ts` | Dev-only | Bogus Gateway checkout as the test Customer; the Order is checked in Admin and on `/account/orders`, then cancelled and archived |
+
+Not covered end to end: the home page, Collection pages, and the Customer's other account pages.
 
 ---
 
