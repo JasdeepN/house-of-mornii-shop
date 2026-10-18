@@ -22,6 +22,7 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
   - `workers/shopify-proxy.ts` (`wrangler.toml`): webhook receiver and daily backup cron. It does not proxy the Admin API.
   - `workers/catalog-sync.ts` (`wrangler.catalog-sync.toml`): nightly prod-to-dev sync of products and collections only.
   - `workers/customer-session.ts` (`wrangler.customer-session.toml`, `--env dev|production`, no top-level config): Customer sign-in on the Customer Account API at `/api/customer/*`, with Customer sessions in KV (`docs/adr/0001`, `0002`). No secrets: the client id is public.
+  - `workers/enquiry.ts` (`wrangler.enquiry.toml`, `--env dev|production`, no top-level config): Shopper enquiries at `/api/enquiry`, emailed with the Email Workers `send_email` binding from `notify.houseofmornii.com` to one fixed address (contact@ in production). Turnstile, KV rate limit, dev-only dry run (`docs/17-enquiries.md`). `deploy.yml` passes its secrets with `wrangler deploy --secrets-file`; wrangler-action's `secrets:` input ignores `-c`/`--env` and writes to the wrong Worker.
 
 ## Shopify
 
@@ -29,7 +30,7 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 - Live credentials `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are required in every environment; `client.ts` throws at module load when they are missing or placeholders (`your-store.myshopify.com`, `CHANGE_ME`). No demo fallback exists.
 - Catalog (Products, Variants, Collections): pages take domain shapes (`ProductSummary`, `Product`, `Variant`, `CollectionSummary`, `DisplayPrice`) and hooks (`useProductListing`, `useProduct`, `useCollections`, `useRelatedProducts`) from the barrel; raw `edges`/`priceRange` and `shopifyFetch` for catalog data stay inside `src/lib/shopify`.
 - Price display, sort keys (`PRODUCT_SORTS`, `parseProductSort`; Shop URL `?sort=`) and variant picking live in `catalog.ts`. Catalog reads use the Storefront API only (`docs/adr/0003`).
-- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`, `VITE_NEWSLETTER_ENABLED` (off until v1.1; the footer form is hidden), `VITE_CONTACT_EMAIL` (`contact@houseofmornii.com`).
+- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`, `VITE_NEWSLETTER_ENABLED` (off until v1.1; the footer form is hidden), `VITE_CONTACT_EMAIL` (`contact@houseofmornii.com`), `VITE_TURNSTILE_SITE_KEY` (the enquiry forms render only when it is set).
 
 ## Conventions
 
