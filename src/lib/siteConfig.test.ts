@@ -193,15 +193,15 @@ describe('siteConfig', () => {
   })
 
   describe('getContactConfig', () => {
-    it('returns empty email when VITE_CONTACT_EMAIL is not set', async () => {
+    it('defaults to contact@houseofmornii.com when VITE_CONTACT_EMAIL is not set', async () => {
       vi.stubEnv('VITE_CONTACT_EMAIL', '')
 
       const { getContactConfig } = await import('./siteConfig')
       const config = getContactConfig()
 
-      expect(config.email).toBe('')
-      expect(config.emailLabel).toBe('Contact email coming soon')
-      expect(config.emailHref).toBeUndefined()
+      expect(config.email).toBe('contact@houseofmornii.com')
+      expect(config.emailLabel).toBe('contact@houseofmornii.com')
+      expect(config.emailHref).toBe('mailto:contact@houseofmornii.com')
     })
 
     it('returns email and mailto href when VITE_CONTACT_EMAIL is set', async () => {
@@ -226,13 +226,13 @@ describe('siteConfig', () => {
       expect(config.instagramUrl).toBe('https://instagram.com/houseofmornii')
     })
 
-    it('returns default location label when VITE_CONTACT_LOCATION_LABEL is not set', async () => {
+    it('returns no location label when VITE_CONTACT_LOCATION_LABEL is not set', async () => {
       vi.stubEnv('VITE_CONTACT_LOCATION_LABEL', '')
 
       const { getContactConfig } = await import('./siteConfig')
       const config = getContactConfig()
 
-      expect(config.locationLabel).toBe('Appointment details coming soon')
+      expect(config.locationLabel).toBe('')
     })
 
     it('returns custom location label when VITE_CONTACT_LOCATION_LABEL is set', async () => {
@@ -350,5 +350,16 @@ describe('siteConfig', () => {
 
       expect(getWelcomePopupConfig().enabled).toBe(true)
     })
+  })
+})
+
+
+describe('getNewsletterConfig().enabled', () => {
+  it('is off by default and on only for "true"', async () => {
+    const { getNewsletterConfig } = await import('./siteConfig')
+    vi.stubEnv('VITE_NEWSLETTER_ENABLED', '')
+    expect(getNewsletterConfig().enabled).toBe(false)
+    vi.stubEnv('VITE_NEWSLETTER_ENABLED', 'true')
+    expect(getNewsletterConfig().enabled).toBe(true)
   })
 })

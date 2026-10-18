@@ -8,9 +8,11 @@ interface SEOProps {
   description?: string
   image?: string
   type?: 'website' | 'product' | 'article'
+  /** Ask search engines to leave the page out of their index (the 404 page). */
+  noindex?: boolean
 }
 
-function setMeta(property: string, content: string) {
+function setMeta(property: string, content: string): HTMLMetaElement {
   let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null
   if (!el) {
     el = document.querySelector(`meta[name="${property}"]`) as HTMLMetaElement | null
@@ -25,6 +27,7 @@ function setMeta(property: string, content: string) {
     document.head.appendChild(el)
   }
   el.setAttribute('content', content)
+  return el
 }
 
 function setCanonical(url: string) {
@@ -37,7 +40,7 @@ function setCanonical(url: string) {
   link.setAttribute('href', url)
 }
 
-export function useSEO({ title, description, image, type = 'website' }: SEOProps = {}) {
+export function useSEO({ title, description, image, type = 'website', noindex = false }: SEOProps = {}) {
   const { pathname } = useLocation()
   const coverUrl = useShopBrand().coverImage?.url
 
@@ -72,5 +75,9 @@ export function useSEO({ title, description, image, type = 'website' }: SEOProps
 
     // Canonical
     setCanonical(url)
-  }, [title, description, image, type, pathname, coverUrl])
+
+    // Robots: noindex only where asked; the tag is removed again when the page leaves
+    const robots = noindex ? setMeta('robots', 'noindex, follow') : null
+    return () => robots?.remove()
+  }, [title, description, image, type, noindex, pathname, coverUrl])
 }

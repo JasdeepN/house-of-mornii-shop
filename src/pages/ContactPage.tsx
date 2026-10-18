@@ -121,20 +121,13 @@ export function ContactPage() {
             personalized styling consultations.
           </p>
 
-          {contact.emailHref ? (
+          {contact.emailHref && (
             <a
               href={`${contact.emailHref}?subject=Styling%20Appointment%20Request`}
               className="pill-btn pill-btn--cta w-full sm:w-auto justify-center px-12 py-4 text-sm inline-flex"
             >
               BOOK YOUR APPOINTMENT
             </a>
-          ) : (
-            <span
-              className="pill-btn pill-btn--cta w-full sm:w-auto justify-center px-12 py-4 text-sm inline-flex opacity-70 cursor-not-allowed"
-              aria-disabled="true"
-            >
-              CONTACT DETAILS COMING SOON
-            </span>
           )}
         </motion.div>
 

@@ -51,12 +51,15 @@ describe('CartPage', () => {
 // ── Phase 1d: Book a Styling button ───────────────────────────────────────────
 
 describe('ContactPage Book a Styling', () => {
-  it('renders a placeholder when contact email is not configured', () => {
+  it('uses the default contact email and shows no coming-soon text or location line when none is set', () => {
     vi.stubEnv('VITE_CONTACT_EMAIL', '')
+    vi.stubEnv('VITE_CONTACT_LOCATION_LABEL', '')
 
     renderWithProviders(<ContactPage />, { initialEntries: ['/contact'] })
 
-    expect(screen.getByText('CONTACT DETAILS COMING SOON')).toBeInTheDocument()
+    expect(screen.getByText('BOOK YOUR APPOINTMENT')).toHaveAttribute('href', expect.stringContaining('mailto:contact@houseofmornii.com'))
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('LOCATION')).not.toBeInTheDocument()
   })
 
   it('renders appointment link as an anchor with mailto href when contact email is configured', () => {

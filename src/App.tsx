@@ -22,6 +22,8 @@ const CollectionPage = lazy(() => import('@/pages/CollectionPage').then((m) => (
 const ProductPage = lazy(() => import('@/pages/ProductPage').then((m) => ({ default: m.ProductPage })))
 const AboutPage = lazy(() => import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage })))
 const ContactPage = lazy(() => import('@/pages/ContactPage').then((m) => ({ default: m.ContactPage })))
+const PolicyPage = lazy(() => import('@/pages/PolicyPage').then((m) => ({ default: m.PolicyPage })))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const CartPage = lazy(() => import('@/pages/CartPage').then((m) => ({ default: m.CartPage })))
 const HealthPage = lazy(() => import('@/pages/HealthPage').then((m) => ({ default: m.HealthPage })))
 const AccountPage = lazy(() => import('@/pages/AccountPage').then((m) => ({ default: m.AccountPage })))
@@ -72,7 +74,12 @@ function AnimatedRoutes() {
             <Route path="/account/addresses" element={<AddressesPage />} />
             <Route path="/account/orders" element={<OrdersPage />} />
             <Route path="/account/orders/:orderId" element={<OrderDetailPage />} />
+            <Route path="/policies/refund" element={<PolicyPage kind="refund" />} />
+            <Route path="/policies/shipping" element={<PolicyPage kind="shipping" />} />
+            <Route path="/policies/privacy" element={<PolicyPage kind="privacy" />} />
+            <Route path="/policies/terms" element={<PolicyPage kind="terms" />} />
             <Route path="/_health" element={<HealthPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </PageTransition>

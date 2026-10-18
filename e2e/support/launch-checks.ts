@@ -45,7 +45,8 @@ async function resolve(page: Page) {
     { name: 'About', path: '/about', ready: h1 },
     { name: 'Contact', path: '/contact', ready: h1 },
     { name: 'Account', path: '/account', ready: h1 },
-    { name: '404', path: '/this-page-does-not-exist-launch-check', ready: (p) => p.locator('main, body').first() },
+    { name: 'Refund policy', path: '/policies/refund', ready: h1 },
+    { name: '404', path: '/this-page-does-not-exist-launch-check', ready: h1 },
   ]
   return { pages, longWord }
 }
