@@ -160,7 +160,7 @@ export function Header() {
                       asChild
                       className="mt-4 min-h-11 bg-primary text-primary-foreground hover:bg-primary-hover font-semibold tracking-widest w-full"
                     >
-                      <Link to="/contact" onClick={() => setIsOpenDebounced(false)}>
+                      <Link to="/contact#styling" onClick={() => setIsOpenDebounced(false)}>
                         BOOK A STYLING
                       </Link>
                     </Button>
@@ -193,7 +193,7 @@ export function Header() {
                   variant="outline"
                   className="min-h-11 border-accent bg-transparent text-foreground hover:bg-primary-hover hover:text-foreground font-semibold tracking-widest"
                 >
-                  <Link to="/contact">BOOK A STYLING</Link>
+                  <Link to="/contact#styling">BOOK A STYLING</Link>
                 </Button>
               </div>
             </>

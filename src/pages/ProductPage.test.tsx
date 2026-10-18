@@ -101,4 +101,26 @@ describe('ProductPage', () => {
     const nav = screen.getByRole('navigation', { name: /breadcrumb/i })
     expect(within(nav).getByRole('link', { name: 'COLLECTIONS' })).toBeInTheDocument()
   })
+
+  it('has no enquiry section without a Turnstile site key', async () => {
+    vi.stubEnv('VITE_TURNSTILE_SITE_KEY', '')
+    renderProduct('aria-pendant')
+    await screen.findByRole('heading', { level: 1, name: 'Aria Pendant' })
+    expect(screen.queryByRole('button', { name: /ask about this piece/i })).not.toBeInTheDocument()
+  })
+
+  it('reveals the enquiry form from Ask about this piece', async () => {
+    vi.stubEnv('VITE_TURNSTILE_SITE_KEY', 'site-key')
+    window.turnstile = { render: () => 'w', reset: () => {}, remove: () => {} }
+    renderProduct('aria-pendant')
+    await screen.findByRole('heading', { level: 1, name: 'Aria Pendant' })
+
+    const toggle = screen.getByRole('button', { name: /ask about this piece/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.setup().click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByLabelText('Message')).toBeInTheDocument()
+    delete window.turnstile
+    vi.unstubAllEnvs()
+  })
 })

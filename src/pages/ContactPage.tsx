@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { EnvelopeSimple, InstagramLogo, MapPin } from '@phosphor-icons/react'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
@@ -11,7 +13,8 @@ import {
 } from '@/lib/animations'
 import { useSEO } from '@/hooks/useSEO'
 import { FAQAccordion } from '@/components/FAQAccordion'
-import { getContactConfig } from '@/lib/siteConfig'
+import { EnquiryForm } from '@/components/EnquiryForm'
+import { getContactConfig, getEnquiryConfig } from '@/lib/siteConfig'
 
 function getContactItems() {
   const contact = getContactConfig()
@@ -24,8 +27,14 @@ function getContactItems() {
 }
 
 export function ContactPage() {
-  const contact = getContactConfig()
+  const enquiryEnabled = getEnquiryConfig().enabled
+  const { hash } = useLocation()
+  const [stylingOpen, setStylingOpen] = useState(hash === '#styling')
   const contactItems = getContactItems()
+
+  useEffect(() => {
+    if (hash === '#styling') setStylingOpen(true)
+  }, [hash])
 
   useSEO({
     title: 'Contact',
@@ -109,11 +118,12 @@ export function ContactPage() {
 
         {/* Book a Styling Section */}
         <motion.div
+          id="styling"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewportOnce}
           transition={{ duration: 0.3, ease: luxuryEase }}
-          className="max-w-xl mx-auto text-center mb-20"
+          className="max-w-xl mx-auto text-center mb-20 scroll-mt-24"
         >
           <h2 className="text-2xl text-accent tracking-[0.15em] mb-6">BOOK A STYLING</h2>
           <p className="text-base leading-relaxed text-muted-foreground mb-8">
@@ -121,13 +131,28 @@ export function ContactPage() {
             personalized styling consultations.
           </p>
 
-          {contact.emailHref && (
-            <a
-              href={`${contact.emailHref}?subject=Styling%20Appointment%20Request`}
-              className="pill-btn pill-btn--cta w-full sm:w-auto justify-center px-12 py-4 text-sm inline-flex"
-            >
-              BOOK YOUR APPOINTMENT
-            </a>
+          {enquiryEnabled && (
+            <>
+              <button
+                type="button"
+                aria-expanded={stylingOpen}
+                aria-controls="styling-panel"
+                onClick={() => setStylingOpen((open) => !open)}
+                className="pill-btn pill-btn--cta w-full sm:w-auto justify-center px-12 py-4 text-sm inline-flex min-h-11"
+              >
+                BOOK YOUR APPOINTMENT
+              </button>
+              <div id="styling-panel" hidden={!stylingOpen} className="mt-8">
+                {stylingOpen && (
+                  <>
+                    <p className="text-base leading-relaxed text-muted-foreground mb-6">
+                      Tell us what you&apos;re looking for and when suits you.
+                    </p>
+                    <EnquiryForm kind="styling" />
+                  </>
+                )}
+              </div>
+            </>
           )}
         </motion.div>
 

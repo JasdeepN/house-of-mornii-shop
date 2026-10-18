@@ -75,6 +75,23 @@ jobs:
           wranglerVersion: "4.151.1"
           command: deploy -c wrangler.customer-session.toml --env dev
 
+      # Enquiry Worker (dev) — routed at dev.houseofmornii.com/api/enquiry.
+      # Secrets are pushed with the deploy. ENQUIRY_DRY_RUN_TOKEN is dev-only so
+      # the e2e suite can exercise the route without sending mail.
+      - name: Deploy Enquiry Worker (dev)
+        uses: cloudflare/wrangler-action@v3
+        env:
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+          ENQUIRY_DRY_RUN_TOKEN: ${{ secrets.E2E_ENQUIRY_DRY_RUN_TOKEN }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.1"
+          secrets: |
+            TURNSTILE_SECRET_KEY
+            ENQUIRY_DRY_RUN_TOKEN
+          command: deploy -c wrangler.enquiry.toml --env dev
+
   # ---------------------------------------------------------------------
   # Production — every push to `main`
   # ---------------------------------------------------------------------
@@ -114,3 +131,17 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.151.1"
           command: deploy -c wrangler.customer-session.toml --env production
+
+      # Enquiry Worker (production) — routed at houseofmornii.com/api/enquiry.
+      # No dry-run token: dry run must be impossible in production.
+      - name: Deploy Enquiry Worker (production)
+        uses: cloudflare/wrangler-action@v3
+        env:
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.1"
+          secrets: |
+            TURNSTILE_SECRET_KEY
+          command: deploy -c wrangler.enquiry.toml --env production
