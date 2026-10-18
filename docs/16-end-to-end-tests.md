@@ -136,7 +136,15 @@ The tool opens the sign-in flow for the test Customer, then asks for the 6-digit
 
 ## Production
 
-Never Orders or sign-in: the dev-only tier refuses any target but dev, in code and in `e2e.yml`. From v1.0 the read-only tier runs after production deploys, and a red dev run blocks production (#46). On a non-dev target the read-only specs that need test Products find suitable ones by trying quick add on the Shop page (`pickProducts` in `e2e/support/pick.ts`), which only fills a throwaway Bag.
+Never Orders or sign-in: the dev-only tier refuses any target but dev, in code and in `e2e.yml`, and the production workflow never selects it. On a non-dev target the read-only specs that need test Products find suitable ones by trying quick add on the Shop page (`pickProducts` in `e2e/support/pick.ts`), which only fills a throwaway Bag. Global setup skips `ensureTestProducts()` off dev, so the production run needs no secrets.
+
+### Production gate (#46)
+
+Both production deploys (`deploy-site.yml` and the `deploy-production` job of `deploy.yml`) first run `.github/scripts/require-dev-green.sh`. A successful `deploy-site` run on `dev` means that commit passed the full suite, so the gate passes only when the commit's tree (`git rev-parse HEAD^{tree}`) equals the tree of a `dev` commit whose `Deploy site` run concluded `success` (the latest 30 successful runs are checked). Otherwise it fails with "Production deploys only code whose end-to-end run passed on dev: merge a dev commit with a green Deploy site run."
+
+To promote: wait for the `Deploy site` run on the `dev` head to go green, then fast-forward `main` to that commit, or merge `dev` into `main` with a merge commit that changes nothing (same tree). Any extra change on `main`, or a red or still-running dev run, blocks the deploy.
+
+After the production deploy, `deploy-site.yml` waits for houseofmornii.com to serve the new build, then runs only `npm run test:e2e:read-only` against `https://houseofmornii.com` and uploads the same report artifacts. Dry-run the gate locally with `GATE_REF=<sha> .github/scripts/require-dev-green.sh` (needs `gh`).
 
 ## Adding a journey
 

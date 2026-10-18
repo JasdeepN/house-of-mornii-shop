@@ -20,17 +20,29 @@ jobs:
     if: github.ref_name == 'main' || github.ref_name == 'dev'
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
+    permissions:
+      contents: read
+      actions: read
     env:
       SITE_CONFIG: wrangler.site.${{ github.ref_name == 'main' && 'production' || 'dev' }}.jsonc
       EXPECTED_STORE: ${{ github.ref_name == 'main' && '2svzqt-hg.myshopify.com' || 'dev-hom.myshopify.com' }}
       VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
       VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
+      SITE_HOST: ${{ github.ref_name == 'main' && 'houseofmornii.com' || 'dev.houseofmornii.com' }}
       VITE_SITE_URL: ${{ github.ref_name == 'main' && 'https://houseofmornii.com' || 'https://dev.houseofmornii.com' }}
       # Shopify's hosted account pages (email and phone changes), per environment.
       VITE_SHOPIFY_ACCOUNT_URL: ${{ vars.VITE_SHOPIFY_ACCOUNT_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Production only: the code must already have passed the end-to-end suite
+      # on dev (a green Deploy site run on a dev commit with the same tree).
+      - name: Require a green dev run for this code
+        if: github.ref_name == 'main'
+        run: .github/scripts/require-dev-green.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       # Backstop: if an environment secret is ever missing, GitHub falls back
       # to the repo-wide secret of the same name. Refuse to build then.
@@ -61,9 +73,9 @@ jobs:
           wranglerVersion: "4.151.1"
           command: deploy -c ${{ env.SITE_CONFIG }}
 
-      # Dev only: prove the deployed build with the end-to-end suite.
-      - name: Wait for dev.houseofmornii.com to serve this build
-        if: github.ref_name == 'dev'
+      # Dev: prove the deployed build with the full end-to-end suite.
+      # Production: confirm it with the read-only tier only.
+      - name: Wait for the site to serve this build
         run: |
           entry=$(grep -oE '/assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -n 1)
           if [ -z "$entry" ]; then
@@ -72,17 +84,16 @@ jobs:
           fi
           echo "Waiting for $entry"
           for attempt in $(seq 1 40); do
-            if curl -fsS "https://dev.houseofmornii.com/?cb=$attempt" | grep -qF "$entry"; then
+            if curl -fsS "https://${SITE_HOST}/?cb=$attempt" | grep -qF "$entry"; then
               echo "Serving the new build"
               exit 0
             fi
             sleep 6
           done
-          echo "::error::dev.houseofmornii.com did not serve $entry within 4 minutes"
+          echo "::error::${SITE_HOST} did not serve $entry within 4 minutes"
           exit 1
 
       - name: Install Playwright Chromium
-        if: github.ref_name == 'dev'
         run: npx playwright install --with-deps chromium
 
       - name: Run end-to-end tests
@@ -97,8 +108,17 @@ jobs:
           E2E_SHOPIFY_CLIENT_ID: ${{ secrets.E2E_SHOPIFY_CLIENT_ID }}
           E2E_SHOPIFY_CLIENT_SECRET: ${{ secrets.E2E_SHOPIFY_CLIENT_SECRET }}
 
+      # Production: read-only tier only, no secrets. The dev-only tier places
+      # real Orders and must never run here.
+      - name: Run read-only end-to-end tests (production)
+        if: github.ref_name == 'main'
+        run: npm run test:e2e:read-only
+        env:
+          CI: "true"
+          E2E_BASE_URL: https://houseofmornii.com
+
       - name: Upload Playwright report
-        if: always() && github.ref_name == 'dev'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}
@@ -107,7 +127,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload test results
-        if: always() && github.ref_name == 'dev'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-results-${{ github.run_id }}
