@@ -52,6 +52,13 @@ v1.0 ships light only: `useTheme` always returns light and ignores stored prefer
 - `OrnamentalBorder` is a plain glass panel (default padding `p-6 md:p-8 lg:p-10`, glow off); its content needs `relative z-10`.
 - Motion: reveals use `duration` 0.6-0.9; stagger list items about 0.12-0.2s.
 - Decorative images use `alt=""`.
+- Launch rules (enforced by `e2e/read-only/launch-checks.spec.ts`; every change keeps them):
+  - No sideways scroll at 320-1440px: long words and links wrap.
+  - Touch targets are at least 44x44px at 768px and below.
+  - Text contrast is at least 4.5:1 (`--muted-foreground` is `oklch(0.440 0.020 145.3)`).
+  - Every control shows the two-tone focus ring from `src/index.scss`.
+  - An icon-only button has an accessible name.
+  - Reduced motion is respected: `MotionConfig` plus `followReducedMotion()` (`src/lib/reduced-motion.ts`) and the `prefers-reduced-motion` block in `src/index.scss`.
 
 ## Testing
 
@@ -63,6 +70,9 @@ v1.0 ships light only: `useTheme` always returns light and ignores stored prefer
 - Two tiers, each run at 1440px and 390px. `e2e/read-only` is safe anywhere. `e2e/dev-only` places real test Orders and signs in; `requireDevTarget` (`e2e/support/env.ts`) throws for any target but `https://dev.houseofmornii.com`.
 - `npm run test:e2e` runs both tiers against dev. `npm run test:e2e:read-only` runs the first. `npm run e2e:session` refreshes the saved Customer session.
 - Secrets live in the git-ignored `.env.e2e.local`: `E2E_BASE_URL`, `E2E_SHOPIFY_STORE_DOMAIN`, `E2E_STORE_PASSWORD`, `E2E_SHOPIFY_CLIENT_ID`, `E2E_SHOPIFY_CLIENT_SECRET`, `E2E_CUSTOMER_SESSION`. CI runs the suite after every `dev` deploy, with the same names as secrets on the GitHub environment `dev`.
+- `e2e/read-only/launch-checks.spec.ts` enforces the launch rules on every `dev` deploy: no sideways scroll, 44px targets, axe, keyboard focus. Locally, against a preview build:
+  - `npx vite build --mode development --outDir <scratch-dir>`, then `npx vite preview --outDir <scratch-dir> --port 4173`.
+  - `E2E_BASE_URL=http://localhost:4173 npx playwright test e2e/read-only/launch-checks.spec.ts`.
 - New journeys:
   - Wait on elements (`expect(...).toBeVisible()`), never `networkidle`.
   - Shopper-facing words say Bag; code says Cart.

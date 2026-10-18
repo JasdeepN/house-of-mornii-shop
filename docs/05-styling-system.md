@@ -94,7 +94,7 @@ All colors use the OKLCH color space. The theme is light only: `useTheme` always
 | `foreground` | `oklch(0.335 0.045 193.0)` | Text (ink) |
 | `card` | `oklch(0.941 0.020 74.7)` | Cards, popovers |
 | `muted` | `oklch(0.894 0.032 78.1)` | Quiet surfaces |
-| `muted-foreground` | `oklch(0.502 0.020 145.3)` | Secondary text |
+| `muted-foreground` | `oklch(0.440 0.020 145.3)` | Secondary text (darkened in #52 to pass AA on every surface) |
 | `border` | `oklch(0.846 0.027 80.2)` | Rules and borders |
 | `primary` / `accent` | `oklch(0.336 0.054 200.5)` | Teal #063F42: buttons, links, bars |
 | `primary-hover` | `oklch(0.409 0.061 199.7)` | Button hover |
@@ -106,7 +106,9 @@ All colors use the OKLCH color space. The theme is light only: `useTheme` always
 | Pair | Ratio | WCAG |
 |------|-------|------|
 | Ink on page | 9.4:1 | AAA |
-| Muted text on page | 4.7:1 | AA |
+| Muted text on page | 6.14:1 | AA |
+| Muted text on card | 6.46:1 | AA |
+| Muted text on panel | 5.59:1 | AA |
 | Champagne on teal | 9.8:1 | AAA |
 | Gold on teal (`gold-on-teal`) | 6.2:1 | AA |
 | Gold on page | 2.6:1 | Fails: decoration only, never text |
@@ -304,9 +306,23 @@ export const pageTransition = {
 
 ### Reduced Motion Support
 
-All animations respect `prefers-reduced-motion: reduce`:
-- CSS transitions disabled via media query
-- Framer Motion reduced motion mode enabled globally
+A Shopper who asks for reduced motion gets no fades or slides:
+- CSS: a `@media (prefers-reduced-motion: reduce)` block in [`src/index.scss`](src/index.scss) cuts every animation and transition to 0.01ms and sets `scroll-behavior: auto`.
+- Framer Motion: `<MotionConfig reducedMotion="user">` in `src/main.tsx` removes transforms only. `followReducedMotion()` ([`src/lib/reduced-motion.ts`](src/lib/reduced-motion.ts)), called at startup, also sets `MotionGlobalConfig.skipAnimations` from the media query, so opacity fades stop too. It follows later changes to the setting.
+
+## Focus Ring
+
+Every control (`a`, `button`, `input`, `select`, `textarea`, `summary`, `[role='button']`, `[role='tab']`, `[tabindex]`) gets a two-tone ring on `:focus-visible` in [`src/index.scss`](src/index.scss): a 2px `--page-accent` (teal) outline, 2px out, over a 2px `--page-background` (champagne) box-shadow band. The teal reads on the page; the champagne band reads on teal buttons. Inside `.bar-teal` the two swap (`--bar-on-teal` outline, `--bar-teal` band). The ring appears at once (the `transition-property` list leaves out the outline). A `[role='dialog']` takes focus as a whole and draws no ring; the Bag dialog opens with focus on itself.
+
+## Phone Touch Targets
+
+At 768px and below (`@media (max-width: 768px)` in `src/index.scss`) every interactive element is at least 44x44px:
+- `.pill-btn` has `min-height: 44px`.
+- Every shadcn `[data-slot='button']` has `min-width` and `min-height` of 44px.
+- Text inputs, `select` and `textarea` have `min-height: 44px` (checkboxes and radios are measured by their label).
+- The Sheet and dialog close button is a 44px flex box at the top right.
+
+Long text wraps: `.prose` and its descendants use `overflow-wrap: anywhere`, so a long word or link in a Product description cannot scroll the page sideways.
 
 ## Responsive Breakpoints
 
