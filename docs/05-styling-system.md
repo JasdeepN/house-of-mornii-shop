@@ -179,6 +179,27 @@ The `.bar-teal` class (with `.glass-panel`) in [`src/index.scss`](src/index.scss
 - Square corners, no shadow
 - Inside the bar the tokens (`--foreground`, `--accent`, `--border`, `--ring` and their `--color-*` twins) are remapped to the bar colors, so components render correctly on teal. `.on-page` restores the page values for a surface inside a bar.
 
+## Header Layout
+
+[`Header`](../src/components/Header.tsx) renders two stacked pieces:
+
+- **Logo row**: a champagne (`oklch(0.92 0.025 82)`) band with the logo centred and `py-2`. The logo box is 118x120px on desktop and 100x100px on phones, `object-contain`; the fixed height keeps the page from shifting when the logo loads. The row scrolls away with the page. The logo's lettering is dark teal, so it never sits on the teal bar. The phone menu sheet shows the logo on a champagne panel.
+- **Teal bar**: `<header>` with `.glass-panel .bar-teal`, 80px tall (`h-20`), pinned to the top. `.glass-panel` sets `position: relative` in unlayered CSS, which beats Tailwind's `sticky`, so the element also carries an inline `style={{ position: 'sticky', top: 0 }}`.
+
+Pages need no top padding to clear the header; it is in flow.
+
+### Brand sources
+
+The logo, tab icon and sharing image come from Shopify Settings > Brand, not from the repo:
+
+| Asset | Brand field | Used by | Fallback |
+|---|---|---|---|
+| Header logo | `logo` | `useShopBrand()` in `Header` | "House of Mornii" lettering lockup in dark teal |
+| Tab icon | `squareLogo` | build plugin, baked into `index.html` | none injected |
+| Sharing image | `coverImage` | build plugin (`og:image`, `twitter:image`) and `useSEO` | static `public/og-image.png` (logo-free) |
+
+See [Brand in the Shopify integration doc](03-shopify-integration.md#brand).
+
 ## Product Card (layout C)
 
 [`ProductCard`](src/components/ProductCard.tsx): a `bg-card` panel with a rounded corner, soft teal shadow, and a 3px lift on hover or focus. It shows the whole photo on a square panel, the Type label (uppercase, muted), the title in `font-heading`, a "From" price when Variants differ in price, a strikethrough only for a real compare-at price, and Sale and Sold out badges. A round quick-add button sits on the photo. [`CollectionCard`](src/components/CollectionCard.tsx) reuses the same card. [`ProductGrid`](src/components/ProductGrid.tsx) lays cards out in 3 columns, 2 at 1100px and below.

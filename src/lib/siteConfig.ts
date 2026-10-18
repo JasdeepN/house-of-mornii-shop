@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+const DEFAULT_CONTACT_EMAIL = 'contact@houseofmornii.com'
 const DEFAULT_SITE_NAME = 'House of Mornii'
 const DEFAULT_DESCRIPTION = 'Regal costume jewellery embodying timeless luxury and modern artistry. Heritage-inspired pieces crafted to honor tradition while celebrating contemporary elegance.'
 
@@ -19,6 +20,7 @@ const envSchema = z.object({
   VITE_CONTACT_EMAIL: z.string().optional(),
   VITE_INSTAGRAM_HANDLE: z.string().optional(),
   VITE_INSTAGRAM_URL: z.string().url('Invalid Instagram URL').optional(),
+  VITE_NEWSLETTER_ENABLED: z.string().optional(),
   VITE_NEWSLETTER_ENDPOINT: z.string().optional(),
   VITE_NEWSLETTER_EYEBROW: z.string().optional(),
   VITE_NEWSLETTER_PLACEHOLDER: z.string().optional(),
@@ -83,22 +85,24 @@ export function absoluteSiteUrl(pathOrUrl: string) {
 }
 
 export function getContactConfig() {
-  const email = envValue('VITE_CONTACT_EMAIL')
+  const email = envValue('VITE_CONTACT_EMAIL', DEFAULT_CONTACT_EMAIL)
   const instagramHandle = envValue('VITE_INSTAGRAM_HANDLE')
   const instagramUrl = envValue('VITE_INSTAGRAM_URL')
 
   return {
     email,
-    emailLabel: email || 'Contact email coming soon',
+    emailLabel: email,
     emailHref: email ? `mailto:${email}` : undefined,
     instagramHandle,
     instagramUrl,
-    locationLabel: envValue('VITE_CONTACT_LOCATION_LABEL', 'Appointment details coming soon'),
+    locationLabel: envValue('VITE_CONTACT_LOCATION_LABEL'),
   }
 }
 
 export function getNewsletterConfig() {
   return {
+    // Hidden at launch (v1.1): the form shows only when VITE_NEWSLETTER_ENABLED=true.
+    enabled: envValue('VITE_NEWSLETTER_ENABLED') === 'true',
     endpoint: envValue('VITE_NEWSLETTER_ENDPOINT'),
     eyebrow: envValue('VITE_NEWSLETTER_EYEBROW', 'Join the House of Mornii list'),
     placeholder: envValue('VITE_NEWSLETTER_PLACEHOLDER', 'your@email.com'),

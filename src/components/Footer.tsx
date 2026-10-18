@@ -3,6 +3,14 @@ import { Link } from 'react-router-dom'
 import { OrnamentalDivider } from '@/components/OrnamentalBorder'
 import { TrustBadges } from '@/components/TrustBadges'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
+import { getNewsletterConfig } from '@/lib/siteConfig'
+
+const policyLinks = [
+  { label: 'REFUND POLICY', href: '/policies/refund' },
+  { label: 'SHIPPING POLICY', href: '/policies/shipping' },
+  { label: 'PRIVACY POLICY', href: '/policies/privacy' },
+  { label: 'TERMS OF SERVICE', href: '/policies/terms' },
+]
 
 const footerLinks = [
   { label: 'SHOP', href: '/shop' },
@@ -12,6 +20,8 @@ const footerLinks = [
 ]
 
 export function Footer() {
+  const newsletter = getNewsletterConfig()
+
   return (
     <footer className="glass-panel glass-panel--full glass-panel--flat bar-teal rounded-t-none relative z-50">
       <div className="container mx-auto px-6 lg:px-20 py-10">
@@ -25,8 +35,19 @@ export function Footer() {
             <p className="text-sm tracking-[0.15em] footer-tagline text-muted-foreground">
               REGAL · RADIANT · MODERN
             </p>
-            <nav className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 mt-2">
+            <nav aria-label="Footer" className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 mt-2">
               {footerLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center text-xs tracking-[0.15em] text-muted-foreground hover:text-accent transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+            <nav aria-label="Policies" className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4">
+              {policyLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
@@ -43,10 +64,12 @@ export function Footer() {
             <TrustBadges variant="compact" />
           </div>
 
-          {/* Newsletter */}
-          <div className="flex items-center justify-center lg:justify-end">
-            <NewsletterSignup />
-          </div>
+          {/* Newsletter: hidden at launch (v1.1); set VITE_NEWSLETTER_ENABLED=true to show */}
+          {newsletter.enabled && (
+            <div className="flex items-center justify-center lg:justify-end">
+              <NewsletterSignup />
+            </div>
+          )}
         </div>
 
         <OrnamentalDivider className="my-6" />

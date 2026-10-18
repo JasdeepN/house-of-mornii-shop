@@ -96,7 +96,6 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
             ) : (
               <div className="text-center text-foreground">
                 <span aria-hidden="true" className="block font-heading text-6xl leading-none text-gold">M</span>
-                <span className="text-sm">Photo coming soon</span>
               </div>
             )}
           </div>

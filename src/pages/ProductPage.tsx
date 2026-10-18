@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import DOMPurify from 'dompurify'
+import { sanitizeRichText } from '@/lib/sanitize-html'
 import { useProduct, useRelatedProducts, formatMoney, formatDisplayPrice, defaultVariant } from '@/lib/shopify'
 import type { Variant } from '@/lib/shopify'
 import { useErrorHandler } from '@/lib/errorHandler'
@@ -16,32 +16,6 @@ import { trackViewItem } from '@/lib/analytics'
 import { JsonLd, productSchema, breadcrumbSchema } from '@/components/JsonLd'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { luxuryEase } from '@/lib/animations'
-
-// H1: DOMPurify config for Shopify rich-text product descriptions.
-// Restrictive allowlist — no scripts, no event handlers, no forms/objects/iframes.
-const DESCRIPTION_SANITIZE_CONFIG = {
-  ALLOWED_TAGS: [
-    'p', 'br', 'strong', 'em', 'b', 'i', 'u', 's',
-    'ul', 'ol', 'li',
-    'a',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'span', 'blockquote',
-    'table', 'thead', 'tbody', 'tr', 'td', 'th',
-  ],
-  ALLOWED_ATTR: ['href', 'title', 'target', 'rel'],
-}
-
-// Ensure any anchor with target="_blank" (or any target) also gets rel="noopener noreferrer"
-// to prevent reverse-tabnabbing, regardless of what the source HTML provided.
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName === 'A' && node.hasAttribute('target')) {
-    node.setAttribute('rel', 'noopener noreferrer')
-  }
-})
-
-function sanitizeDescriptionHtml(html: string): string {
-  return DOMPurify.sanitize(html, DESCRIPTION_SANITIZE_CONFIG)
-}
 
 /** The Collection's title for the breadcrumb: the Product's own when it is that Collection, else the handle read as words. */
 function cameFromTitle(handle: string, primary: { handle: string; title: string } | null): string {
@@ -307,7 +281,7 @@ export function ProductPage() {
             {product.descriptionHtml && (
               <div
                 className="prose prose-sm max-w-none mt-4 break-words [overflow-wrap:anywhere] text-muted-foreground leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(product.descriptionHtml) }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichText(product.descriptionHtml) }}
               />
             )}
           </motion.div>
