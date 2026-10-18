@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../support/test'
 import { cardOf, flyout, money, openShop, pickProducts, pickerDialog, quickAddButton, type PickedProducts } from '../support/pick'
 
 let picked: PickedProducts

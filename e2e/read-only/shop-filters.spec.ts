@@ -1,4 +1,5 @@
-import { test, expect, type Locator, type Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
+import { test, expect } from '../support/test'
 import { cardOf, money, openShop } from '../support/pick'
 
 /** The filter controls differ by width: a sidebar on desktop, a chip row and a Sort select on phones. */

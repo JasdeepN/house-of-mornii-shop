@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from '../support/test'
 import {
   WIDTHS,
   describeSmall,
@@ -10,6 +11,7 @@ import {
   visit,
   type CheckPage,
 } from '../support/launch-checks'
+import { ENQUIRIES_EXPECTED } from '../support/env'
 import { flyout } from '../support/pick'
 
 /**
@@ -40,6 +42,11 @@ async function axeFailures(page: Page): Promise<string> {
     .join('\n')
 }
 
+/** The styling form page exists only where the site was built with the enquiry form. */
+function skipWithoutEnquiryForm(name: string) {
+  test.skip(name === 'Contact with the styling form open' && !ENQUIRIES_EXPECTED, 'Built without the enquiry form (E2E_ENQUIRIES=off)')
+}
+
 test.describe('No sideways scroll (320 to 1440px)', () => {
   test.beforeEach(({}, info) => {
     test.skip(info.project.name !== 'read-only-desktop', 'Resizes the viewport itself; runs once, in the desktop project')
@@ -50,6 +57,7 @@ test.describe('No sideways scroll (320 to 1440px)', () => {
   ]
   for (const name of names) {
     test(name, async ({ page }) => {
+      skipWithoutEnquiryForm(name)
       const { pages, longWord } = await resolvePages(page)
       const target: CheckPage = name === longWord.name ? longWord : pages.find((p) => p.name === name)!
       await visit(page, target)
@@ -80,6 +88,7 @@ test.describe('Touch targets of at least 44x44px (390px phone)', () => {
   const names = ['Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Contact with the styling form open', 'Account', 'Refund policy', '404']
   for (const name of names) {
     test(name, async ({ page }) => {
+      skipWithoutEnquiryForm(name)
       const { pages } = await resolvePages(page)
       const target = pages.find((p) => p.name === name)!
       await visit(page, target)
@@ -111,6 +120,7 @@ test.describe('Accessibility (axe: no serious or critical violations)', () => {
   const names = ['Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Contact with the styling form open', 'Account', 'Refund policy', '404']
   for (const name of names) {
     test(name, async ({ page }) => {
+      skipWithoutEnquiryForm(name)
       const { pages } = await resolvePages(page)
       const target = pages.find((p) => p.name === name)!
       await visit(page, target)

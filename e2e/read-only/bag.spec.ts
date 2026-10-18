@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from '../support/test'
 import { BASE_URL, isDevTarget } from '../support/env'
 import { closeFlyout, flyout, money, openShop, pickProducts, pickerDialog, quickAddButton, type PickedProducts } from '../support/pick'
 

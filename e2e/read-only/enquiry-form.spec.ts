@@ -1,10 +1,14 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from '../support/test'
+import { ENQUIRIES_EXPECTED } from '../support/env'
 import { resolvePages, visit } from '../support/launch-checks'
 
 /**
  * The enquiry form opens and validates (#59). This tier runs on production too, so it never sends:
  * every submit here is empty, and a route guard fails the test if a request to /api/enquiry is made.
  */
+
+test.skip(!ENQUIRIES_EXPECTED, 'Built without the enquiry form (E2E_ENQUIRIES=off)')
 
 let sent: string[] = []
 

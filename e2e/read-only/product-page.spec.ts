@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../support/test'
 import { isDevTarget } from '../support/env'
 import { TEST_PRODUCTS } from '../support/test-products'
 import { closeFlyout, flyout } from '../support/pick'

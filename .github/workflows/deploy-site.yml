@@ -152,3 +152,127 @@ jobs:
           path: test-results/
           retention-days: 14
           if-no-files-found: ignore
+
+  # Private preview of the production catalogue (#62): the dev build, rebuilt
+  # against the production store, at preview.houseofmornii.com behind Cloudflare
+  # Access (the developer and the stakeholder only). Runs only after the dev job,
+  # including its end-to-end suite, has passed. Checkout there is real, so the
+  # preview is for looking; the read-only tier never places an Order.
+  preview:
+    needs: deploy
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    environment: preview
+    permissions:
+      contents: read
+    env:
+      PREVIEW_HOST: preview.houseofmornii.com
+      EXPECTED_STORE: 2svzqt-hg.myshopify.com
+      VITE_SHOPIFY_STORE_DOMAIN: ${{ secrets.VITE_SHOPIFY_STORE_DOMAIN }}
+      VITE_SHOPIFY_STOREFRONT_TOKEN: ${{ secrets.VITE_SHOPIFY_STOREFRONT_TOKEN }}
+      VITE_SITE_URL: https://preview.houseofmornii.com
+      # No VITE_TURNSTILE_SITE_KEY: no /api/enquiry route here, so no enquiry form.
+      E2E_ACCESS_CLIENT_ID: ${{ secrets.E2E_ACCESS_CLIENT_ID }}
+      E2E_ACCESS_CLIENT_SECRET: ${{ secrets.E2E_ACCESS_CLIENT_SECRET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check the store is production
+        run: |
+          if [ "$VITE_SHOPIFY_STORE_DOMAIN" != "$EXPECTED_STORE" ]; then
+            echo "::error::The preview must build against $EXPECTED_STORE"
+            exit 1
+          fi
+          if [ -z "$VITE_SHOPIFY_STOREFRONT_TOKEN" ] || [ -z "$E2E_ACCESS_CLIENT_ID" ] || [ -z "$E2E_ACCESS_CLIENT_SECRET" ]; then
+            echo "::error::The preview environment needs VITE_SHOPIFY_STOREFRONT_TOKEN, E2E_ACCESS_CLIENT_ID and E2E_ACCESS_CLIENT_SECRET"
+            exit 1
+          fi
+
+      # The production catalogue must never be served without Access in front.
+      # Before the first deploy the host has no DNS record yet, which is allowed.
+      - name: Require Access in front of the preview (before deploying)
+        run: |
+          state=$(.github/scripts/access-state.sh "https://$PREVIEW_HOST/")
+          echo "Access: $state"
+          if [ "$state" != "guarded" ] && [ "$state" != "no-dns" ]; then
+            echo "::error::$PREVIEW_HOST is not behind Cloudflare Access (state: $state); refusing to deploy the production catalogue there"
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.1"
+          command: deploy -c wrangler.site.preview.jsonc
+
+      - name: Require Access in front of the preview (after deploying)
+        run: |
+          for attempt in $(seq 1 20); do
+            state=$(.github/scripts/access-state.sh "https://$PREVIEW_HOST/")
+            [ "$state" != "no-dns" ] && break
+            sleep 6
+          done
+          echo "Access: $state"
+          if [ "$state" != "guarded" ]; then
+            echo "::error::$PREVIEW_HOST is not behind Cloudflare Access (state: $state). Fix the Access application now"
+            exit 1
+          fi
+
+      - name: Wait for the preview to serve this build
+        run: |
+          entry=$(grep -oE '/assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -n 1)
+          echo "Waiting for $entry"
+          for attempt in $(seq 1 40); do
+            if curl -fsS -H "CF-Access-Client-Id: $E2E_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $E2E_ACCESS_CLIENT_SECRET" \
+              "https://${PREVIEW_HOST}/?cb=$attempt" | grep -qF "$entry"; then
+              echo "Serving the new build"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "::error::${PREVIEW_HOST} did not serve $entry within 4 minutes (is the Access service token valid?)"
+          exit 1
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Read-only tier only: the preview sells from the production store.
+      - name: Run read-only end-to-end tests (preview)
+        run: npm run test:e2e:read-only
+        env:
+          CI: "true"
+          E2E_BASE_URL: https://preview.houseofmornii.com
+          E2E_ENQUIRIES: "off"
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-preview-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-preview-${{ github.run_id }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: ignore

@@ -1,4 +1,5 @@
 import { expect, type Browser, type Locator, type Page } from '@playwright/test'
+import { passAccess } from './access'
 import { BASE_URL, isDevTarget } from './env'
 import { TEST_PRODUCTS } from './test-products'
 
@@ -75,6 +76,7 @@ export async function pickProducts(browser: Browser): Promise<PickResult> {
 
   // A throwaway context, so the Bags this fills never reach a journey's own Bag.
   const context = await browser.newContext({ baseURL: BASE_URL })
+  await passAccess(context)
   const page = await context.newPage()
   const MAX_TRIES = 12
   await openShop(page)

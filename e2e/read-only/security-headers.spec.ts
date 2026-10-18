@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../support/test'
 
 /**
  * Security headers verification tests.

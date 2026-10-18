@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { test, expect } from '../support/test'
 
 /** #57: policy pages, the 404 page and no "coming soon" text. Reads the live site; changes nothing. */
 
