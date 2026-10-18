@@ -1,5 +1,7 @@
 # Test Coverage Analysis
 
+> History: a snapshot from before the Customer Account API migration (#15). `CustomerAuthContext` no longer exists; see [06 - Testing](./06-testing.md) for the current Customer tests.
+
 ## Overview
 
 This document provides a comprehensive analysis of the test coverage across the House of Mornii shop codebase. It identifies well-tested areas, coverage gaps, and recommendations for improvement.
@@ -24,7 +26,7 @@ This document provides a comprehensive analysis of the test coverage across the 
 | `src/lib/shopify/hooks.token.test.tsx` | Integration | Token mode hook integration |
 | `src/lib/shopify/types.test.ts` | Unit | flattenEdges, formatMoney |
 | `src/context/CartContext.test.tsx` | Integration | Cart state, addToCart, updateLineItem, removeLineItem, clearCart |
-| `src/context/CustomerAuthContext.test.tsx` | Integration | createAddress, updateAddress, deleteAddress, setDefaultAddress |
+| `src/context/CustomerAuthContext.test.tsx` | Integration | _Removed with the Customer Account API migration (#15); see `src/lib/customer/*.test.tsx`_ |
 | `src/components/AddToCartButton.test.tsx` | Component | Analytics tracking |
 | `src/components/CartFlyout.test.tsx` | Component | Empty state, checkout validation, debounced updates |
 | `src/components/Header.test.tsx` | Component | Nav links, routes, bag icon |
@@ -77,7 +79,7 @@ Not covered end to end: the home page, Collection pages, and the Customer's othe
 **Coverage: Excellent**
 
 - `CartContext.test.tsx` — Comprehensive: empty cart, `addToCart` (same variant, different products), `updateLineItem`, `removeLineItem`, `clearCart`, `openCart`/`setCartOpen`, error handling
-- `CustomerAuthContext.test.tsx` — Very thorough: `createAddress`, `updateAddress`, `deleteAddress`, `setDefaultAddress` with success paths, `customerUserErrors` handling, generic fallback errors, unauthenticated no-op behavior
+- `CustomerAuthContext.test.tsx` (removed in #15; `src/lib/customer/*.test.tsx` and `workers/customer-session.test.ts` replace it) — Very thorough: `createAddress`, `updateAddress`, `deleteAddress`, `setDefaultAddress` with success paths, `customerUserErrors` handling, generic fallback errors, unauthenticated no-op behavior
 
 ### 3. Workers
 

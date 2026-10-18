@@ -426,6 +426,40 @@ Run the read-only E2E tier: `E2E_BASE_URL=https://houseofmornii.com npm run test
 
 ---
 
+## Customer Account API Cutover (Launch Day)
+
+Production Customers sign in through the `customer-session` Worker ([ADR 0002](./adr/0002-customer-tokens-live-in-a-separate-worker.md)). The legacy sign-in code is gone from `dev`, so promoting `dev` to `main` and switching the store to the new customer accounts happen together. Issue #64 lists the production values.
+
+### Before launch day
+
+1. Set `CLIENT_ID` under `[env.production.vars]` in `wrangler.customer-session.toml` (now `SET_ME`) to the production Customer Account API client id. The stakeholder sends it from the hand-off to-do list ("Sign-in settings").
+2. Check the production `SESSIONS` KV namespace id in that file. If the namespace is missing, create it with `npx wrangler kv namespace create SESSIONS --env production -c wrangler.customer-session.toml` and commit the id.
+3. Create the `BACKUP_INDEX` namespace for the other Worker (`npx wrangler kv namespace create BACKUP_INDEX --env production`) and commit its id in `wrangler.toml`. The placeholder `REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID` fails the production Worker deploy, and the `customer-session` deploy step runs after it in the same job.
+4. In the production client's settings in Shopify, register the site origin `https://houseofmornii.com`, the callback `https://houseofmornii.com/api/customer/callback` and the logout URI `https://houseofmornii.com/`. `APP_ORIGIN` in the config must match the registered origin.
+5. Set the repository variable `VITE_SHOPIFY_ACCOUNT_URL` on the `production` GitHub environment to the store's hosted account URL (`https://shopify.com/<shop id>`), which the account details page links to for email and phone changes.
+
+### Cutover
+
+1. Promote `dev` to `main`. `deploy.yml` first requires a green end-to-end run on dev for the same code (#46), then deploys the Workers, including `customer-session` routed at `houseofmornii.com/api/customer/*`. `deploy-site.yml` deploys the storefront.
+2. The stakeholder switches the store to the new customer accounts in Shopify Settings → Customer accounts. Shopify allows reverting this for 30 days.
+3. Check the new flow:
+   - `https://houseofmornii.com/api/customer/session` answers 401 when signed out.
+   - Sign in by hand with an email: Sign in, email, one-time code, back on the page, the Customer menu shows the Customer.
+   - Add to the Bag and check out. The checkout link carries `sso=silent`, and checkout prefills the Customer's email.
+   - Place one Order, see it in the account's Orders, then refund it.
+   - Sign out and confirm checkout no longer recognises the Customer.
+
+### Rollback
+
+Within 30 days of the switch:
+
+1. In Shopify, revert the switch in Settings → Customer accounts.
+2. Redeploy the previous `main` commit: `git revert` the promotion and push, or re-run the production deploy workflow on that commit. The previous commit does not use the `customer-session` Worker; its route and the KV sessions can stay, because nothing calls them.
+
+After 30 days the switch cannot be reverted, so fix forward.
+
+---
+
 ## API Version Update Process
 
 ### Overview

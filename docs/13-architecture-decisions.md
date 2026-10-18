@@ -133,11 +133,10 @@ All visible copy, newsletter endpoints, and integration values should be environ
 
 ### Customer Account API
 
-Customer account integration (login, registration, order history) is planned for a future iteration. The architecture supports adding this via:
-1. Customer types in `src/lib/shopify/types.ts`
-2. Customer GraphQL queries/mutations in `src/lib/shopify/queries.ts`
-3. Customer Auth Context in `src/context/CustomerAuthContext.tsx`
-4. UI components for login/register/profile pages
+Done: Customers sign in through the Customer Account API.
+
+- [ADR 0001](./adr/0001-customer-sign-in-via-customer-account-api.md): why sign-in moved off the legacy password accounts, and what changed for Customers.
+- [ADR 0002](./adr/0002-customer-tokens-live-in-a-separate-worker.md): why the `customer-session` Worker keeps Customer tokens out of the browser.
 
 ### Full Admin Write Access
 

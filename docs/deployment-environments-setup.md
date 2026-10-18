@@ -253,6 +253,21 @@ checked-in file has placeholder `your-store.myshopify.com` values).
 
 ---
 
+## Step 2c: Configure the Customer Session Worker
+
+[`workers/customer-session.ts`](../workers/customer-session.ts) signs Customers in through the Customer Account API ([ADR 0002](./adr/0002-customer-tokens-live-in-a-separate-worker.md)). [`wrangler.customer-session.toml`](../wrangler.customer-session.toml) has no top-level config, so every deploy names `--env dev` or `--env production`. It has no secrets: the client id is public.
+
+Per environment:
+
+- **Client.** The Headless channel is installed on the store. Its Customer Account API settings give a public client id (PKCE). Register the JavaScript origin (the site origin), the callback URI `<origin>/api/customer/callback` and the logout URI `<origin>/`. Put the id in `CLIENT_ID`; `SHOP_ID` and `APP_ORIGIN` sit beside it.
+- **KV.** `SESSIONS` holds the Customer sessions. Create it with `npx wrangler kv namespace create SESSIONS --env <dev|production> -c wrangler.customer-session.toml` and commit the id under `[[env.<env>.kv_namespaces]]`.
+- **Route.** `<host>/api/customer/*` on the storefront hostname, declared per environment in the same file. CI deploys it with the other Workers (`deploy.yml`).
+- **Local sign-in.** Registered redirects need HTTPS, so local work uses the Cloudflare Tunnel `hom-local` at `https://local.houseofmornii.com`. Run `npm run dev:customer`, which passes `--local-upstream local.houseofmornii.com --upstream-protocol https` so the Worker sees the right `Origin`.
+
+Launch-day steps for production are in [12 - Deployment & Operations](./12-deployment-operations.md).
+
+---
+
 ## Step 3: Configure GitHub Actions Secrets and Variables
 
 ### Required Repository Secrets (Settings → Secrets and variables → Actions → Secrets)
