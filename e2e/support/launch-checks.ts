@@ -44,6 +44,7 @@ async function resolve(page: Page) {
     { name: 'Bag page', path: '/cart', ready: h1 },
     { name: 'About', path: '/about', ready: h1 },
     { name: 'Contact', path: '/contact', ready: h1 },
+    { name: 'Contact with the styling form open', path: '/contact#styling', ready: (p) => p.getByLabel('Message') },
     { name: 'Account', path: '/account', ready: h1 },
     { name: 'Refund policy', path: '/policies/refund', ready: h1 },
     { name: '404', path: '/this-page-does-not-exist-launch-check', ready: h1 },

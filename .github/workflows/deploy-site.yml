@@ -32,6 +32,7 @@ jobs:
       VITE_SITE_URL: ${{ github.ref_name == 'main' && 'https://houseofmornii.com' || 'https://dev.houseofmornii.com' }}
       # Shopify's hosted account pages (email and phone changes), per environment.
       VITE_SHOPIFY_ACCOUNT_URL: ${{ vars.VITE_SHOPIFY_ACCOUNT_URL }}
+      VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -96,6 +97,21 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # The enquiry Worker deploys from deploy.yml in parallel; the dev-only enquiry
+      # journey needs it live (the Worker answers GET with 405).
+      - name: Wait for the enquiry Worker
+        if: github.ref_name == 'dev'
+        run: |
+          for attempt in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "https://dev.houseofmornii.com/api/enquiry?cb=$attempt")
+            if [ "$status" = "405" ]; then
+              echo "Enquiry Worker is live"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::The enquiry Worker did not answer within 5 minutes; the enquiry journey may fail"
+
       - name: Run end-to-end tests
         if: github.ref_name == 'dev'
         run: npm run test:e2e
@@ -107,6 +123,7 @@ jobs:
           E2E_CUSTOMER_SESSION: ${{ secrets.E2E_CUSTOMER_SESSION }}
           E2E_SHOPIFY_CLIENT_ID: ${{ secrets.E2E_SHOPIFY_CLIENT_ID }}
           E2E_SHOPIFY_CLIENT_SECRET: ${{ secrets.E2E_SHOPIFY_CLIENT_SECRET }}
+          E2E_ENQUIRY_DRY_RUN_TOKEN: ${{ secrets.E2E_ENQUIRY_DRY_RUN_TOKEN }}
 
       # Production: read-only tier only, no secrets. The dev-only tier places
       # real Orders and must never run here.

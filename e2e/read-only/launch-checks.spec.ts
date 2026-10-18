@@ -46,7 +46,7 @@ test.describe('No sideways scroll (320 to 1440px)', () => {
   })
 
   const names = [
-    'Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Account', 'Refund policy', '404', 'Product with a long description',
+    'Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Contact with the styling form open', 'Account', 'Refund policy', '404', 'Product with a long description',
   ]
   for (const name of names) {
     test(name, async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe('Touch targets of at least 44x44px (390px phone)', () => {
     test.skip(!isPhone(info.project.name), 'Phone rule; runs in read-only-phone')
   })
 
-  const names = ['Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Account', 'Refund policy', '404']
+  const names = ['Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Contact with the styling form open', 'Account', 'Refund policy', '404']
   for (const name of names) {
     test(name, async ({ page }) => {
       const { pages } = await resolvePages(page)
@@ -108,7 +108,7 @@ test.describe('Touch targets of at least 44x44px (390px phone)', () => {
 })
 
 test.describe('Accessibility (axe: no serious or critical violations)', () => {
-  const names = ['Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Account', 'Refund policy', '404']
+  const names = ['Home', 'Shop', 'Collections', 'Collection', 'Product', 'Bag page', 'About', 'Contact', 'Contact with the styling form open', 'Account', 'Refund policy', '404']
   for (const name of names) {
     test(name, async ({ page }) => {
       const { pages } = await resolvePages(page)

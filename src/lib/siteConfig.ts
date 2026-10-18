@@ -33,6 +33,7 @@ const envSchema = z.object({
   VITE_WELCOME_POPUP_DESCRIPTION: z.string().optional(),
   VITE_WELCOME_POPUP_ENABLED: z.string().optional(),
   VITE_CONTACT_LOCATION_LABEL: z.string().optional(),
+  VITE_TURNSTILE_SITE_KEY: z.string().optional(),
 })
 
 // Validate environment variables at build time (skip in test mode)
@@ -120,5 +121,16 @@ export function getWelcomePopupConfig() {
     eyebrow: envValue('VITE_WELCOME_POPUP_EYEBROW', 'Welcome'),
     title: envValue('VITE_WELCOME_POPUP_TITLE', getSiteConfig().name),
     description: envValue('VITE_WELCOME_POPUP_DESCRIPTION', 'Join the list for collection previews and launch updates.'),
+  }
+}
+
+export function getEnquiryConfig() {
+  const turnstileSiteKey = envValue('VITE_TURNSTILE_SITE_KEY')
+  return {
+    // The enquiry form shows only with a Turnstile site key; without one there is no form and no placeholder.
+    enabled: turnstileSiteKey.length > 0,
+    turnstileSiteKey,
+    endpoint: '/api/enquiry',
+    fallbackEmail: getContactConfig().email,
   }
 }

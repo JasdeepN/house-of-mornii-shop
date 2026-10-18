@@ -33,7 +33,7 @@ describe('Header on phones', () => {
     await user.click(screen.getByRole('button', { name: 'Open menu' }))
     expect(await screen.findByRole('button', { name: 'SIGN IN' })).toBeInTheDocument()
     expect(screen.getAllByText('BOOK A STYLING')).toHaveLength(1)
-    expect(screen.getByRole('link', { name: 'BOOK A STYLING' })).toHaveAttribute('href', '/contact')
+    expect(screen.getByRole('link', { name: 'BOOK A STYLING' })).toHaveAttribute('href', '/contact#styling')
     expect(screen.queryByRole('button', { name: 'BOOK A STYLING' })).not.toBeInTheDocument()
   })
 })

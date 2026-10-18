@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      'cloudflare:email': resolve(__dirname, 'workers/test-stubs/cloudflare-email.ts'),
     },
   },
   test: {

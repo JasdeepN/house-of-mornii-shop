@@ -15,6 +15,8 @@ import { useSEO } from '@/hooks/useSEO'
 import { trackViewItem } from '@/lib/analytics'
 import { JsonLd, productSchema, breadcrumbSchema } from '@/components/JsonLd'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
+import { EnquiryForm } from '@/components/EnquiryForm'
+import { getEnquiryConfig } from '@/lib/siteConfig'
 import { luxuryEase } from '@/lib/animations'
 
 /** The Collection's title for the breadcrumb: the Product's own when it is that Collection, else the handle read as words. */
@@ -30,6 +32,7 @@ export function ProductPage() {
   const errorDisplay = useErrorHandler(error)
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null)
   const [showStickyATC, setShowStickyATC] = useState(false)
+  const [askOpen, setAskOpen] = useState(false)
   const atcRef = useRef<HTMLDivElement>(null)
 
   // Sticky mobile ATC — show when main ATC scrolls out of view
@@ -276,6 +279,36 @@ export function ProductPage() {
 
             {/* Trust Badges */}
             <TrustBadges variant="full" className="mt-2" />
+
+            {/* Ask about this piece */}
+            {getEnquiryConfig().enabled && (
+              <section aria-labelledby="ask-heading" className="border-t border-border pt-6">
+                <h2 id="ask-heading" className="text-lg tracking-[0.15em] mb-3">
+                  <button
+                    type="button"
+                    aria-expanded={askOpen}
+                    aria-controls="ask-panel"
+                    onClick={() => setAskOpen((open) => !open)}
+                    className="flex min-h-11 w-full items-center justify-between gap-3 text-left uppercase tracking-[0.15em] hover:text-accent transition-colors"
+                  >
+                    <span>Ask about this piece</span>
+                    <span aria-hidden="true">{askOpen ? '−' : '+'}</span>
+                  </button>
+                </h2>
+                <div id="ask-panel" hidden={!askOpen}>
+                  {askOpen && (
+                    <EnquiryForm
+                      kind="product"
+                      product={{
+                        title: product.title,
+                        url: location.pathname,
+                        ...(activeVariant?.title && activeVariant.title !== 'Default Title' ? { variant: activeVariant.title } : {}),
+                      }}
+                    />
+                  )}
+                </div>
+              </section>
+            )}
 
             {/* Description */}
             {product.descriptionHtml && (

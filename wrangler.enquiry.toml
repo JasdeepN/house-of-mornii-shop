@@ -1,0 +1,50 @@
+# Enquiry Worker (#59): Shopper enquiries emailed from the product and contact
+# forms. Verifies Turnstile, rate-limits per IP in KV, and sends with the Email
+# Workers `send_email` binding from enquiries@notify.houseofmornii.com.
+#
+# One Worker per environment, routed at /api/enquiry on the storefront domain.
+# Deploy with `--env dev` or `--env production`. Nothing is configured at the
+# top level on purpose, so a bare deploy cannot pick a destination.
+#
+# Secrets (GitHub environment secrets, passed by deploy.yml):
+#   TURNSTILE_SECRET_KEY        both environments
+#   ENQUIRY_DRY_RUN_TOKEN       dev only; production must never set it
+
+name = "enquiry"
+main = "workers/enquiry.ts"
+compatibility_date = "2026-10-01"
+
+[env.dev]
+name = "enquiry-dev"
+routes = [{ pattern = "dev.houseofmornii.com/api/enquiry", zone_name = "houseofmornii.com" }]
+
+# The binding can only send to this one address.
+[[env.dev.send_email]]
+name = "EMAIL"
+destination_address = "jasdeepn4@hotmail.com"
+
+# Per-IP enquiry counter. Create with `wrangler kv namespace create enquiry-rate-dev`.
+[[env.dev.kv_namespaces]]
+binding = "RATE"
+id = "5d5be29e8e864da38d312ba3c7c094f3"
+
+[env.dev.vars]
+APP_ORIGIN = "https://dev.houseofmornii.com"
+ENQUIRY_TO = "jasdeepn4@hotmail.com"
+
+[env.production]
+name = "enquiry-production"
+routes = [{ pattern = "houseofmornii.com/api/enquiry", zone_name = "houseofmornii.com" }]
+
+[[env.production.send_email]]
+name = "EMAIL"
+destination_address = "contact@houseofmornii.com"
+
+# Create with `wrangler kv namespace create enquiry-rate-production`.
+[[env.production.kv_namespaces]]
+binding = "RATE"
+id = "ad6196c0a3744b14aaaa03b668f43cd5"
+
+[env.production.vars]
+APP_ORIGIN = "https://houseofmornii.com"
+ENQUIRY_TO = "contact@houseofmornii.com"
