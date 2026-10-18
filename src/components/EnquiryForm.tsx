@@ -101,29 +101,46 @@ export function EnquiryForm({ kind, product, className }: EnquiryFormProps) {
   useEffect(() => {
     if (!siteKey || status === 'sent') return
     let cancelled = false
+    let observer: ResizeObserver | undefined
     loadTurnstile()
       .then((api) => {
-        if (cancelled || !widgetRef.current) return
-        widgetId.current = api.render(widgetRef.current, {
-          sitekey: siteKey,
-          size: widgetRef.current.clientWidth < TURNSTILE_NORMAL_WIDTH ? 'compact' : 'normal',
-          callback: (t) => {
-            token.current = t
-            setSecurityError(false)
-          },
-          'expired-callback': () => {
-            token.current = ''
-          },
-          'error-callback': () => {
-            token.current = ''
-          },
+        const container = widgetRef.current
+        if (cancelled || !container) return
+        const sizeFor = () => (container.clientWidth < TURNSTILE_NORMAL_WIDTH ? 'compact' : 'normal')
+        let size = sizeFor()
+        const draw = () => {
+          widgetId.current = api.render(container, {
+            sitekey: siteKey,
+            size,
+            callback: (t) => {
+              token.current = t
+              setSecurityError(false)
+            },
+            'expired-callback': () => {
+              token.current = ''
+            },
+            'error-callback': () => {
+              token.current = ''
+            },
+          })
+        }
+        draw()
+        // Redraw when the space crosses 300px (a phone turning, a window resized), so the widget never overflows.
+        observer = new ResizeObserver(() => {
+          if (sizeFor() === size) return
+          size = sizeFor()
+          if (widgetId.current !== undefined) api.remove(widgetId.current)
+          token.current = ''
+          draw()
         })
+        observer.observe(container)
       })
       .catch(() => {
         if (!cancelled) setStatus('failed')
       })
     return () => {
       cancelled = true
+      observer?.disconnect()
       if (widgetId.current !== undefined) window.turnstile?.remove(widgetId.current)
       widgetId.current = undefined
       token.current = ''

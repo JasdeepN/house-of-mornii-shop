@@ -98,12 +98,13 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       # The enquiry Worker deploys from deploy.yml in parallel; the dev-only enquiry
-      # journey needs it live (the Worker answers GET with 405).
+      # journey needs it live (the Worker answers GET with 405). No cache-buster:
+      # the Worker route matches the exact path, so a query string reaches the site.
       - name: Wait for the enquiry Worker
         if: github.ref_name == 'dev'
         run: |
           for attempt in $(seq 1 30); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" "https://dev.houseofmornii.com/api/enquiry?cb=$attempt")
+            status=$(curl -s -o /dev/null -w "%{http_code}" "https://dev.houseofmornii.com/api/enquiry")
             if [ "$status" = "405" ]; then
               echo "Enquiry Worker is live"
               exit 0

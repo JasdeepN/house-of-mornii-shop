@@ -12,7 +12,9 @@
 //     502 {error:'send_failed'}
 //
 // Dry run: only when ENQUIRY_DRY_RUN_TOKEN is set and X-Enquiry-Dry-Run equals
-// it. Production never sets the token, so dry run cannot happen there.
+// it. Production never sets the token, so dry run cannot happen there. A dry
+// run skips the rate limit (the e2e suite retries from one CI runner IP) but
+// still passes validation and Turnstile.
 //
 // Rate limit: 5 per IP per 10 minutes, counted in KV. The Workers Rate Limiting
 // binding only supports 10 or 60 second windows, so it cannot express this.
@@ -263,15 +265,15 @@ async function handle(request: Request, env: Env): Promise<{ response: Response;
   const { enquiry } = result
   const ip = request.headers.get('CF-Connecting-IP') ?? ''
 
-  if (!(await underRateLimit(ip, env))) return fail(json({ error: 'rate_limited' }, 429), 'rate_limited', enquiry.kind)
+  const dryRunHeader = request.headers.get('X-Enquiry-Dry-Run')
+  const dryRun = !!env.ENQUIRY_DRY_RUN_TOKEN && !!dryRunHeader && (await safeEqual(dryRunHeader, env.ENQUIRY_DRY_RUN_TOKEN))
+
+  if (!dryRun && !(await underRateLimit(ip, env))) return fail(json({ error: 'rate_limited' }, 429), 'rate_limited', enquiry.kind)
 
   const token = (raw as { turnstileToken?: unknown }).turnstileToken
   if (!(await verifyTurnstile(token, ip, env))) return fail(json({ error: 'forbidden' }, 403), 'turnstile_failed', enquiry.kind)
 
-  const dryRunHeader = request.headers.get('X-Enquiry-Dry-Run')
-  if (env.ENQUIRY_DRY_RUN_TOKEN && dryRunHeader && (await safeEqual(dryRunHeader, env.ENQUIRY_DRY_RUN_TOKEN))) {
-    return fail(json({ ok: true, dryRun: true }), 'dry_run', enquiry.kind)
-  }
+  if (dryRun) return fail(json({ ok: true, dryRun: true }), 'dry_run', enquiry.kind)
 
   try {
     await env.EMAIL.send(new EmailMessage(SENDER_ADDRESS, env.ENQUIRY_TO, buildMessage(enquiry, env)))

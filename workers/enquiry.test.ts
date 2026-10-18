@@ -288,6 +288,13 @@ describe('dry run', () => {
     expect((await post(valid(), { 'X-Enquiry-Dry-Run': DRY })).status).toBe(403)
   })
 
+  // The e2e suite retries from one CI runner IP; Turnstile is still checked.
+  it('does not count against the rate limit', async () => {
+    for (let i = 0; i < 8; i++) expect((await post(valid(), { 'X-Enquiry-Dry-Run': DRY })).status).toBe(200)
+    expect(kv.store.has('enquiry:203.0.113.7')).toBe(false)
+    expect((await post(valid())).status).toBe(200)
+  })
+
   it('treats a wrong token as a normal send', async () => {
     const res = await post(valid(), { 'X-Enquiry-Dry-Run': 'wrong' })
     expect(await res.json()).toEqual({ ok: true })
