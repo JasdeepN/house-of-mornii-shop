@@ -35,7 +35,7 @@ export function CustomerMenu() {
         variant="ghost"
         size="icon"
         onClick={openSignIn}
-        className="p-2 text-foreground hover:bg-primary-hover hover:text-foreground transition-colors"
+        className="size-11 text-foreground hover:bg-primary-hover hover:text-foreground transition-colors"
         aria-label="Sign in"
       >
         <User size={22} weight="bold" />
@@ -52,7 +52,7 @@ export function CustomerMenu() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 hover:opacity-80 transition-opacity outline-none"
+        className="flex size-11 items-center justify-center hover:opacity-80 transition-opacity"
         aria-label={label}
         aria-expanded={isOpen}
       >
@@ -80,21 +80,21 @@ export function CustomerMenu() {
             <Link
               to="/account"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
+              className="flex min-h-11 items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <User className="h-4 w-4" /> Details
             </Link>
             <Link
               to="/account/orders"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
+              className="flex min-h-11 items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <Scroll className="h-4 w-4" /> Orders
             </Link>
             <Link
               to="/account/addresses"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
+              className="flex min-h-11 items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <AddressBook className="h-4 w-4" /> Addresses
             </Link>
@@ -103,7 +103,7 @@ export function CustomerMenu() {
           <div className="border-t border-border py-1">
             <button
               onClick={signOut}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
+              className="w-full flex min-h-11 items-center gap-2 px-3 py-2 text-sm hover:bg-secondary transition-colors cursor-pointer"
             >
               <SignOut className="h-4 w-4" /> Sign out
             </button>

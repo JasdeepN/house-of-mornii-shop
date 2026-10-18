@@ -95,12 +95,12 @@ export function NewsletterSignup({ className, source = 'newsletter-form' }: News
               error: null
             })
           }}
-          className="flex-1 px-4 py-2.5 text-sm tracking-wider rounded-sm bg-transparent outline-none border border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex-1 min-h-11 min-w-0 px-4 py-2.5 text-sm tracking-wider rounded-sm bg-transparent outline-none border border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
         />
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="pill-btn pill-btn--cta px-5 py-2.5 text-xs whitespace-nowrap"
+          className="pill-btn pill-btn--cta px-5 py-2.5 text-xs whitespace-nowrap min-h-11"
         >
           {status === 'loading' ? content.loadingLabel : content.ctaLabel}
         </button>

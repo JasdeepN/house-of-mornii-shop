@@ -55,7 +55,7 @@ export function HeroSection() {
               initial="hidden"
               animate="visible"
             >
-              <BrandLockup size="xl" />
+              <BrandLockup size="xl" as="h1" />
             </motion.div>
 
             {/* Tagline with flanking lines */}
@@ -95,18 +95,19 @@ export function HeroSection() {
               animate="visible"
               className="flex flex-col items-center gap-4 pt-2"
             >
-              <Link to="/collections">
-                <Button
-                  size="lg"
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-[0.2em] text-sm px-10 py-6 group"
-                >
+              <Button
+                asChild
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-[0.2em] text-sm px-10 py-6 group"
+              >
+                <Link to="/collections">
                   <Sparkle size={16} weight="fill" className="mr-2 group-hover:animate-pulse" />
                   EXPLORE COLLECTIONS
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               <Link
                 to="/contact"
-                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent text-hero-subtle-link hero-text-glow"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent text-hero-subtle-link hero-text-glow"
               >
                 or book a styling session
               </Link>

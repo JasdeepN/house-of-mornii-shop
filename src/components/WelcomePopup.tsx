@@ -41,7 +41,7 @@ export function WelcomePopup() {
         >
           <Dialog.Close asChild>
             <button
-              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-1 right-1 flex size-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Close"
             >
               <X size={18} weight="bold" />

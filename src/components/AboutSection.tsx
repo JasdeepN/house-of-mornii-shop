@@ -55,7 +55,7 @@ export function AboutSection() {
               </p>
               <Link
                 to="/about"
-                className="text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4 text-muted-foreground"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center text-xs tracking-[0.3em] uppercase transition-colors duration-300 hover:text-accent hover:underline underline-offset-4 text-muted-foreground"
               >
                 DISCOVER OUR STORY →
               </Link>

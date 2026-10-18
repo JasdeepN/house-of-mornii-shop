@@ -127,7 +127,7 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
               to={`/products/${product.handle}`}
               state={{ from: location.pathname + location.search }}
               data-testid="product-card"
-              className="no-underline after:absolute after:inset-0 after:rounded-[18px] after:content-[''] min-[761px]:after:rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="inline-block min-h-11 min-w-11 py-2.5 -my-2.5 no-underline after:absolute after:inset-0 after:rounded-[18px] after:content-[''] min-[761px]:after:rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {product.title}
             </Link>

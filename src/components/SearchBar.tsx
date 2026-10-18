@@ -106,7 +106,7 @@ function SearchResults({ onSelect, searchQuery }: SearchResultsProps) {
           <button
             type="button"
             onClick={loadMore}
-            className="w-full rounded-sm border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+            className="w-full min-h-11 rounded-sm border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
             LOAD MORE RESULTS
           </button>
@@ -156,7 +156,7 @@ export function SearchBar({ onClose }: SearchBarProps) {
       {/* Search trigger icon */}
       <button
         onClick={() => setOpen(true)}
-        className="p-2 hover:text-accent transition-colors"
+        className="flex size-11 items-center justify-center hover:text-accent transition-colors"
         aria-label="Search products (Ctrl+K)"
       >
         <MagnifyingGlass size={20} weight="bold" />
@@ -192,7 +192,7 @@ export function SearchBar({ onClose }: SearchBarProps) {
                   aria-label="Search products"
                   autoFocus
                 />
-                <button onClick={clearSearch} className="text-muted-foreground hover:text-foreground" aria-label="Close search">
+                <button onClick={clearSearch} className="-mr-3 flex size-11 items-center justify-center text-muted-foreground hover:text-foreground" aria-label="Close search">
                   <X size={16} weight="bold" />
                 </button>
               </div>

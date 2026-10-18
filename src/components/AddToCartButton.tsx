@@ -47,7 +47,7 @@ export function AddToCartButton({
     return (
       <button
         disabled
-        className={`pill-btn pill-btn--cta ${compact ? 'text-xs px-4 py-2' : 'w-full py-4 text-sm justify-center'} ${className ?? ''}`}
+        className={`pill-btn pill-btn--cta ${compact ? 'text-xs px-4 py-2 min-h-11' : 'w-full py-4 text-sm justify-center min-h-11'} ${className ?? ''}`}
       >
         SOLD OUT
       </button>
@@ -59,7 +59,7 @@ export function AddToCartButton({
       data-testid="add-to-cart"
       onClick={handleClick}
       disabled={isAdding || !availableForSale}
-      className={`pill-btn pill-btn--cta ${compact ? 'text-xs px-4 py-2' : 'w-full py-4 text-sm justify-center'} ${className ?? ''}`}
+      className={`pill-btn pill-btn--cta ${compact ? 'text-xs px-4 py-2 min-h-11' : 'w-full py-4 text-sm justify-center min-h-11'} ${className ?? ''}`}
     >
       {isAdding ? (
         <>

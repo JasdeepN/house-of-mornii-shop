@@ -42,7 +42,7 @@ export function VariantSelector({
                   }}
                   disabled={!isAvailable}
                   className={cn(
-                    'px-4 py-2 text-sm tracking-widest border rounded-sm transition-all duration-300',
+                    'min-h-11 min-w-11 px-4 py-2 text-sm tracking-widest border rounded-sm transition-all duration-300',
                     isSelected
                       ? 'border-accent bg-accent/10 text-foreground'
                       : 'border-foreground/20 text-muted-foreground hover:border-accent/50',

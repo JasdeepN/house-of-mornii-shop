@@ -71,11 +71,9 @@ function AccountOverview() {
           <div className="glass-panel p-6 golden-glow">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg tracking-widest">RECENT ORDERS</h2>
-              <Link to="/account/orders">
-                <Button variant="outline" className="border-gold/30 hover:bg-accent/10 text-sm tracking-widest">
-                  VIEW ALL
-                </Button>
-              </Link>
+              <Button asChild variant="outline" className="border-gold/30 hover:bg-accent/10 text-sm tracking-widest">
+                <Link to="/account/orders">VIEW ALL</Link>
+              </Button>
             </div>
             <div className="space-y-4">
               {recentOrders.map((order) => (

@@ -646,3 +646,67 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+/* ===== Focus: a visible ring on every control =====
+   A two-tone ring: a 2px teal outline, with a 2px champagne band between it and the control.
+   The teal band reads on the champagne page; the champagne band reads on teal buttons.
+   Inside the teal bars the two swap. */
+:where(a, button, input, select, textarea, summary, [role='button'], [role='tab'], [tabindex]):focus-visible {
+  outline: 2px solid var(--page-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--page-background);
+  /* The ring appears at once: `transition-all` would fade it in from the default outline */
+  transition-property: color, background-color, border-color, opacity, transform;
+}
+.bar-teal :focus-visible {
+  outline-color: var(--bar-on-teal);
+  box-shadow: 0 0 0 2px var(--bar-teal);
+}
+
+/* A dialog takes focus as a whole when it opens; it needs no ring of its own */
+[role='dialog']:focus-visible {
+  outline: none;
+}
+
+/* ===== Phones: 44px touch targets, long text wraps ===== */
+@media (max-width: 768px) {
+  .pill-btn {
+    min-height: 44px;
+  }
+  /* Every shadcn Button and form control (Account, Orders, Addresses, Details) */
+  [data-slot='button'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+  select,
+  textarea {
+    min-height: 44px;
+  }
+  /* Sheet and dialog close buttons (shadcn draws a 16px icon) */
+  [data-slot='sheet-content'] > button.absolute {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}
+.prose,
+.prose * {
+  overflow-wrap: anywhere;
+}
+
+/* ===== Reduced motion: no fades, slides, transitions or animations ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

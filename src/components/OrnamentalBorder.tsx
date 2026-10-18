@@ -44,7 +44,7 @@ export function OrnamentalBorder({
 export function OrnamentalDivider({ className }: { className?: string }) {
   return (
     <div className={cn('flex items-center justify-center my-8', className)}>
-      <div className="w-64 h-[1px] bg-border" />
+      <div className="h-[1px] w-64 max-w-full bg-border" />
     </div>
   )
 }

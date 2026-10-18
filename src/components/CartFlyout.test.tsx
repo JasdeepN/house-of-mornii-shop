@@ -130,6 +130,17 @@ describe('CartFlyout', () => {
     expect(screen.queryByText(/away from free/i)).not.toBeInTheDocument()
   })
 
+  it('opens with focus on the dialog, not on Decrease quantity', async () => {
+    renderWithProviders(<PopulatedCartWrapper />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByText('Open with item'))
+    await screen.findByRole('button', { name: /decrease quantity for aria pendant/i })
+
+    const dialog = screen.getByRole('dialog')
+    expect(document.activeElement).toBe(dialog)
+  })
+
   it('accumulates rapid quantity clicks before sending one update', async () => {
     // Use synchronous clicks and verify the debounce behavior
     renderWithProviders(<PopulatedCartWrapper />)

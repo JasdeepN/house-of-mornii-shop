@@ -94,12 +94,12 @@ export function ContactPage() {
                     <a
                       href={item.href}
                       {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className="hover:text-accent transition-colors text-sm block whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
+                      className="flex min-h-11 max-w-full items-center justify-center text-sm [overflow-wrap:anywhere] hover:text-accent transition-colors"
                     >
                       {item.value}
                     </a>
                   ) : (
-                    <p className="text-sm whitespace-nowrap overflow-hidden text-ellipsis">{item.value}</p>
+                    <p className="text-sm [overflow-wrap:anywhere]">{item.value}</p>
                   )}
                 </div>
               </motion.div>

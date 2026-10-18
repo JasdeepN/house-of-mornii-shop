@@ -38,7 +38,7 @@ export function CollectionCard({ collection, media }: CollectionCardProps) {
         <h3 className="font-heading text-[18px] leading-tight font-normal line-clamp-2 min-[761px]:text-[21px]">
           <Link
             to={`/collections/${collection.handle}`}
-            className="no-underline after:absolute after:inset-0 after:rounded-[18px] after:content-[''] min-[761px]:after:rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-block min-h-11 min-w-11 py-2.5 -my-2.5 no-underline after:absolute after:inset-0 after:rounded-[18px] after:content-[''] min-[761px]:after:rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {collection.title}
           </Link>

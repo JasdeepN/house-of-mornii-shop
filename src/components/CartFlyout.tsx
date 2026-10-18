@@ -99,7 +99,7 @@ function FlyoutLineItem({
           <Link
             to={`/products/${variant.product.handle}`}
             onClick={onClose}
-            className="text-xs tracking-widest hover:text-accent transition-colors line-clamp-1"
+            className="max-[768px]:py-3.5 text-xs tracking-widest hover:text-accent transition-colors line-clamp-1"
             aria-label={`View details for ${variant.product.title}`}
           >
             {variant.product.title}
@@ -111,13 +111,13 @@ function FlyoutLineItem({
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 mt-1.5">
           {/* Quantity */}
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => handleQuantityChange(-1)}
               disabled={isLoading}
-              className="w-6 h-6 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              className="size-6 max-[768px]:size-11 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
               aria-label={`Decrease quantity for ${variant.product.title}`}
             >
               <Minus size={10} weight="bold" />
@@ -132,7 +132,7 @@ function FlyoutLineItem({
             <button
               onClick={() => handleQuantityChange(1)}
               disabled={isLoading}
-              className="w-6 h-6 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              className="size-6 max-[768px]:size-11 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
               aria-label={`Increase quantity for ${variant.product.title}`}
             >
               <Plus size={10} weight="bold" />
@@ -140,7 +140,7 @@ function FlyoutLineItem({
           </div>
 
           {/* Price + Remove */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <span
               className="text-xs tracking-wider text-foreground"
             >
@@ -149,7 +149,7 @@ function FlyoutLineItem({
             <button
               onClick={() => removeLineItem(line.id)}
               disabled={isLoading}
-              className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
+              className="flex size-6 max-[768px]:size-11 items-center justify-center text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
               aria-label={`Remove ${variant.product.title} from bag`}
             >
               <Trash size={14} weight="bold" />
@@ -174,6 +174,11 @@ export function CartFlyout() {
         data-testid="cart-flyout"
         side="right"
         className="flex flex-col w-full sm:max-w-[420px] p-0 bg-background border-l border-border"
+        onOpenAutoFocus={(e) => {
+          // Open on the dialog, not on the first control (Decrease quantity)
+          e.preventDefault()
+          ;(e.currentTarget as HTMLElement).focus()
+        }}
       >
         {/* Header */}
         <SheetHeader className="px-6 pt-6 pb-4 border-b">
@@ -202,7 +207,7 @@ export function CartFlyout() {
             <Link
               to="/collections"
               onClick={() => setCartOpen(false)}
-              className="text-xs tracking-[0.2em] uppercase transition-colors hover:text-accent hover:underline underline-offset-4 text-muted-foreground"
+              className="inline-flex min-h-11 items-center text-xs tracking-[0.2em] uppercase transition-colors hover:text-accent hover:underline underline-offset-4 text-muted-foreground"
             >
               BROWSE COLLECTIONS →
             </Link>
@@ -241,7 +246,7 @@ export function CartFlyout() {
                 <a
                   data-testid="checkout-button"
                   href={checkoutLink(cart.checkoutUrl, signedIn)}
-                  className={`block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
+                  className={`block w-full min-h-11 text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold transition-all duration-300 ${
                     isLoading ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'
                   } bg-primary text-primary-foreground hover:bg-primary-hover`}
                 >
@@ -251,7 +256,7 @@ export function CartFlyout() {
                 <div
                   data-testid="checkout-button"
                   aria-disabled="true"
-                  className="block w-full text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none bg-primary text-primary-foreground hover:bg-primary-hover"
+                  className="block w-full min-h-11 text-center py-3.5 rounded-sm tracking-[0.2em] text-sm font-semibold opacity-50 pointer-events-none bg-primary text-primary-foreground hover:bg-primary-hover"
                 >
                   PROCEED TO CHECKOUT
                 </div>
@@ -260,7 +265,7 @@ export function CartFlyout() {
               {/* Continue shopping */}
               <button
                 onClick={() => setCartOpen(false)}
-                className="text-xs tracking-widest text-muted-foreground hover:text-accent transition-colors w-full text-center"
+                className="min-h-11 text-xs tracking-widest text-muted-foreground hover:text-accent transition-colors w-full text-center"
               >
                 ← CONTINUE SHOPPING
               </button>
