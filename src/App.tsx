@@ -32,7 +32,7 @@ const OrderDetailPage = lazy(() => import('@/pages/OrderDetailPage').then((m) =>
 
 function RouteLoader() {
   return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+    <div className="min-h-screen pt-8 pb-16 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div
           className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"

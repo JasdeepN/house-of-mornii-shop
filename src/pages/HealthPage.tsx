@@ -41,14 +41,14 @@ export function HealthPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen pt-8 pb-16 flex items-center justify-center">
         <p className="text-muted-foreground">Loading health status...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-8 pb-16">
       <div className="container mx-auto px-6 lg:px-20 max-w-3xl">
         <div className="mb-8">
           <h1 className="text-3xl tracking-[0.15em] mb-2">Storefront Health Status</h1>

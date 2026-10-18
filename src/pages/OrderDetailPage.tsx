@@ -22,7 +22,7 @@ function OrderDetail() {
 
   if (!order) {
     return (
-      <div className="min-h-screen pt-24 pb-16">
+      <div className="min-h-screen pt-8 pb-16">
         <div className="container mx-auto px-6 lg:px-20">
           <PageBreadcrumb items={[
             { label: 'Account', to: '/account' },
@@ -48,7 +48,7 @@ function OrderDetail() {
   const shipping = order.shippingAddress
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-8 pb-16">
       <div className="container mx-auto px-6 lg:px-20">
         <PageBreadcrumb items={[
           { label: 'Account', to: '/account' },

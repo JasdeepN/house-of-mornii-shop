@@ -22,7 +22,7 @@ function AccountOverview() {
   const recentOrders = (ordersData?.pages[0]?.orders ?? []).slice(0, 3)
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-8 pb-16">
       <div className="container mx-auto px-6 lg:px-20">
         <PageBreadcrumb items={[{ label: 'Account', to: '/account' }]} className="mb-10" />
 

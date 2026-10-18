@@ -10,6 +10,7 @@ import { SearchBar } from '@/components/SearchBar'
 import { CustomerMenu } from '@/components/CustomerMenu'
 import { useCustomerSession } from '@/lib/customer'
 import { useSignInDialog } from '@/context/SignInDialogContext'
+import { useShopBrand } from '@/lib/shopify'
 
 function BagButton({ itemCount, onClick }: { itemCount: number; onClick: () => void }) {
   const label = itemCount > 0 ? `Bag, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}` : 'Bag'
@@ -30,6 +31,28 @@ function BagButton({ itemCount, onClick }: { itemCount: number; onClick: () => v
         </span>
       )}
     </button>
+  )
+}
+
+/** Champagne (#F0E4D2): the logo's lettering is dark teal, so the logo only ever sits on this. */
+const CHAMPAGNE = 'bg-[oklch(0.92_0.025_82)]'
+
+/** The shop's Brand logo, or today's lettering while it loads or when Brand settings are empty. */
+function BrandMark({ className }: { className?: string }) {
+  const { logo } = useShopBrand()
+  return logo ? (
+    <img
+      src={logo.url}
+      alt="House of Mornii"
+      width={118}
+      height={120}
+      className={className ?? 'h-[100px] w-[100px] md:h-[120px] md:w-[118px] object-contain'}
+    />
+  ) : (
+    <span className="flex h-[100px] items-center md:h-[120px]">
+      {/* Dark teal, not the gold of the page lockup: gold on champagne is under 3:1 */}
+      <BrandLockup size="lg" className="gap-2 [&_.brand-title]:text-[oklch(0.336_0.054_200.5)]! [&_.brand-name]:text-[oklch(0.336_0.054_200.5)]!" />
+    </span>
   )
 }
 
@@ -71,15 +94,24 @@ export function Header() {
   }, [])
 
   return (
-    <header style={{ position: 'fixed', top: 0, left: 0, right: 0 }} className="z-50 glass-panel glass-panel--flat bar-teal">
+    <>
+    {/* Logo row: scrolls away with the page. Fixed height, so the logo loading in never shifts the page. */}
+    <div className={`flex justify-center py-2 ${CHAMPAGNE}`}>
+      <Link
+        to="/"
+        aria-label="House of Mornii, home"
+        className="flex items-center rounded-sm text-[oklch(0.33_0.054_200)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[oklch(0.33_0.054_200)]"
+      >
+        <BrandMark />
+      </Link>
+    </div>
+    {/* Teal bar: stays pinned to the top. Inline position: .glass-panel sets position: relative, which beats the class. */}
+    <header style={{ position: 'sticky', top: 0 }} className="sticky top-0 z-50 glass-panel glass-panel--flat bar-teal">
       <div className="container mx-auto px-4 sm:px-6 lg:px-20 relative">
         <div className="flex items-center justify-between h-20">
-          <Link to="/" aria-label="House of Mornii, home" className="flex shrink-0 items-center gap-3">
-            <BrandLockup size="sm" />
-          </Link>
 
           {isMobile ? (
-              <div className="flex items-center">
+              <div className="ml-auto flex items-center">
                 <CustomerMenu />
                 <SearchBar />
                 <BagButton itemCount={itemCount} onClick={openCart} />
@@ -90,7 +122,10 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-card border-border">
-                  <nav className="flex flex-col gap-6 mt-12">
+                  <div className={`mx-auto mt-8 flex w-48 justify-center rounded-md py-3 ${CHAMPAGNE}`}>
+                    <BrandMark />
+                  </div>
+                  <nav className="flex flex-col gap-6 mt-6">
                     {navLinks.map((link) => (
                       <Link
                         key={link.href}
@@ -166,5 +201,6 @@ export function Header() {
         </div>
       </div>
     </header>
+    </>
   )
 }

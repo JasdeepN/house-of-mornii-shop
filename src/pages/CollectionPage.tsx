@@ -53,7 +53,7 @@ export function CollectionPage() {
 
   if (listing.isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16">
+      <div className="min-h-screen bg-background pt-8 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center py-20">
           <p className="text-muted-foreground tracking-widest animate-pulse">
             Loading collection...
@@ -65,7 +65,7 @@ export function CollectionPage() {
 
   if (errorDisplay) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-8 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
           <h1 className="text-3xl mb-4 text-foreground">{errorDisplay.title}</h1>
           <p className="mb-8 leading-relaxed text-muted-foreground">{errorDisplay.message}</p>
@@ -79,7 +79,7 @@ export function CollectionPage() {
 
   if (listing.notFound || !collection) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-8 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
           <h1 className="text-3xl mb-4 text-foreground">Collection Not Found</h1>
           <p className="mb-8 leading-relaxed text-muted-foreground">This collection doesn't exist or couldn't be loaded.</p>

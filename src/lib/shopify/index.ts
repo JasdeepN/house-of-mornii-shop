@@ -8,6 +8,7 @@ export {
   type ProductListing,
   type ProductListingOptions,
 } from './hooks'
+export { useShopBrand, type BrandImage, type ShopBrand } from './brand'
 export {
   PRODUCT_SORTS,
   parseProductSort,

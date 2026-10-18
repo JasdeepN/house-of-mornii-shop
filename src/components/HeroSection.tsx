@@ -38,7 +38,7 @@ export function HeroSection() {
   }, [])
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center overflow-hidden pt-28 pb-12">
+    <section className="relative min-h-screen flex flex-col items-center overflow-hidden pt-8 pb-12">
 
       {/* Content card — same glass style as all other cards */}
       <div className="relative z-10 w-full max-w-2xl px-6">
