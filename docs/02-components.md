@@ -106,14 +106,15 @@ import { Header } from '@/components/Header'
 
 ### [`Footer`](src/components/Footer.tsx)
 
-Site footer with brand lockup, trust badges, newsletter signup, and copyright. Styled with `.bar-teal` (teal, champagne text, square corners), like the Header.
+Site footer with brand lockup, trust badges, a Policies group, an optional newsletter signup, and copyright. Styled with `.bar-teal` (teal, champagne text, square corners), like the Header.
 
 **Props:** None (uses context internally)
 
 **Key Features:**
 - Ornamental divider between sections
 - TrustBadges component (compact variant)
-- NewsletterSignup integration
+- Policies group: a `nav` (`aria-label="Policies"`) linking Refund policy, Shipping policy, Privacy policy and Terms of service to `/policies/refund`, `/policies/shipping`, `/policies/privacy` and `/policies/terms`
+- NewsletterSignup renders only when `getNewsletterConfig().enabled` is true (`VITE_NEWSLETTER_ENABLED=true`); it is off until v1.1
 - Dynamic copyright year
 - Tagline "REGAL · RADIANT · MODERN"
 
@@ -345,7 +346,7 @@ interface SearchBarProps {
 
 ### [`NewsletterSignup`](src/components/NewsletterSignup.tsx)
 
-Email subscription form supporting multiple providers.
+Email subscription form supporting multiple providers. Hidden at launch: the Footer shows it only when `VITE_NEWSLETTER_ENABLED=true`, which stays off until v1.1.
 
 **Props:**
 ```typescript
@@ -440,6 +441,26 @@ interface PageBreadcrumbProps {
 - Generates JSON-LD breadcrumb schema automatically
 - Framer Motion slide-in animation
 - Links to parent pages via `to` prop
+
+### [`PolicyPage`](src/pages/PolicyPage.tsx)
+
+One of the store's own policies, written by the owner in Shopify and shown as-is. Routes: `/policies/refund`, `/policies/shipping`, `/policies/privacy`, `/policies/terms`.
+
+**Props:** `{ kind: 'refund' | 'shipping' | 'privacy' | 'terms' }`
+
+**Key Features:**
+- Reads the policy with `usePolicy(kind)` and renders its title and HTML body; the body goes through `sanitizeRichText`
+- Breadcrumb, `h1` and ornamental divider; the document title comes from the policy
+- Loading state, then either the body or "This policy hasn't been published yet." with a Contact link
+- A failed request shows "We couldn't load this policy. Please try again shortly." with the same link
+
+### [`NotFoundPage`](src/pages/NotFoundPage.tsx)
+
+The catch-all route (`path="*"` in `src/App.tsx`) for unknown addresses.
+
+**Key Features:**
+- "Page not found" heading with links to Shop and Home
+- Calls `useSEO({ noindex: true })`, which adds `robots: noindex, follow` while the page is mounted
 
 ### [`ProductGallery`](src/components/ProductGallery.tsx)
 

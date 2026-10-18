@@ -37,7 +37,7 @@ VITE_SITE_NAME=House of Mornii
 VITE_SITE_TITLE=House of Mornii Preview
 VITE_SITE_DESCRIPTION=Regal costume jewellery showcase in development.
 VITE_SITE_URL=http://localhost:5173
-VITE_CONTACT_EMAIL=
+VITE_CONTACT_EMAIL=contact@houseofmornii.com
 VITE_NEWSLETTER_ENDPOINT=
 
 # Required — a Shopify development store works well for local use
@@ -51,7 +51,7 @@ VITE_META_PIXEL_ID=
 
 `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are required — the app throws at module load if either is empty or a placeholder value, in every environment including local dev. Use a Shopify development store for local work.
 
-If `VITE_NEWSLETTER_ENDPOINT` is empty, the newsletter form runs in **prototype mode** — it exercises the UI success path without writing to a real email provider.
+The footer newsletter form is hidden unless `VITE_NEWSLETTER_ENABLED=true` (off until v1.1). If `VITE_NEWSLETTER_ENDPOINT` is empty, the form runs in **prototype mode** — it exercises the UI success path without writing to a real email provider.
 
 ### Start Dev Server
 
@@ -132,10 +132,11 @@ Add these non-secret repository **Variables** when final public copy/config shou
 | `VITE_SITE_OG_IMAGE_PATH` | Social image path, e.g. `/og-image.png` |
 | `VITE_SITE_OG_IMAGE_ALT` | Social image alt text |
 | `VITE_THEME_COLOR` | Browser theme color, for example `oklch(0.336 0.054 200.5)` |
-| `VITE_CONTACT_EMAIL` | Public contact email, when ready |
+| `VITE_CONTACT_EMAIL` | Public contact email (`contact@houseofmornii.com`) |
 | `VITE_INSTAGRAM_HANDLE` | Public Instagram display handle |
 | `VITE_INSTAGRAM_URL` | Public Instagram URL |
-| `VITE_CONTACT_LOCATION_LABEL` | Public appointment/location placeholder or final text |
+| `VITE_CONTACT_LOCATION_LABEL` | Public location text; leave empty to omit it |
+| `VITE_NEWSLETTER_ENABLED` | Shows the footer newsletter form; `false` until v1.1 |
 | `VITE_NEWSLETTER_ENDPOINT` | Provider-neutral newsletter endpoint; leave blank for prototype mode |
 | `VITE_NEWSLETTER_*` | Public newsletter/welcome placeholder copy |
 
