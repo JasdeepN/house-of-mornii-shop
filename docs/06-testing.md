@@ -145,6 +145,24 @@ import * as client from '@/lib/shopify/client'
 vi.spyOn(client, 'shopifyFetch').mockResolvedValue(mockData)
 ```
 
+#### Customer Account API Mocking
+
+Customer pages and hooks reach the Customer Account API only through `customerFetch` from the `@/lib/customer` barrel. Tests mock that one function, as Catalog tests mock `shopifyFetch`:
+
+```typescript
+import { vi } from 'vitest'
+import * as customer from '@/lib/customer'
+
+vi.spyOn(customer, 'customerFetch').mockResolvedValue(data)
+// A signed-out Customer: reject with SignedOutError
+```
+
+`makeWrapper()` and `stubSession('in' | 'out' | 'network-error')` in `src/lib/customer/test-utils.tsx` set up the Query client, the `CustomerSessionProvider` and the session state. A `SignedOutError` from any query or mutation moves the Customer session to `signed-out`.
+
+#### Customer Session Worker Testing
+
+`workers/customer-session.test.ts` drives the Worker through `worker.fetch(new Request(...), env)`. The env holds an in-memory KV (`MemoryKV`, a `Map` behind `get`/`put`/`delete`) and test values for `SHOP_ID`, `CLIENT_ID`, `APP_ORIGIN` and `API_VERSION`. A stubbed global `fetch` (`vi.stubGlobal('fetch', ...)`) stands in for Shopify. Tests assert on the `Response`: redirect parameters, `Set-Cookie` attributes, 401s, token renewal and the KV contents. Run it with `npx vitest run workers/customer-session.test.ts`.
+
 #### Environment Variable Mocking
 
 Tests can override environment variables using `vi.stubEnv()`:
@@ -171,6 +189,8 @@ The end-to-end suite has two tiers, `e2e/read-only` (safe anywhere) and `e2e/dev
 | `npm run test:e2e:ui` | Interactive Playwright UI |
 | `npm run test:e2e:report` | Open the HTML report |
 | `npm run e2e:session` | Refresh the saved test Customer session |
+
+Sign-in is covered by `e2e/dev-only/sign-in.spec.ts`: the signed-out journey reaches Shopify's hosted sign-in page and stops, and the signed-in journey uses the saved Customer session. The Worker's unit tests cover everything behind that page.
 
 ## Test Coverage Goals
 

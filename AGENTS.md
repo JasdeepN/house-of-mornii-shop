@@ -21,6 +21,7 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 - Workers (secrets via `wrangler secret put`, never committed):
   - `workers/shopify-proxy.ts` (`wrangler.toml`): webhook receiver and daily backup cron. It does not proxy the Admin API.
   - `workers/catalog-sync.ts` (`wrangler.catalog-sync.toml`): nightly prod-to-dev sync of products and collections only.
+  - `workers/customer-session.ts` (`wrangler.customer-session.toml`, `--env dev|production`, no top-level config): Customer sign-in on the Customer Account API at `/api/customer/*`, with Customer sessions in KV (`docs/adr/0001`, `0002`). No secrets: the client id is public.
 
 ## Shopify
 
@@ -32,7 +33,8 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 
 ## Conventions
 
-- Storage keys: `hom-cart-id`, `hom-customer-access-token`, `hom-customer-expires-at` (localStorage); `hom_welcome_shown` (sessionStorage).
+- Storage keys: `hom-cart-id` (localStorage); `hom_welcome_shown` (sessionStorage). The Customer session is the HttpOnly cookie `hom_customer_session`, held in KV by the `customer-session` Worker; no Customer token reaches browser storage. `src/main.tsx` removes the old `hom-customer-*` keys once.
+- Customer: import from the `@/lib/customer` barrel (`customerFetch`, `useCustomerSession`, hooks); ESLint rejects `@/lib/customer/*`. Tests mock `customerFetch`.
 - `@/lib/utils.ts` exports only `cn()`. `@/lib/siteConfig.ts` exports `getSiteConfig`, `absoluteSiteUrl`, `getContactConfig`, `getNewsletterConfig`, `getWelcomePopupConfig`.
 - No "coming soon" placeholders in Shopper-facing UI: omit a detail until it is confirmed. `e2e/read-only/policies-and-404.spec.ts` checks this.
 - Newsletter returns `{ mode: 'prototype' | 'endpoint' }`; analytics branch on it.
