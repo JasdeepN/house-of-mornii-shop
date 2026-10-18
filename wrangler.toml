@@ -76,7 +76,7 @@ bucket_name = "shopify-backups-production"
 
 [[env.production.kv_namespaces]]
 binding = "BACKUP_INDEX"
-id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"
+id = "980f9f984e114919912d07d7699091fa"
 
 [env.production.vars]
 SHOPIFY_STORE_DOMAIN = "2svzqt-hg.myshopify.com"
