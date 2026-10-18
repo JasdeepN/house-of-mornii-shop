@@ -328,6 +328,15 @@ The logo, square logo and cover image live in Shopify Settings > Brand, read thr
 - **Changing the logo**: upload the new file in Settings > Brand. The header logo updates with no deploy, on a Shopper's next page load (a tab already open keeps its cached logo for up to an hour). The tab icon and sharing image update on the next deploy of that environment.
 - The stakeholder's logo files stay out of this public repo.
 
+## Policies
+
+The Refund, Shipping, Privacy and Terms pages read the store's own policies through the Storefront API (`shop { refundPolicy shippingPolicy privacyPolicy termsOfService }`, each with `title body handle url`). The query is `POLICIES_QUERY` in [`policies.ts`](../src/lib/shopify/policies.ts); `usePolicy(kind)` (from `@/lib/shopify`) returns the policy for one kind and caches for an hour.
+
+- **Owner edits, no deploy**: write the policies in Shopify admin > Settings > Policies. The pages at `/policies/refund`, `/policies/shipping`, `/policies/privacy` and `/policies/terms` pick up changes on the next page load (a tab already open keeps its cached copy for up to an hour).
+- **Empty policy**: a policy with no visible text returns `null`, and the page shows "This policy hasn't been published yet." with a Contact link.
+- **Sanitised**: `PolicyPage` renders the HTML body through `sanitizeRichText` ([`sanitize-html.ts`](../src/lib/sanitize-html.ts)), the same allowlist used for Product descriptions.
+- **Footer**: the Footer's Policies group links all four pages. Unknown addresses fall through to `NotFoundPage`.
+
 ## Health Checks
 
 The [`health.ts`](../src/lib/shopify/health.ts) module provides API connectivity verification:

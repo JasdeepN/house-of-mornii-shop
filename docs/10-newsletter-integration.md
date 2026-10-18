@@ -4,6 +4,8 @@
 
 The newsletter system uses a provider-neutral architecture. The frontend form stays usable for prototype showcases while leaving the final email provider decision open. All visible signup copy is configurable through environment variables.
 
+**Status:** the footer form is hidden at launch. It shows only when `VITE_NEWSLETTER_ENABLED=true` (default `false`), planned for v1.1. The component and helper stay in the codebase.
+
 ## Current Direction
 
 1. Keep the frontend form usable for prototype showcases

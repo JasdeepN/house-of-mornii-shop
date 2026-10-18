@@ -28,12 +28,13 @@ React 19, TypeScript, Vite 7, React Router 7, TanStack Query, Tailwind CSS 4, Fr
 - Live credentials `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN` are required in every environment; `client.ts` throws at module load when they are missing or placeholders (`your-store.myshopify.com`, `CHANGE_ME`). No demo fallback exists.
 - Catalog (Products, Variants, Collections): pages take domain shapes (`ProductSummary`, `Product`, `Variant`, `CollectionSummary`, `DisplayPrice`) and hooks (`useProductListing`, `useProduct`, `useCollections`, `useRelatedProducts`) from the barrel; raw `edges`/`priceRange` and `shopifyFetch` for catalog data stay inside `src/lib/shopify`.
 - Price display, sort keys (`PRODUCT_SORTS`, `parseProductSort`; Shop URL `?sort=`) and variant picking live in `catalog.ts`. Catalog reads use the Storefront API only (`docs/adr/0003`).
-- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`.
+- Optional env: `VITE_GA4_MEASUREMENT_ID`, `VITE_META_PIXEL_ID`, `VITE_SITE_NAME`, `VITE_SITE_URL`, `VITE_SITE_DESCRIPTION`, `VITE_NEWSLETTER_ENABLED` (off until v1.1; the footer form is hidden), `VITE_CONTACT_EMAIL` (`contact@houseofmornii.com`).
 
 ## Conventions
 
 - Storage keys: `hom-cart-id`, `hom-customer-access-token`, `hom-customer-expires-at` (localStorage); `hom_welcome_shown` (sessionStorage).
 - `@/lib/utils.ts` exports only `cn()`. `@/lib/siteConfig.ts` exports `getSiteConfig`, `absoluteSiteUrl`, `getContactConfig`, `getNewsletterConfig`, `getWelcomePopupConfig`.
+- No "coming soon" placeholders in Shopper-facing UI: omit a detail until it is confirmed. `e2e/read-only/policies-and-404.spec.ts` checks this.
 - Newsletter returns `{ mode: 'prototype' | 'endpoint' }`; analytics branch on it.
 - Files: components `PascalCase.tsx`, utilities `kebab-case.ts`, tests `*.test.{ts,tsx}` beside source.
 - `src/components/ui/` is shadcn: extend through `className` or wrappers, leave the files untouched.

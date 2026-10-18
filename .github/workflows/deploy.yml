@@ -83,9 +83,18 @@ jobs:
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # The code must already have passed the end-to-end suite on dev.
+      - name: Require a green dev run for this code
+        run: .github/scripts/require-dev-green.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       # Shopify Automation Worker (production) — routed at houseofmornii.com/api/shopify/*
       # Worker secrets (SHOPIFY_ADMIN_ACCESS_TOKEN, SHOPIFY_WEBHOOK_SECRET) are

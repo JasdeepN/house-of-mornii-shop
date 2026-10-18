@@ -32,10 +32,11 @@ The application deploys as a static site to Cloudflare Pages (or any static host
 | `VITE_SITE_OG_IMAGE_PATH` | Open Graph image path | `/og-image.png` |
 | `VITE_SITE_OG_IMAGE_ALT` | OG image alt text | `House of Mornii preview image` |
 | `VITE_THEME_COLOR` | Theme color for browser UI | `oklch(0.336 0.054 200.5)` |
-| `VITE_CONTACT_EMAIL` | Contact email address | (empty) |
+| `VITE_CONTACT_EMAIL` | Contact email address | `contact@houseofmornii.com` |
 | `VITE_INSTAGRAM_HANDLE` | Instagram username | `@houseofmornii` |
 | `VITE_INSTAGRAM_URL` | Instagram profile URL | `https://instagram.com/houseofmornii` |
-| `VITE_CONTACT_LOCATION_LABEL` | Location description | `Appointment details coming soon` |
+| `VITE_CONTACT_LOCATION_LABEL` | Location description; omitted from the page when empty | (empty) |
+| `VITE_NEWSLETTER_ENABLED` | Shows the footer newsletter form; off until v1.1 | `false` |
 | `VITE_NEWSLETTER_ENDPOINT` | Newsletter API endpoint | (empty - prototype mode) |
 | `VITE_NEWSLETTER_EYEBROW` | Newsletter form eyebrow text | `Join the House of Mornii list` |
 | `VITE_NEWSLETTER_PLACEHOLDER` | Input placeholder | `your@email.com` |
