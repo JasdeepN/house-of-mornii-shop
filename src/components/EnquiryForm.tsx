@@ -6,12 +6,15 @@ import { getEnquiryConfig } from '@/lib/siteConfig'
 import { cn } from '@/lib/utils'
 
 const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+/** The normal widget is a fixed 300px wide; narrower spaces get the 150px compact one. */
+const TURNSTILE_NORMAL_WIDTH = 300
 
 interface TurnstileApi {
   render: (
     container: HTMLElement,
     options: {
       sitekey: string
+      size?: 'normal' | 'compact' | 'flexible'
       callback: (token: string) => void
       'expired-callback'?: () => void
       'error-callback'?: () => void
@@ -103,6 +106,7 @@ export function EnquiryForm({ kind, product, className }: EnquiryFormProps) {
         if (cancelled || !widgetRef.current) return
         widgetId.current = api.render(widgetRef.current, {
           sitekey: siteKey,
+          size: widgetRef.current.clientWidth < TURNSTILE_NORMAL_WIDTH ? 'compact' : 'normal',
           callback: (t) => {
             token.current = t
             setSecurityError(false)
