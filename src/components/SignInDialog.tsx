@@ -78,7 +78,7 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
 
           <Button
             type="submit"
-            className="mt-2 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
+            className="mt-2 min-h-11 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest"
           >
             CONTINUE
           </Button>

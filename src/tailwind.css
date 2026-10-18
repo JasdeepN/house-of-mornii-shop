@@ -22,7 +22,7 @@
 	/* Page values kept under --page-* so surfaces inside the teal bars can restore them (.on-page) */
 	--page-background: oklch(0.924 0.027 78.2);
 	--page-foreground: oklch(0.335 0.045 193.0);
-	--page-muted-foreground: oklch(0.502 0.020 145.3);
+	--page-muted-foreground: oklch(0.440 0.020 145.3);
 	--page-accent: oklch(0.336 0.054 200.5);
 	--page-accent-foreground: oklch(0.941 0.020 74.7);
 	--page-border: oklch(0.846 0.027 80.2);

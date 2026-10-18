@@ -149,7 +149,7 @@ export function ProductPage() {
           {errorDisplay.showRetry && (
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2.5 text-sm tracking-[0.2em] uppercase border border-border text-foreground hover:bg-muted transition-colors"
+              className="min-h-11 px-6 py-2.5 text-sm tracking-[0.2em] uppercase border border-border text-foreground hover:bg-muted transition-colors"
             >
               Try Again
             </button>
@@ -157,7 +157,7 @@ export function ProductPage() {
           {!errorDisplay.showRetry && (
             <Link
               to="/collections"
-              className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-primary hover:opacity-80 transition-opacity"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 text-sm tracking-[0.2em] uppercase text-primary hover:opacity-80 transition-opacity"
             >
               <span>&larr;</span> Browse Collections
             </Link>
@@ -194,7 +194,7 @@ export function ProductPage() {
           </p>
           <Link
             to="/collections"
-            className="inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase text-primary hover:opacity-80 transition-opacity"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 text-sm tracking-[0.2em] uppercase text-primary hover:opacity-80 transition-opacity"
           >
             <span>&larr;</span> Browse Collections
           </Link>
@@ -241,6 +241,7 @@ export function ProductPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: luxuryEase }}
+            className="min-w-0"
           >
             <ProductGallery images={product.images} title={product.title} />
           </motion.div>
@@ -250,7 +251,7 @@ export function ProductPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.15, ease: luxuryEase }}
-            className="flex flex-col gap-6"
+            className="flex min-w-0 flex-col gap-6"
           >
             {/* Vendor */}
             {product.vendor && (
@@ -261,7 +262,7 @@ export function ProductPage() {
               </span>
             )}
 
-            <h1 className="text-3xl lg:text-4xl tracking-[0.12em]">
+            <h1 className="text-3xl lg:text-4xl tracking-[0.12em] [overflow-wrap:anywhere]">
               {product.title}
             </h1>
 
@@ -305,7 +306,7 @@ export function ProductPage() {
             {/* Description */}
             {product.descriptionHtml && (
               <div
-                className="prose prose-sm max-w-none mt-4 text-muted-foreground leading-relaxed"
+                className="prose prose-sm max-w-none mt-4 break-words [overflow-wrap:anywhere] text-muted-foreground leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(product.descriptionHtml) }}
               />
             )}

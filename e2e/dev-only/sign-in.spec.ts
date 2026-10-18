@@ -10,12 +10,7 @@ test.beforeAll(() => requireDevTarget());
 test.describe("signed out", () => {
   test("Sign in leads to the hosted sign-in page and stops there", async ({
     page,
-    isMobile,
   }) => {
-    test.fixme(
-      isMobile,
-      "Product bug: the phone header has no Sign in control (only the Bag and the menu)",
-    );
     await page.goto("/");
     await page.getByRole("button", { name: "Sign in" }).click();
     const dialog = page.getByRole("dialog");
@@ -48,7 +43,6 @@ test.describe("signed in with the saved session", () => {
 
   test("the header shows the Customer menu and Account details show the email", async ({
     page,
-    isMobile,
   }) => {
     await page.goto("/account");
     await expect(page.getByRole("heading", { name: /^HELLO,/ })).toBeVisible({
@@ -56,17 +50,15 @@ test.describe("signed in with the saved session", () => {
     });
     // The menu button is labelled with the Customer's name or, without one, their email.
     await expect(page.getByRole("button", { name: "Sign in" })).toHaveCount(0);
-    if (!isMobile) {
-      const menu = page
-        .locator("button[aria-expanded]")
-        .filter({ has: page.locator("div.rounded-full") });
-      await expect(menu).toBeVisible();
-      await menu.click();
-      await expect(page.getByRole("link", { name: "Orders", exact: true })).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "Sign out" }),
-      ).toBeVisible();
-    }
+    const menu = page
+      .locator("button[aria-expanded]")
+      .filter({ has: page.locator("div.rounded-full") });
+    await expect(menu).toBeVisible();
+    await menu.click();
+    await expect(page.getByRole("link", { name: "Orders", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Sign out" }),
+    ).toBeVisible();
 
     await page.goto("/account/details");
     await expect(

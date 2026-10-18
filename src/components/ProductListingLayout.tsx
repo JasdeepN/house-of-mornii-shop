@@ -18,9 +18,9 @@ interface ProductListingLayoutProps {
 
 const groupHeading = 'mb-2.5 font-body text-[13px] font-bold uppercase tracking-[0.14em] text-muted-foreground'
 const option =
-  'flex min-h-10 w-full cursor-pointer items-center justify-between text-left text-foreground aria-pressed:font-bold'
+  'flex min-h-11 w-full cursor-pointer items-center justify-between text-left text-foreground aria-pressed:font-bold'
 const chip =
-  'min-h-10 shrink-0 whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm text-foreground aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground'
+  'min-h-11 shrink-0 whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm text-foreground aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground'
 
 export function ProductListingLayout({
   title,
@@ -79,7 +79,7 @@ export function ProductListingLayout({
             </div>
             <div className="border-t border-border pb-4 pt-4">
               <h2 className={groupHeading}>Availability</h2>
-              <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-foreground">
+              <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-foreground">
                 <input
                   type="checkbox"
                   className="size-[18px] accent-primary"
@@ -138,10 +138,10 @@ export function ProductListingLayout({
             </button>
           </div>
           <div className="hidden pb-3.5 max-[760px]:block">
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <label className="flex min-h-11 items-center gap-2 text-sm text-muted-foreground">
               <span>Sort</span>
               <select
-                className="min-h-10 flex-1 rounded-full border border-border bg-card px-3 text-foreground"
+                className="min-h-11 flex-1 rounded-full border border-border bg-card px-3 text-foreground"
                 value={filters.sort}
                 onChange={(e) => setSort(e.target.value as ProductSort)}
               >
@@ -174,7 +174,7 @@ export function ProductListingLayout({
                       <p className="mb-5 text-lg text-foreground">No Products match these filters</p>
                       <button
                         type="button"
-                        className="min-h-10 rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary-hover"
+                        className="min-h-11 rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary-hover"
                         onClick={clearFilters}
                       >
                         Clear filters

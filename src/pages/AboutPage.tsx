@@ -86,7 +86,7 @@ export function AboutPage() {
             initial="hidden"
             whileInView="visible"
             viewport={viewportOnce}
-            className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
           >
             {/* Heritage */}
             <motion.div variants={fadeSlideUp}>

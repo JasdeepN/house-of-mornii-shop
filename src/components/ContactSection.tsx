@@ -52,13 +52,7 @@ export function ContactSection() {
               <BaroqueCardTitle className="text-2xl text-accent">GET IN TOUCH</BaroqueCardTitle>
             </BaroqueCardHeader>
 
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))", 
-              gap: "48px",
-              justifyContent: "center",
-              textAlign: "center" 
-            }}>
+            <div className="grid grid-cols-1 justify-center gap-8 text-center min-[560px]:grid-cols-3 min-[560px]:gap-12">
               {contactItems.map((item) => (
                 <div key={item.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
                   <span style={{ 
@@ -73,18 +67,18 @@ export function ContactSection() {
                   }}>
                     <item.icon size={22} weight="fill" className="text-accent" />
                   </span>
-                  <div style={{ minWidth: 0 }} className="space-y-1">
+                  <div style={{ minWidth: 0 }} className="max-w-full space-y-1">
                     <p className="text-[10px] tracking-widest text-muted-foreground uppercase">{item.label}</p>
                     {item.href ? (
                       <a
                         href={item.href}
                         {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                        className="hover:text-accent transition-colors text-sm block whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
+                        className="flex min-h-11 max-w-full items-center justify-center text-sm [overflow-wrap:anywhere] hover:text-accent transition-colors"
                       >
                         {item.value}
                       </a>
                     ) : (
-                      <p className="text-sm whitespace-nowrap overflow-hidden text-ellipsis">{item.value}</p>
+                      <p className="text-sm [overflow-wrap:anywhere]">{item.value}</p>
                     )}
                   </div>
                 </div>
@@ -92,16 +86,17 @@ export function ContactSection() {
             </div>
 
             <BaroqueCardFooter centered>
-              <Link to="/contact">
-                <Button
-                  size="lg"
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest group mt-8"
-                >
+              <Button
+                asChild
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold tracking-widest group mt-8 min-h-11"
+              >
+                <Link to="/contact">
                   <span className="group-hover:tracking-[0.2em] transition-all">
                     GET IN TOUCH →
                   </span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </BaroqueCardFooter>
           </BaroqueCard>
         </motion.div>

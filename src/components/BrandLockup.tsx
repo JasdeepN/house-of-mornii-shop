@@ -4,12 +4,14 @@ interface BrandLockupProps {
   /** Scale the lockup: 'sm' for navbar, 'lg' for hero */
   size?: 'sm' | 'lg' | 'xl'
   className?: string
+  /** Render as the page's h1 (the home hero) */
+  as?: 'div' | 'h1'
 }
 
-export function BrandLockup({ size = 'sm', className }: BrandLockupProps) {
+export function BrandLockup({ size = 'sm', className, as: Tag = 'div' }: BrandLockupProps) {
   return (
-    <div
-      className={cn('flex flex-col items-center leading-none select-none', className)}
+    <Tag
+      className={cn('flex flex-col items-center font-body leading-none select-none', className)}
       style={{ WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale' }}
     >
       <span
@@ -30,6 +32,6 @@ export function BrandLockup({ size = 'sm', className }: BrandLockupProps) {
       >
         Mornii
       </span>
-    </div>
+    </Tag>
   )
 }

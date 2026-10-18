@@ -41,6 +41,8 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
             <button
               key={image.url}
               onClick={() => setSelectedIndex(index)}
+              aria-label={`Show image ${index + 1}`}
+              aria-current={index === selectedIndex}
               className={cn(
                 'flex-shrink-0 w-16 h-16 rounded-sm overflow-hidden border-2 transition-all duration-300',
                 index === selectedIndex

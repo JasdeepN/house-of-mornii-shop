@@ -34,11 +34,11 @@ function OrderDetail() {
             <p className="text-muted-foreground mb-6">
               We couldn't find the order you're looking for.
             </p>
-            <Link to="/account/orders">
-              <Button variant="outline" className="border-gold/30 hover:bg-accent/10 tracking-widest">
+            <Button asChild variant="outline" className="border-gold/30 hover:bg-accent/10 tracking-widest">
+              <Link to="/account/orders">
                 <ArrowLeft className="mr-2 h-4 w-4" /> BACK TO ORDERS
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -57,11 +57,11 @@ function OrderDetail() {
         ]} />
 
         <div className="flex items-center gap-4 mb-8">
-          <Link to="/account/orders" aria-label="Back to orders">
-            <Button variant="ghost" size="icon">
+          <Button asChild variant="ghost" size="icon">
+            <Link to="/account/orders" aria-label="Back to orders">
               <ArrowLeft size={20} weight="bold" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <h1 className="text-2xl tracking-widest">ORDER {order.name}</h1>
         </div>
 

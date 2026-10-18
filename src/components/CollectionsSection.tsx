@@ -84,7 +84,7 @@ export function CollectionsSection() {
         >
           <Link
             to="/collections"
-            className="text-xs tracking-[0.3em] uppercase text-primary underline-offset-4 transition-colors duration-300 hover:text-primary-hover hover:underline"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-xs tracking-[0.3em] uppercase text-primary underline-offset-4 transition-colors duration-300 hover:text-primary-hover hover:underline"
           >
             VIEW ALL COLLECTIONS →
           </Link>

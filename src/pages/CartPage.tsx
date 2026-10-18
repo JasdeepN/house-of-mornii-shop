@@ -42,7 +42,7 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
         <div>
           <Link
             to={`/products/${variant.product.handle}`}
-            className="text-sm tracking-widest hover:text-accent transition-colors line-clamp-1"
+            className="text-sm tracking-widest hover:text-accent transition-colors line-clamp-1 max-[768px]:py-3.5"
           >
             {variant.product.title}
           </Link>
@@ -53,7 +53,7 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 mt-2">
           {/* Quantity Controls */}
           <div className="flex items-center gap-2">
             <button
@@ -63,7 +63,8 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
                   : removeLineItem(line.id)
               }
               disabled={isLoading}
-              className="w-7 h-7 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              className="size-7 max-[768px]:size-11 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              aria-label={`Decrease quantity for ${line.merchandise.product.title}`}
             >
               <Minus size={12} weight="bold" />
             </button>
@@ -73,7 +74,8 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
             <button
               onClick={() => updateLineItem(line.id, line.quantity + 1)}
               disabled={isLoading}
-              className="w-7 h-7 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              className="size-7 max-[768px]:size-11 flex items-center justify-center rounded-sm border border-foreground/20 hover:border-accent transition-colors disabled:opacity-40"
+              aria-label={`Increase quantity for ${line.merchandise.product.title}`}
             >
               <Plus size={12} weight="bold" />
             </button>
@@ -89,7 +91,8 @@ function CartLineItem({ line }: { line: ShopifyCartLine }) {
             <button
               onClick={() => removeLineItem(line.id)}
               disabled={isLoading}
-              className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
+              className="flex size-7 max-[768px]:size-11 items-center justify-center text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
+              aria-label={`Remove ${line.merchandise.product.title} from bag`}
             >
               <Trash size={16} weight="bold" />
             </button>
@@ -124,7 +127,7 @@ export function CartPage() {
             </p>
             <Link
               to="/collections"
-              className="text-accent hover:underline tracking-widest text-sm mt-4"
+              className="inline-flex min-h-11 items-center text-accent hover:underline tracking-widest text-sm mt-4"
             >
               BROWSE COLLECTIONS &rarr;
             </Link>
@@ -205,7 +208,7 @@ export function CartPage() {
 
             <Link
               to="/collections"
-              className="block text-center text-sm tracking-widest text-muted-foreground hover:text-accent transition-colors mt-4"
+              className="flex min-h-11 items-center justify-center text-sm tracking-widest text-muted-foreground hover:text-accent transition-colors mt-4"
             >
               &larr; CONTINUE SHOPPING
             </Link>

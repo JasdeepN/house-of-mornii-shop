@@ -25,12 +25,12 @@ export function Footer() {
             <p className="text-sm tracking-[0.15em] footer-tagline text-muted-foreground">
               REGAL · RADIANT · MODERN
             </p>
-            <nav className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-2">
+            <nav className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 mt-2">
               {footerLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
-                  className="text-xs tracking-[0.15em] text-muted-foreground hover:text-accent transition-colors"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center text-xs tracking-[0.15em] text-muted-foreground hover:text-accent transition-colors"
                 >
                   {link.label}
                 </Link>

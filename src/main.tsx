@@ -1,15 +1,18 @@
 import { createRoot } from 'react-dom/client'
+import { MotionConfig } from 'framer-motion'
 import { ErrorBoundary } from "react-error-boundary";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import App from './App.tsx'
 import { ErrorFallback } from './ErrorFallback.tsx'
 import { initGA4, initMetaPixel } from './lib/analytics'
+import { followReducedMotion } from './lib/reduced-motion'
 
 import './tailwind.css'
 import './index.scss'
 
 // Initialise analytics early so the first page-view event fires correctly.
+followReducedMotion()
 initGA4()
 initMetaPixel()
 
@@ -39,7 +42,9 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <MotionConfig reducedMotion="user">
+        <App />
+      </MotionConfig>
     </QueryClientProvider>
   </ErrorBoundary>
 )

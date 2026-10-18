@@ -31,11 +31,9 @@ function OrdersList() {
         {orders.length === 0 ? (
           <div className="glass-panel p-12 golden-glow text-center">
             <p className="text-muted-foreground mb-6">You haven't placed any orders yet.</p>
-            <Link to="/shop">
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90 tracking-widest">
-                START SHOPPING
-              </Button>
-            </Link>
+            <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90 tracking-widest">
+              <Link to="/shop">START SHOPPING</Link>
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -61,10 +59,11 @@ function OrdersList() {
                     <div className="text-right md:text-left">
                       <p className="text-xl font-medium">{formatMoney(order.totalPrice)}</p>
                       <Button
+                        asChild
                         variant="outline"
                         className="mt-2 border-gold/30 hover:bg-accent/10 text-sm tracking-widest"
                       >
-                        VIEW DETAILS
+                        <span>VIEW DETAILS</span>
                       </Button>
                     </div>
                   </div>
