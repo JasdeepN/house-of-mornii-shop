@@ -317,6 +317,17 @@ Removes items from cart.
 
 **Returns:** Updated cart
 
+## Brand
+
+The logo, square logo and cover image live in Shopify Settings > Brand, read through the Storefront API `shop.brand` field. The query is `BRAND_QUERY` in [`brand-query.ts`](../src/lib/shopify/brand-query.ts): `logo`, `squareLogo` and `coverImage`, each with `image { url altText width height }`.
+
+- **Runtime**: `useShopBrand()` (from `@/lib/shopify`) returns the three images, each `null` until set, while loading, or on error. It caches for an hour. The header logo and `useSEO` (cover image) use it.
+- **Build**: `shopifyBrandPlugin` ([`brand-head.ts`](../src/lib/shopify/brand-head.ts), registered in `vite.config.ts`) fetches `shop.brand` during `vite build` and edits `index.html`, because social previewers and crawlers do not run scripts. The cover image replaces `og:image` and `twitter:image`. The square logo replaces the tab icon and adds the Apple touch icon (96px and 180px). It reads `VITE_SHOPIFY_STORE_DOMAIN` and `VITE_SHOPIFY_STOREFRONT_TOKEN`.
+- **Fallbacks**: the plugin never fails the build. With missing or placeholder credentials, an HTTP or API error, a 10 second timeout, or empty Brand settings, it logs a `[brand]` warning and leaves `index.html` unchanged: the static `og-image.png` and the static `favicon.svg` (a serif "M", no logo). Tests skip it.
+- **Uploads are manual**: Shopify has no Admin API for Brand settings. Upload in Settings > Brand on `dev-hom` and again on production.
+- **Changing the logo**: upload the new file in Settings > Brand. The header logo updates with no deploy, on a Shopper's next page load (a tab already open keeps its cached logo for up to an hour). The tab icon and sharing image update on the next deploy of that environment.
+- The stakeholder's logo files stay out of this public repo.
+
 ## Health Checks
 
 The [`health.ts`](../src/lib/shopify/health.ts) module provides API connectivity verification:
