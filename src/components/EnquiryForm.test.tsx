@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EnquiryForm } from './EnquiryForm'
 
@@ -29,6 +29,7 @@ describe('EnquiryForm', () => {
     fetchMock.mockReset()
     render_.mockClear()
     reset.mockClear()
+    remove.mockClear()
     vi.stubGlobal('fetch', fetchMock)
   })
   afterEach(() => {
@@ -53,6 +54,39 @@ describe('EnquiryForm', () => {
       render(<EnquiryForm kind="styling" />)
       await waitFor(() => expect(render_).toHaveBeenCalled())
       expect(render_.mock.calls[0][1]).toMatchObject({ size })
+    } finally {
+      clientWidth.mockRestore()
+    }
+  })
+
+  it('redraws the security check when its space crosses 300px', async () => {
+    let onResize: (() => void) | undefined
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          onResize = callback
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    )
+    let width = 1000
+    const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(() => width)
+    try {
+      render(<EnquiryForm kind="styling" />)
+      await waitFor(() => expect(render_).toHaveBeenCalledTimes(1))
+      expect(render_.mock.calls[0][1]).toMatchObject({ size: 'normal' })
+
+      width = 272
+      act(() => onResize?.())
+      expect(remove).toHaveBeenCalledWith('widget-1')
+      expect(render_).toHaveBeenCalledTimes(2)
+      expect(render_.mock.calls[1][1]).toMatchObject({ size: 'compact' })
+
+      act(() => onResize?.())
+      expect(render_).toHaveBeenCalledTimes(2)
     } finally {
       clientWidth.mockRestore()
     }

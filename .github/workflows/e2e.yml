@@ -64,6 +64,7 @@ jobs:
           E2E_CUSTOMER_SESSION: ${{ secrets.E2E_CUSTOMER_SESSION }}
           E2E_SHOPIFY_CLIENT_ID: ${{ secrets.E2E_SHOPIFY_CLIENT_ID }}
           E2E_SHOPIFY_CLIENT_SECRET: ${{ secrets.E2E_SHOPIFY_CLIENT_SECRET }}
+          E2E_ENQUIRY_DRY_RUN_TOKEN: ${{ secrets.E2E_ENQUIRY_DRY_RUN_TOKEN }}
 
       - name: Upload Playwright report
         if: always()

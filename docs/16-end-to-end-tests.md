@@ -19,19 +19,21 @@ Puts things in a Bag at most; never places an Order or signs in.
 | `security-headers.spec.ts` | HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, long cache on static assets |
 | `launch-checks.spec.ts` | Launch checks from #51/#52; see [Launch checks](#launch-checks) |
 | `env-guard.spec.ts` | The dev guard accepts only the exact dev origin and rejects production and look-alikes |
+| `enquiry-form.spec.ts` | Product page: "Ask about this piece" opens the form, and an empty submit shows the field errors. Contact: `/contact#styling` opens the styling form, and "Book your appointment" reveals it. Never sends ([17 - Enquiries](./17-enquiries.md)) |
 
 ### `e2e/dev-only` (real Orders and sign-in)
 
-`requireDevTarget()` in `e2e/support/env.ts` throws unless the target origin is exactly `https://dev.houseofmornii.com`. Both specs call it in `beforeAll`, and the Admin client calls it too.
+`requireDevTarget()` in `e2e/support/env.ts` throws unless the target origin is exactly `https://dev.houseofmornii.com`. Every spec calls it in `beforeAll`, and the Admin client calls it too.
 
 | Spec | Journeys |
 |------|----------|
 | `sign-in.spec.ts` | Signed out: Sign in with the test Customer's email reaches Shopify's hosted sign-in page and stops (never submitted). Signed in with the saved session: `/account` greets the Customer, the header menu shows Orders and Sign out, and Account details show the email. The phone header has Sign in (#47), so the journey runs at both widths |
 | `checkout.spec.ts` | The signed-in Customer passes the store password, adds "Test – One Variant", checks the Proceed to Checkout link gains `sso=silent`, pays with Shopify's Bogus Gateway, then the Order is verified in Admin (one line, title, quantity, price, Customer email) and on `/account/orders`. The Order is cancelled and archived in a `finally` |
+| `enquiry.spec.ts` | A product enquiry on the two-Variant test Product and a styling enquiry from `/contact#styling` pass every Worker check in dry run (`X-Enquiry-Dry-Run`, added to `/api/enquiry` only), and the form shows its success message. Nothing is emailed |
 
 ## Launch checks
 
-`e2e/read-only/launch-checks.spec.ts` (helpers in `e2e/support/launch-checks.ts`) turns a regression of the v1.0 launch rules into a red deploy. It reads the live site and changes nothing; the Bag tests add a Product to a throwaway Bag. It resolves the pages once from the live site: Home, Shop, Collections, the first Collection, a Product (the two-Variant test Product on dev, a real one elsewhere), the Bag page (`/cart`), About, Contact, Account and a 404.
+`e2e/read-only/launch-checks.spec.ts` (helpers in `e2e/support/launch-checks.ts`) turns a regression of the v1.0 launch rules into a red deploy. It reads the live site and changes nothing; the Bag tests add a Product to a throwaway Bag. It resolves the pages once from the live site: Home, Shop, Collections, the first Collection, a Product (the two-Variant test Product on dev, a real one elsewhere), the Bag page (`/cart`), About, Contact, Contact with the styling form open (`/contact#styling`), Account, the Refund policy and a 404.
 
 | Check | Measures | Widths and project |
 |-------|----------|--------------------|
@@ -48,7 +50,7 @@ Puts things in a Bag at most; never places an Order or signs in.
 **Reduced motion.** Every launch check emulates `prefers-reduced-motion: reduce` (`page.emulateMedia`). Fade-ins and route transitions were measured mid-animation (a low-opacity element reads as low contrast, and a page still sliding in has the wrong size). With reduced motion the app skips its animations, so the page is already at rest when measured.
 
 **Reading a failure.** The message names the page and its path, then lists the offenders:
-- Sideways scroll: the width where it failed, `scrollWidth` against `clientWidth`, and up to four elements whose right edge passes the viewport (tag, class, edge in px). If none is listed, look for unbroken text or an `overflow: hidden` ancestor.
+- Sideways scroll: the width where it failed, `scrollWidth` against `clientWidth`, and up to four elements whose right edge passes the viewport (tag, class, edge in px). If none is listed, look for unbroken text, an `overflow: hidden` ancestor, or an element inside a shadow root, such as the Turnstile iframe.
 - Touch targets: `<tag> "name" is WxHpx` for each target under 44px. A name of `(no accessible name; class ...)` also means a missing accessible name.
 - axe: the rule id, impact, help text and up to five selectors with the reason.
 - Focus: the Tab number and the element, then either "no outline of 2px+ and no box-shadow ring" or its contrast against the background.
@@ -78,6 +80,7 @@ Secrets come from the git-ignored `.env.e2e.local` (`KEY=value` lines; real envi
 | `E2E_STORE_PASSWORD` | The dev store's password page |
 | `E2E_SHOPIFY_CLIENT_ID`, `E2E_SHOPIFY_CLIENT_SECRET` | The "dev-store" app's client credentials |
 | `E2E_CUSTOMER_SESSION` | The saved `hom_customer_session` cookie of the test Customer |
+| `E2E_ENQUIRY_DRY_RUN_TOKEN` | The dev enquiry Worker's dry-run token, sent as `X-Enquiry-Dry-Run` |
 
 | Command | Does |
 |---------|------|
@@ -94,10 +97,11 @@ Secrets come from the git-ignored `.env.e2e.local` (`KEY=value` lines; real envi
 
 1. *Wait for dev.houseofmornii.com to serve this build*: polls (up to 4 minutes) until the live `index.html` references the new entry script.
 2. *Install Playwright Chromium*.
-3. *Run end-to-end tests*: `npm run test:e2e` with `CI=true` and `E2E_BASE_URL=https://dev.houseofmornii.com`. CI retries a failed test once.
-4. *Upload Playwright report* and *Upload test results* (traces and screenshots kept on failure), as the artifacts `playwright-report-<run id>` and `playwright-results-<run id>`, kept 14 days, uploaded even when tests fail.
+3. *Wait for the enquiry Worker*: the Workers deploy in parallel from `deploy.yml`, so this polls `GET /api/enquiry` for the Worker's 405, for up to 5 minutes.
+4. *Run end-to-end tests*: `npm run test:e2e` with `CI=true` and `E2E_BASE_URL=https://dev.houseofmornii.com`. CI retries a failed test once.
+5. *Upload Playwright report* and *Upload test results* (traces and screenshots kept on failure), as the artifacts `playwright-report-<run id>` and `playwright-results-<run id>`, kept 14 days, uploaded even when tests fail.
 
-Secrets on the GitHub environment `dev`: `E2E_STORE_PASSWORD`, `E2E_CUSTOMER_SESSION`, `E2E_SHOPIFY_CLIENT_ID`, `E2E_SHOPIFY_CLIENT_SECRET`. The store domain comes from `VITE_SHOPIFY_STORE_DOMAIN` (also on `dev`) and is passed as `E2E_SHOPIFY_STORE_DOMAIN`.
+Secrets on the GitHub environment `dev`: `E2E_STORE_PASSWORD`, `E2E_CUSTOMER_SESSION`, `E2E_SHOPIFY_CLIENT_ID`, `E2E_SHOPIFY_CLIENT_SECRET`, `E2E_ENQUIRY_DRY_RUN_TOKEN`. The store domain comes from `VITE_SHOPIFY_STORE_DOMAIN` (also on `dev`) and is passed as `E2E_SHOPIFY_STORE_DOMAIN`.
 
 **By hand.** `.github/workflows/e2e.yml` (`workflow_dispatch`, environment `dev`) has two inputs:
 
