@@ -43,6 +43,21 @@ describe('EnquiryForm', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
+  // The normal widget is a fixed 300px; on a 320px phone it pushed the page sideways.
+  it.each([
+    [272, 'compact'],
+    [300, 'normal'],
+  ])('renders the security check in a %ipx space at the %s size', async (width, size) => {
+    const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(width)
+    try {
+      render(<EnquiryForm kind="styling" />)
+      await waitFor(() => expect(render_).toHaveBeenCalled())
+      expect(render_.mock.calls[0][1]).toMatchObject({ size })
+    } finally {
+      clientWidth.mockRestore()
+    }
+  })
+
   it('shows tied validation errors for an empty submit and does not send', async () => {
     const user = userEvent.setup()
     render(<EnquiryForm kind="styling" />)

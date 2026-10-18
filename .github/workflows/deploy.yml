@@ -76,21 +76,29 @@ jobs:
           command: deploy -c wrangler.customer-session.toml --env dev
 
       # Enquiry Worker (dev) — routed at dev.houseofmornii.com/api/enquiry.
-      # Secrets are pushed with the deploy. ENQUIRY_DRY_RUN_TOKEN is dev-only so
-      # the e2e suite can exercise the route without sending mail.
-      - name: Deploy Enquiry Worker (dev)
-        uses: cloudflare/wrangler-action@v3
+      # Secrets ship with the deploy through --secrets-file. Not wrangler-action's
+      # `secrets:` input: it runs `secret bulk` against the default wrangler.toml,
+      # so the secrets land on the wrong Worker. ENQUIRY_DRY_RUN_TOKEN is dev-only
+      # so the e2e suite can exercise the route without sending mail.
+      - name: Write the enquiry Worker secrets (dev)
         env:
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
           ENQUIRY_DRY_RUN_TOKEN: ${{ secrets.E2E_ENQUIRY_DRY_RUN_TOKEN }}
+        run: |
+          jq -n '{TURNSTILE_SECRET_KEY: env.TURNSTILE_SECRET_KEY, ENQUIRY_DRY_RUN_TOKEN: env.ENQUIRY_DRY_RUN_TOKEN}' \
+            > "$RUNNER_TEMP/enquiry-secrets.json"
+
+      - name: Deploy Enquiry Worker (dev)
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.151.1"
-          secrets: |
-            TURNSTILE_SECRET_KEY
-            ENQUIRY_DRY_RUN_TOKEN
-          command: deploy -c wrangler.enquiry.toml --env dev
+          command: deploy -c wrangler.enquiry.toml --env dev --secrets-file ${{ runner.temp }}/enquiry-secrets.json
+
+      - name: Remove the enquiry Worker secrets file (dev)
+        if: always()
+        run: rm -f "$RUNNER_TEMP/enquiry-secrets.json"
 
   # ---------------------------------------------------------------------
   # Production — every push to `main`
@@ -133,15 +141,22 @@ jobs:
           command: deploy -c wrangler.customer-session.toml --env production
 
       # Enquiry Worker (production) — routed at houseofmornii.com/api/enquiry.
-      # No dry-run token: dry run must be impossible in production.
-      - name: Deploy Enquiry Worker (production)
-        uses: cloudflare/wrangler-action@v3
+      # Secrets ship with the deploy, as on dev. No dry-run token: dry run must
+      # be impossible in production.
+      - name: Write the enquiry Worker secrets (production)
         env:
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+        run: |
+          jq -n '{TURNSTILE_SECRET_KEY: env.TURNSTILE_SECRET_KEY}' > "$RUNNER_TEMP/enquiry-secrets.json"
+
+      - name: Deploy Enquiry Worker (production)
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.151.1"
-          secrets: |
-            TURNSTILE_SECRET_KEY
-          command: deploy -c wrangler.enquiry.toml --env production
+          command: deploy -c wrangler.enquiry.toml --env production --secrets-file ${{ runner.temp }}/enquiry-secrets.json
+
+      - name: Remove the enquiry Worker secrets file (production)
+        if: always()
+        run: rm -f "$RUNNER_TEMP/enquiry-secrets.json"
