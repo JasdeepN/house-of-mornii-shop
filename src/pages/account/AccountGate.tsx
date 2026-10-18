@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 
 export function LoadingState() {
   return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+    <div className="min-h-screen pt-8 pb-16 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div
           className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
@@ -19,7 +19,7 @@ export function LoadingState() {
 function SignedOutPanel({ message }: { message: string }) {
   const { open } = useSignInDialog()
   return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+    <div className="min-h-screen pt-8 pb-16 flex items-center justify-center">
       <div className="text-center max-w-md">
         <h1 className="text-2xl tracking-widest mb-4">SIGN IN REQUIRED</h1>
         <p className="text-muted-foreground mb-6">{message}</p>

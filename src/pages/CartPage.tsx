@@ -112,7 +112,7 @@ export function CartPage() {
 
   if (!cart || lines.length === 0) {
     return (
-      <div className="min-h-screen pt-24 pb-16">
+      <div className="min-h-screen pt-8 pb-16">
         <div className="container mx-auto px-6 lg:px-20 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -138,7 +138,7 @@ export function CartPage() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-8 pb-16">
       <div className="container mx-auto px-6 lg:px-20">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}

@@ -65,7 +65,7 @@ function DetailsForm({ profile }: { profile: CustomerProfile }) {
   )
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-8 pb-16">
       <div className="container mx-auto px-6 lg:px-20 max-w-2xl">
         <PageBreadcrumb items={[
           { label: 'Account', to: '/account' },

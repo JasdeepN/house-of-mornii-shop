@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useShopBrand } from '@/lib/shopify'
 import { absoluteSiteUrl, getSiteConfig } from '@/lib/siteConfig'
 
 interface SEOProps {
@@ -38,10 +39,12 @@ function setCanonical(url: string) {
 
 export function useSEO({ title, description, image, type = 'website' }: SEOProps = {}) {
   const { pathname } = useLocation()
+  const coverUrl = useShopBrand().coverImage?.url
 
   useEffect(() => {
     const site = getSiteConfig()
-    const defaultImage = absoluteSiteUrl(site.ogImagePath)
+    // Prefer the Brand cover image; the static og-image.png is the fallback until one is set
+    const defaultImage = coverUrl || absoluteSiteUrl(site.ogImagePath)
     const fullTitle = title ? `${title} | ${site.name}` : site.name
     const desc = description || site.description
     const img = image || defaultImage
@@ -69,5 +72,5 @@ export function useSEO({ title, description, image, type = 'website' }: SEOProps
 
     // Canonical
     setCanonical(url)
-  }, [title, description, image, type, pathname])
+  }, [title, description, image, type, pathname, coverUrl])
 }

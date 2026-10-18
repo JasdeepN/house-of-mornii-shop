@@ -47,7 +47,7 @@ export function ProductListingLayout({
   )
 
   return (
-    <div className="min-h-screen bg-background pb-28 pt-24">
+    <div className="min-h-screen bg-background pb-28 pt-8">
       {breadcrumb && <div className="mx-auto mb-8 w-[min(100%-112px,1440px)] max-[1100px]:w-[min(100%-72px,1440px)] max-[760px]:w-[min(100%-44px,1440px)]">{breadcrumb}</div>}
       <div className="mx-auto grid w-[min(100%-112px,1440px)] grid-cols-[250px_minmax(0,1fr)] items-start gap-11 max-[1100px]:w-[min(100%-72px,1440px)] max-[760px]:w-[min(100%-44px,1440px)] max-[760px]:grid-cols-1 max-[760px]:gap-0">
         <div className="sticky top-28 max-[760px]:static">

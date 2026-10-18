@@ -17,6 +17,7 @@ Puts things in a Bag at most; never places an Order or signs in.
 | `quick-add.spec.ts` | One Variant: + opens the Bag. Several Variants: + opens "Choose an option", and choosing fills the Bag. A sold-out Product's + is disabled |
 | `bag.spec.ts` | Flyout: + raises the quantity, − lowers it, remove empties the Bag. Bag page: lists both Products, subtotal equals their sum; an empty Bag says so. Proceed to Checkout links to the checkout domain and is never followed |
 | `security-headers.spec.ts` | HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, long cache on static assets |
+| `launch-checks.spec.ts` | Launch checks from #51/#52; see [Launch checks](#launch-checks) |
 | `env-guard.spec.ts` | The dev guard accepts only the exact dev origin and rejects production and look-alikes |
 
 ### `e2e/dev-only` (real Orders and sign-in)
@@ -25,8 +26,44 @@ Puts things in a Bag at most; never places an Order or signs in.
 
 | Spec | Journeys |
 |------|----------|
-| `sign-in.spec.ts` | Signed out: Sign in with the test Customer's email reaches Shopify's hosted sign-in page and stops (never submitted). Signed in with the saved session: `/account` greets the Customer, the header menu shows Orders and Sign out, and Account details show the email. The phone sign-in is marked `fixme` (the phone header has no Sign in control, #47) |
+| `sign-in.spec.ts` | Signed out: Sign in with the test Customer's email reaches Shopify's hosted sign-in page and stops (never submitted). Signed in with the saved session: `/account` greets the Customer, the header menu shows Orders and Sign out, and Account details show the email. The phone header has Sign in (#47), so the journey runs at both widths |
 | `checkout.spec.ts` | The signed-in Customer passes the store password, adds "Test – One Variant", checks the Proceed to Checkout link gains `sso=silent`, pays with Shopify's Bogus Gateway, then the Order is verified in Admin (one line, title, quantity, price, Customer email) and on `/account/orders`. The Order is cancelled and archived in a `finally` |
+
+## Launch checks
+
+`e2e/read-only/launch-checks.spec.ts` (helpers in `e2e/support/launch-checks.ts`) turns a regression of the v1.0 launch rules into a red deploy. It reads the live site and changes nothing; the Bag tests add a Product to a throwaway Bag. It resolves the pages once from the live site: Home, Shop, Collections, the first Collection, a Product (the two-Variant test Product on dev, a real one elsewhere), the Bag page (`/cart`), About, Contact, Account and a 404.
+
+| Check | Measures | Widths and project |
+|-------|----------|--------------------|
+| No sideways scroll | `scrollWidth` of the document is no wider than `clientWidth`. Runs on every page above plus a real Product with a long description | 320, 375, 390, 768, 1024 and 1440px; it resizes the viewport itself, so it runs once, in `read-only-desktop` |
+| Touch targets | Every visible link, button, input, select, textarea and `[role=button]`/`[role=link]` is at least 44x44px. Also the open Bag flyout and the phone menu sheet | 390px, `read-only-phone` |
+| Accessibility | axe-core finds no `serious` or `critical` violation on every page, and with the Bag flyout open | Both projects |
+| Keyboard focus | Tab from the page top to Add to bag: every stop has an outline of 2px or more, or a box-shadow ring, at 3:1 or better against its background. Then the Bag dialog opens with focus on the dialog or its heading, not a quantity button | 1440px, `read-only-desktop` |
+
+**Exemptions** (touch targets only):
+- an inline link inside running prose (an `a` in a `p` whose text is longer than the link's);
+- hidden elements: `display: none`, `visibility: hidden`, `hidden`, `inert` or `aria-hidden` ancestors, zero-size boxes, and visually-hidden 1px elements;
+- a checkbox or radio is measured by its label when it has one.
+
+**Reduced motion.** Every launch check emulates `prefers-reduced-motion: reduce` (`page.emulateMedia`). Fade-ins and route transitions were measured mid-animation (a low-opacity element reads as low contrast, and a page still sliding in has the wrong size). With reduced motion the app skips its animations, so the page is already at rest when measured.
+
+**Reading a failure.** The message names the page and its path, then lists the offenders:
+- Sideways scroll: the width where it failed, `scrollWidth` against `clientWidth`, and up to four elements whose right edge passes the viewport (tag, class, edge in px). If none is listed, look for unbroken text or an `overflow: hidden` ancestor.
+- Touch targets: `<tag> "name" is WxHpx` for each target under 44px. A name of `(no accessible name; class ...)` also means a missing accessible name.
+- axe: the rule id, impact, help text and up to five selectors with the reason.
+- Focus: the Tab number and the element, then either "no outline of 2px+ and no box-shadow ring" or its contrast against the background.
+The HTML report and traces (artifacts `playwright-report-<run id>` and `playwright-results-<run id>`) hold screenshots.
+
+**Run it against a local preview build.** Build into a scratch directory with the development env (it supplies the Storefront credentials), serve it, and point the suite at it:
+
+```bash
+npx vite build --mode development --outDir <scratch-dir>
+npx vite preview --outDir <scratch-dir> --port 4173
+# in a second shell
+E2E_BASE_URL=http://localhost:4173 npx playwright test e2e/read-only/launch-checks.spec.ts
+```
+
+Add `--project read-only-phone` or `--project read-only-desktop` to run one project. The target is not the dev origin, so global setup skips the test Products and the checks pick real ones.
 
 ## Run it locally
 

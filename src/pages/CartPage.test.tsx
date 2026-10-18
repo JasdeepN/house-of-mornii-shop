@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CartPage } from './CartPage'
 
 let status: 'signed-in' | 'signed-out' = 'signed-out'
@@ -49,13 +50,13 @@ describe('CartPage checkout link', () => {
   })
 
   it('has no sso param when signed out', () => {
-    render(<MemoryRouter><CartPage /></MemoryRouter>)
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><CartPage /></MemoryRouter></QueryClientProvider>)
     const href = screen.getByText(/checkout/i, { selector: 'a, a *' }).closest('a')!.getAttribute('href')!
     expect(href).toBe('https://checkout.houseofmornii.com/cart/c/abc?key=k1')
   })
 
   it('makes no free-shipping or returns claim', () => {
-    render(<MemoryRouter><CartPage /></MemoryRouter>)
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><CartPage /></MemoryRouter></QueryClientProvider>)
     expect(screen.queryByText(/free shipping/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/easy returns/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/authenticity/i)).not.toBeInTheDocument()
@@ -64,7 +65,7 @@ describe('CartPage checkout link', () => {
 
   it('adds sso=silent when signed in', () => {
     status = 'signed-in'
-    render(<MemoryRouter><CartPage /></MemoryRouter>)
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><CartPage /></MemoryRouter></QueryClientProvider>)
     const href = screen.getByText(/checkout/i, { selector: 'a, a *' }).closest('a')!.getAttribute('href')!
     const url = new URL(href)
     expect(url.searchParams.get('sso')).toBe('silent')

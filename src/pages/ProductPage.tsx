@@ -108,7 +108,7 @@ export function ProductPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-8 pb-16 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div
             className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin"
@@ -123,7 +123,7 @@ export function ProductPage() {
 
   if (errorDisplay) {
     return (
-      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-8 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
           <div className="mb-6">
             <svg
@@ -169,7 +169,7 @@ export function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-8 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-6 lg:px-20 text-center max-w-lg">
           <div className="mb-6">
             <svg
@@ -215,7 +215,7 @@ export function ProductPage() {
       ]
 
   return (
-    <div className="min-h-screen pt-28 pb-16">
+    <div className="min-h-screen pt-8 pb-16">
       <JsonLd data={productSchema(product)} />
       <JsonLd data={breadcrumbSchema([
         { name: 'Home', url: `${window.location.origin}/` },
